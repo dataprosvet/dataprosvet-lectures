@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { readFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, writeFile } from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadConfig } from '../src/config.js';
@@ -61,6 +62,9 @@ test('workflow has the required branch and credential boundaries', async () => {
 });
 
 test('publisher reads files from the explicit course root', async () => {
+  const courseRoot = await mkdtemp(path.join(os.tmpdir(), 'publisher-root-'));
+  await mkdir(path.join(courseRoot, 'lectures'));
+  await writeFile(path.join(courseRoot, 'lectures/001_introduction.md'), '# Publisher acceptance\n');
   const calls = [];
   const adapter = {
     config: {
@@ -80,7 +84,7 @@ test('publisher reads files from the explicit course root', async () => {
     course: { slug: 'publisher-acceptance-v6', title: 'Course', description: 'Course', lifecycleStatus: 'draft', availability: 'inDevelopment', sortOrder: 1 },
     materials: [{ kind: 'lecture', slug: 'introduction', title: 'Introduction', summary: 'Summary', lifecycleStatus: 'draft', availability: 'inDevelopment', sortOrder: 1, content: { path: 'lectures/001_introduction.md', fileId: 'md-test' }, assets: [] }],
   };
-  await publishCourse(plan, { adapter, root });
+  await publishCourse(plan, { adapter, root: courseRoot });
   assert.equal(calls.length, 1);
   assert.deepEqual({ ...calls[0], body: undefined }, { bucket: 'markdown', id: 'md-test', body: undefined, name: 'lectures/001_introduction.md' });
   assert.match(calls[0].body, /^# Publisher acceptance/m);
