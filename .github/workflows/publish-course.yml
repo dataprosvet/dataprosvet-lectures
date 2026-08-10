@@ -19,7 +19,8 @@ jobs:
       - run: git diff --exit-code origin/master -- .github README.md course.yaml.example
       - run: npm run validate
         working-directory: .github/publisher
-        env: { GITHUB_REF_NAME: ${{ github.head_ref || github.ref_name }} }
+        env:
+          GITHUB_REF_NAME: "${{ github.head_ref || github.ref_name }}"
   deploy:
     if: github.event_name == 'push'
     needs: validate
