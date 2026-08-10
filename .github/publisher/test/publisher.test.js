@@ -8,6 +8,7 @@ import { canonicalJson, effectivePublic, stableId } from '../src/models.js';
 import { inspectImage } from '../src/image.js';
 import { PublisherError } from '../src/errors.js';
 import { containsForbiddenSecret } from '../src/validator.js';
+import { publishCourse } from '../src/publisher.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 
@@ -51,4 +52,30 @@ test('workflow has the required branch and credential boundaries', async () => {
   assert.match(workflow, /APPWRITE_API_KEY: \$\{\{ secrets\.APPWRITE_API_KEY \}\}/);
   assert.match(workflow, /actions\/checkout@[a-f0-9]{40}/);
   assert.match(workflow, /cancel-in-progress: false/);
+});
+
+test('publisher reads files from the explicit course root', async () => {
+  const calls = [];
+  const adapter = {
+    config: {
+      APPWRITE_COURSES_TABLE_ID: 'courses',
+      APPWRITE_MATERIALS_TABLE_ID: 'materials',
+      APPWRITE_ASSETS_TABLE_ID: 'assets',
+      APPWRITE_MARKDOWN_BUCKET_ID: 'markdown',
+      APPWRITE_MEDIA_BUCKET_ID: 'media',
+    },
+    async findCourse() { return null; },
+    async listMaterials() { return []; },
+    async putFile(bucket, id, bytes, name) { calls.push({ bucket, id, body: bytes.toString(), name }); },
+    async upsertRow(table, rowId, data) { return { $id: rowId ?? `${table}-1`, ...data }; },
+    async verifyAnonymous() {},
+  };
+  const plan = {
+    course: { slug: 'publisher-acceptance-v6', title: 'Course', description: 'Course', lifecycleStatus: 'draft', availability: 'inDevelopment', sortOrder: 1 },
+    materials: [{ kind: 'lecture', slug: 'introduction', title: 'Introduction', summary: 'Summary', lifecycleStatus: 'draft', availability: 'inDevelopment', sortOrder: 1, content: { path: 'lectures/001_introduction.md', fileId: 'md-test' }, assets: [] }],
+  };
+  await publishCourse(plan, { adapter, root });
+  assert.equal(calls.length, 1);
+  assert.deepEqual({ ...calls[0], body: undefined }, { bucket: 'markdown', id: 'md-test', body: undefined, name: 'lectures/001_introduction.md' });
+  assert.match(calls[0].body, /^# Publisher acceptance/m);
 });

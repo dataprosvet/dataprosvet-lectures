@@ -12,6 +12,6 @@ try {
   const input = { root: process.env.COURSE_ROOT || process.cwd(), branch: process.env.GITHUB_HEAD_REF || process.env.GITHUB_REF_NAME || '', schema };
   const plan = await validateCourse(input);
   if (command === 'validate') { log('validate', 'Validated course', { course: plan.course.slug, digest: plan.digest }); process.stdout.write(`${JSON.stringify(plan)}\n`); }
-  else if (command === 'publish') { await publishCourse(plan); log('publish', 'Publication completed', { course: plan.course.slug, digest: plan.digest }); }
+  else if (command === 'publish') { await publishCourse(plan, { root: input.root }); log('publish', 'Publication completed', { course: plan.course.slug, digest: plan.digest }); }
   else throw new Error('Usage: validate or publish');
 } catch (error) { process.stderr.write(`${JSON.stringify(formatError(error))}\n`); process.exitCode = 1; }

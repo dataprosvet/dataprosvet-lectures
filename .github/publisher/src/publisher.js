@@ -72,4 +72,4 @@ export async function publishPlan(plan, { adapter = createAdapter(), root = proc
     }
   });
 }
-export async function publishCourse(plan) { return publishPlan(plan); }
+export async function publishCourse(plan, options) { return publishPlan(plan, options); }
