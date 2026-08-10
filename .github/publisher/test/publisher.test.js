@@ -68,7 +68,7 @@ test('publisher reads files from the explicit course root', async () => {
     async listMaterials() { return []; },
     async putFile(bucket, id, bytes, name) { calls.push({ bucket, id, body: bytes.toString(), name }); },
     async upsertRow(table, rowId, data) { return { $id: rowId ?? `${table}-1`, ...data }; },
-    async verifyAnonymous() {},
+    async verifyFinal() {},
   };
   const plan = {
     course: { slug: 'publisher-acceptance-v6', title: 'Course', description: 'Course', lifecycleStatus: 'draft', availability: 'inDevelopment', sortOrder: 1 },

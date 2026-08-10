@@ -38,8 +38,10 @@ async function uploadFiles(adapter, plan, root) {
 }
 export async function publishPlan(plan, { adapter = createAdapter(), root = process.cwd() } = {}) {
   return withCourseLock(plan.course.slug, async () => {
-    let stage = 'read-current-state';
+    let stage = 'preflight';
     try {
+      if (adapter.preflight) await adapter.preflight(plan);
+      stage = 'read-current-state';
       const diff = await buildDiff(adapter, plan);
       stage = 'lock-current-state'; await lockExisting(adapter, diff);
       stage = 'upload-private-files'; await uploadFiles(adapter, plan, root);
@@ -57,14 +59,19 @@ export async function publishPlan(plan, { adapter = createAdapter(), root = proc
           if (material.content) await adapter.setFilePermissions(adapter.config.APPWRITE_MARKDOWN_BUCKET_ID, material.content.fileId, true);
           for (const asset of material.assets) await adapter.setFilePermissions(adapter.config.APPWRITE_MEDIA_BUCKET_ID, asset.fileId, true);
         }
-        await adapter.upsertRow(adapter.config.APPWRITE_MATERIALS_TABLE_ID, row.$id, rowMaterial(course.$id, material, previous), material.lifecycleStatus === 'published');
+        const metadataReadable = plan.course.lifecycleStatus === 'published' && material.lifecycleStatus === 'published';
+        for (const asset of material.assets) {
+          const assetRow = await adapter.findAsset(row.$id, asset.key);
+          await adapter.upsertRow(adapter.config.APPWRITE_ASSETS_TABLE_ID, assetRow.$id, { materialId: row.$id, key: asset.key, fileId: asset.fileId, alt: asset.alt, mimeType: asset.mimeType, width: asset.width, height: asset.height }, metadataReadable);
+        }
+        await adapter.upsertRow(adapter.config.APPWRITE_MATERIALS_TABLE_ID, row.$id, rowMaterial(course.$id, material, previous), metadataReadable);
       }
       stage = 'archive-omitted-content';
       for (const omitted of diff.archive) await adapter.archiveRow(adapter.config.APPWRITE_MATERIALS_TABLE_ID, omitted);
       stage = 'expose-course';
       await adapter.upsertRow(adapter.config.APPWRITE_COURSES_TABLE_ID, course.$id, rowCourse(plan.course, diff.course), plan.course.lifecycleStatus === 'published');
       stage = 'verify-final-state';
-      await adapter.verifyAnonymous(plan); return diff;
+      await adapter.verifyFinal(plan); return diff;
     } catch (error) {
       if (error instanceof PublisherError) throw error;
       const providerCode = typeof error?.code === 'number' || typeof error?.code === 'string' ? ` (provider code ${String(error.code).slice(0, 40)})` : '';
