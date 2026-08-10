@@ -5,18 +5,17 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import Ajv2020 from 'ajv/dist/2020.js';
 import YAML from 'yaml';
-import { AVAILABILITY_STATUSES, LIFECYCLE_STATUSES, LIMITS, MATERIAL_KINDS, UNREFERENCED_ASSET_POLICY } from './constants.js';
+import { AVAILABILITY_STATUSES, LIFECYCLE_STATUSES, LIMITS, MATERIAL_KINDS } from './constants.js';
 import { fail, PublisherError } from './errors.js';
 import { canonicalJson, checksum, effectivePublic, stableId } from './models.js';
 import { inspectImage } from './image.js';
+import { buildAssetIndex, normalizedAssetPath, transformMarkdown } from './markdown.js';
 
 const exec = promisify(execFile);
 const githubSecretPattern = /gh[opsu]_[A-Za-z0-9_]{20,}/i;
 const appwriteLiteralPattern = /APPWRITE_API_KEY\s*[=:]\s*["']?(?!\$|process\.env)([A-Za-z0-9._-]{20,})/i;
 const directAppwritePattern = /(?:appwrite\.io|appwrite\.wholedata\.ru|\/v1\/storage\/buckets\/)/i;
 const rawHtmlPattern = /<\/?[a-z][^>]*>/i;
-const attachmentImagePattern = /!\[[^\]\r\n]*\]\(attachment:([a-z0-9]+(?:-[a-z0-9]+)*)\)/g;
-const attachmentTokenPattern = /attachment:[a-z0-9]+(?:-[a-z0-9]+)*/;
 const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 export function containsForbiddenSecret(source) {
@@ -24,7 +23,7 @@ export function containsForbiddenSecret(source) {
 }
 
 function validRelative(file, prefix) {
-  return typeof file === 'string' && file.startsWith(`${prefix}/`) && !path.isAbsolute(file) && !file.split('/').includes('..') && !file.includes('\\');
+  return typeof file === 'string' && file.startsWith(`${prefix}/`) && !path.isAbsolute(file) && !file.split('/').includes('..') && !file.includes('\\') && !/[\0\r\n]/.test(file);
 }
 function branchSlug(branch) {
   const match = /^courses\/([a-z0-9]+(?:-[a-z0-9]+)*)$/.exec(branch);
@@ -44,8 +43,9 @@ export async function inspectTree(root) {
   const entries = await trackedPaths(root);
   const seen = new Set();
   for (const { file, mode } of entries) {
-    if (!file || path.isAbsolute(file) || file.split('/').includes('..') || seen.has(file.toLowerCase())) fail('TREE_UNSAFE', 'Unsafe, duplicate, or case-colliding tracked path', { path: file });
-    seen.add(file.toLowerCase());
+    const identity = file?.normalize('NFC').toLowerCase();
+    if (!file || path.isAbsolute(file) || file.includes('\\') || /[\0\r\n]/.test(file) || file.split('/').includes('..') || seen.has(identity)) fail('TREE_UNSAFE', 'Unsafe, duplicate, Unicode-normalized, or case-colliding tracked path', { path: file });
+    seen.add(identity);
     if (mode === '160000') fail('TREE_UNSAFE', 'Git submodules are not allowed', { path: file });
     if (!['100644', '100755'].includes(mode)) fail('TREE_UNSAFE', 'Unsupported tracked file mode', { path: file });
     if (mode === '100755') fail('TREE_UNSAFE', 'Executable tracked files are not allowed', { path: file });
@@ -83,12 +83,9 @@ function unique(values, description) {
   if (new Set(values).size !== values.length) fail('MANIFEST_DUPLICATE', `Duplicate ${description}`);
 }
 function fileHash(bytes) { return checksum(bytes); }
-function parseReferences(markdown, relativePath) {
+function validateMarkdownSource(markdown, relativePath) {
   if (rawHtmlPattern.test(markdown)) fail('MARKDOWN_HTML_FORBIDDEN', 'Raw HTML is forbidden', { path: relativePath });
   if (directAppwritePattern.test(markdown)) fail('MARKDOWN_APPWRITE_REFERENCE', 'Direct Appwrite references are forbidden', { path: relativePath });
-  const references = [...markdown.matchAll(attachmentImagePattern)].map((match) => match[1]);
-  if (attachmentTokenPattern.test(markdown.replace(attachmentImagePattern, ''))) fail('ATTACHMENT_SYNTAX_INVALID', 'Attachments must use Markdown image syntax ![alt](attachment:key)', { path: relativePath });
-  return references;
 }
 function normalizeMaterial(course, kind, material, markdown, assets) {
   const publicRead = effectivePublic(course, material);
@@ -110,38 +107,62 @@ export async function validateCourse({ root = process.cwd(), branch, schema, all
   unique(materials.map(({ material }) => material.slug), 'material slug');
   unique(materials.map(({ material }) => material.sortOrder), 'material sortOrder');
   const undeclaredContent = new Set([...tree].filter((item) => /^(lectures|seminars|homeworks)\/.+\.md$/i.test(item) && !item.endsWith('/.gitkeep')));
+  const assetIndex = buildAssetIndex(tree);
   const declaredAssets = new Set();
   const normalized = [];
   for (const { kind, material } of materials) {
     if (!LIFECYCLE_STATUSES.includes(material.lifecycleStatus) || !AVAILABILITY_STATUSES.includes(material.availability)) fail('STATUS_INVALID', 'Unsupported status');
     const isAvailable = material.lifecycleStatus === 'published' && material.availability === 'available';
     if (isAvailable && !material.markdown) fail('MARKDOWN_REQUIRED', 'Published available material requires Markdown');
-    let markdown = null; let markdownHash = null; let references = [];
+    let content = null; let effectiveAssetInputs = [];
+    const explicitAssets = material.assets ?? [];
     if (material.markdown) {
       if (!validRelative(material.markdown, `${kind}s`) || !material.markdown.endsWith('.md')) fail('MARKDOWN_PATH_INVALID', 'Markdown path must be in its matching content directory', { path: material.markdown });
       const expectedName = `${String(material.sortOrder).padStart(3, '0')}_${material.slug}.md`;
       if (path.basename(material.markdown) !== expectedName) fail('MARKDOWN_FILENAME_INVALID', `Markdown filename must be ${expectedName}`, { path: material.markdown });
       if (!tree.has(material.markdown)) fail('FILE_UNTRACKED', 'Markdown must be tracked', { path: material.markdown });
-      markdown = await readFile(root, material.markdown, LIMITS.maxMarkdownBytes, 'utf-8').catch((error) => { if (error instanceof PublisherError) throw error; fail('MARKDOWN_UTF8_INVALID', 'Markdown must be UTF-8', { path: material.markdown }); });
+      const markdownBytes = await readFile(root, material.markdown, LIMITS.maxMarkdownBytes);
+      let markdown;
+      try { markdown = new TextDecoder('utf-8', { fatal: true }).decode(markdownBytes); } catch { fail('MARKDOWN_UTF8_INVALID', 'Markdown must be UTF-8', { path: material.markdown }); }
       if (containsForbiddenSecret(markdown)) fail('SECRET_PATTERN', 'Tracked source contains a forbidden credential pattern', { path: material.markdown });
-      references = parseReferences(markdown, material.markdown); markdownHash = fileHash(Buffer.from(markdown)); undeclaredContent.delete(material.markdown);
+      validateMarkdownSource(markdown, material.markdown);
+      const transformed = transformMarkdown({ source: markdown, markdownPath: material.markdown, assetIndex, explicitAssets });
+      const transformedBytes = Buffer.from(transformed.markdown);
+      if (transformedBytes.length > LIMITS.maxMarkdownBytes) fail('FILE_TOO_LARGE', `Transformed Markdown exceeds ${LIMITS.maxMarkdownBytes} bytes`, { path: material.markdown });
+      const sourceChecksum = fileHash(markdownBytes); const transformedChecksum = fileHash(transformedBytes);
+      content = Object.freeze({ path: material.markdown, sourceChecksum, checksum: transformedChecksum, fileId: stableId('md', transformedChecksum), rewrites: transformed.rewrites });
+      effectiveAssetInputs = transformed.assets;
+      undeclaredContent.delete(material.markdown);
+    } else if (explicitAssets.length) {
+      fail('ATTACHMENT_UNREFERENCED', 'A material without Markdown cannot use attachment declarations');
     }
-    unique(material.assets.map((asset) => asset.key), `asset key in ${material.slug}`);
-    const assetKeys = new Set(material.assets.map((asset) => asset.key));
-    for (const reference of references) if (!assetKeys.has(reference)) fail('ATTACHMENT_UNRESOLVED', `Unknown attachment key ${reference}`, { path: material.markdown });
+    if (effectiveAssetInputs.length > LIMITS.maxAssetsPerMaterial) fail('MANIFEST_LIMIT', `Material exceeds ${LIMITS.maxAssetsPerMaterial} effective assets`, { path: material.markdown });
+    unique(effectiveAssetInputs.map((asset) => asset.key), `asset key in ${material.slug}`);
+    unique(effectiveAssetInputs.map((asset) => normalizedAssetPath(asset.file).toLowerCase()), `asset path in ${material.slug}`);
     const assets = [];
-    for (const asset of material.assets) {
+    for (const asset of effectiveAssetInputs) {
       if (!validRelative(asset.file, 'assets') || !tree.has(asset.file)) fail('ASSET_PATH_INVALID', 'Asset must be a tracked file under assets/', { path: asset.file });
       const bytes = await readFile(root, asset.file, LIMITS.maxImageBytes); const info = inspectImage(bytes, asset.file);
       declaredAssets.add(asset.file);
-      if (!references.includes(asset.key) && UNREFERENCED_ASSET_POLICY === 'error') fail('ATTACHMENT_UNREFERENCED', `Declared attachment ${asset.key} is not referenced`, { path: asset.file });
       assets.push(Object.freeze({ ...asset, ...info, checksum: fileHash(bytes), fileId: stableId('asset', fileHash(bytes)), publicRead: effectivePublic(manifest, material) }));
     }
-    normalized.push(normalizeMaterial(manifest, kind, material, markdown ? { path: material.markdown, checksum: markdownHash, fileId: stableId('md', markdownHash) } : null, assets));
+    normalized.push(normalizeMaterial(manifest, kind, { ...material, assets: undefined }, content, assets));
   }
   if (undeclaredContent.size) fail('UNDECLARED_CONTENT', 'Undeclared Markdown exists in a content directory', { path: [...undeclaredContent].sort()[0] });
   const undeclaredAsset = [...tree].find((item) => item.startsWith('assets/') && !item.endsWith('/.gitkeep') && !declaredAssets.has(item));
   if (undeclaredAsset) fail('UNDECLARED_ASSET', 'Undeclared asset exists in assets/', { path: undeclaredAsset });
-  const plan = { version: 1, course: { ...manifest, publicRead: manifest.lifecycleStatus === 'published', materials: undefined }, materials: normalized.sort((a, b) => a.sortOrder - b.sortOrder || a.resourceKey.localeCompare(b.resourceKey)) };
+  const sorted = normalized.sort((a, b) => a.sortOrder - b.sortOrder || a.resourceKey.localeCompare(b.resourceKey));
+  const plan = {
+    version: 1,
+    course: { ...manifest, publicRead: manifest.lifecycleStatus === 'published', materials: undefined },
+    materials: sorted,
+    summary: {
+      transformations: sorted.filter((item) => item.content).map((item) => ({
+        markdown: item.content.path,
+        checksum: item.content.checksum,
+        assets: item.assets.filter((asset) => asset.generated).map(({ file, key }) => ({ file, key })),
+      })),
+    },
+  };
   return Object.freeze({ ...plan, digest: crypto.createHash('sha256').update(canonicalJson(plan)).digest('hex') });
 }

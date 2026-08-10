@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadConfig } from '../src/config.js';
-import { canonicalJson, effectivePublic, stableId } from '../src/models.js';
+import { canonicalJson, checksum, effectivePublic, stableId } from '../src/models.js';
 import { inspectImage } from '../src/image.js';
 import { PublisherError } from '../src/errors.js';
 import { containsForbiddenSecret } from '../src/validator.js';
@@ -62,6 +62,7 @@ test('workflow has the required branch and credential boundaries', async () => {
   assert.match(workflow, /^permissions:\n  contents: read$/m);
   assert.doesNotMatch(validate, /secrets\.|APPWRITE_API_KEY/);
   assert.doesNotMatch(deploy, /cache:|actions\/(?:cache|upload-artifact|download-artifact)@/);
+  assert.doesNotMatch(workflow, /actions\/(?:upload-artifact|download-artifact)@/);
   assert.doesNotMatch(deploy, /run:.*\$\{\{ github\.(?:ref_name|head_ref) \}\}/);
 });
 
@@ -92,4 +93,47 @@ test('publisher reads files from the explicit course root', async () => {
   assert.equal(calls.length, 1);
   assert.deepEqual({ ...calls[0], body: undefined }, { bucket: 'markdown', id: 'md-test', body: undefined, name: 'lectures/001_introduction.md' });
   assert.match(calls[0].body, /^# Publisher acceptance/m);
+});
+
+test('publisher uploads the validated transformed Markdown copy without modifying source', async () => {
+  const courseRoot = await mkdtemp(path.join(os.tmpdir(), 'publisher-transform-'));
+  await mkdir(path.join(courseRoot, 'lectures'));
+  const source = '![[assets/diagram.png|Diagram]]\n'; const replacement = '![Diagram](attachment:asset-0123456789abcdef01234567)\n';
+  const markdownPath = 'lectures/001_introduction.md'; await writeFile(path.join(courseRoot, markdownPath), source);
+  const calls = [];
+  const adapter = {
+    config: { APPWRITE_COURSES_TABLE_ID: 'courses', APPWRITE_MATERIALS_TABLE_ID: 'materials', APPWRITE_ASSETS_TABLE_ID: 'assets', APPWRITE_MARKDOWN_BUCKET_ID: 'markdown', APPWRITE_MEDIA_BUCKET_ID: 'media' },
+    async findCourse() { return null; }, async listMaterials() { return []; },
+    async putFile(bucket, id, body) { calls.push({ bucket, id, body: body.toString() }); },
+    async upsertRow(table, rowId, data) { return { $id: rowId ?? `${table}-1`, ...data }; }, async verifyFinal() {},
+  };
+  const transformedChecksum = checksum(Buffer.from(replacement));
+  const plan = {
+    course: { slug: 'publisher-transform', title: 'Course', description: 'Course', lifecycleStatus: 'draft', availability: 'inDevelopment', sortOrder: 1 },
+    materials: [{ kind: 'lecture', slug: 'introduction', title: 'Introduction', summary: 'Summary', lifecycleStatus: 'draft', availability: 'inDevelopment', sortOrder: 1, content: { path: markdownPath, sourceChecksum: checksum(Buffer.from(source)), checksum: transformedChecksum, fileId: stableId('md', transformedChecksum), rewrites: [{ start: 0, end: source.trimEnd().length, key: 'asset-0123456789abcdef01234567', alt: 'Diagram' }] }, assets: [] }],
+  };
+  await publishCourse(plan, { adapter, root: courseRoot });
+  assert.equal(calls[0].body, replacement);
+  assert.equal(await readFile(path.join(courseRoot, markdownPath), 'utf8'), source);
+});
+
+test('publisher rejects source drift before contacting Appwrite', async () => {
+  const courseRoot = await mkdtemp(path.join(os.tmpdir(), 'publisher-integrity-'));
+  await mkdir(path.join(courseRoot, 'lectures')); await writeFile(path.join(courseRoot, 'lectures/001_intro.md'), '# Changed\n');
+  let providerCalls = 0;
+  const adapter = { config: {}, async findCourse() { providerCalls += 1; return null; } };
+  const plan = { course: { slug: 'fixture-course' }, materials: [{ content: { path: 'lectures/001_intro.md', sourceChecksum: checksum(Buffer.from('# Original\n')), checksum: checksum(Buffer.from('# Original\n')), fileId: stableId('md', checksum(Buffer.from('# Original\n'))), rewrites: [] }, assets: [] }] };
+  await assert.rejects(() => publishCourse(plan, { adapter, root: courseRoot }), (error) => error.code === 'MARKDOWN_SOURCE_CHANGED');
+  assert.equal(providerCalls, 0);
+});
+
+test('publisher rejects transformed checksum drift before contacting Appwrite', async () => {
+  const courseRoot = await mkdtemp(path.join(os.tmpdir(), 'publisher-transform-integrity-'));
+  await mkdir(path.join(courseRoot, 'lectures')); const source = '![[assets/image.png]]\n';
+  await writeFile(path.join(courseRoot, 'lectures/001_intro.md'), source);
+  let providerCalls = 0; const adapter = { config: {}, async findCourse() { providerCalls += 1; return null; } };
+  const wrong = checksum(Buffer.from('wrong'));
+  const plan = { course: { slug: 'fixture-course' }, materials: [{ content: { path: 'lectures/001_intro.md', sourceChecksum: checksum(Buffer.from(source)), checksum: wrong, fileId: stableId('md', wrong), rewrites: [{ start: 0, end: source.trimEnd().length, key: 'asset-0123456789abcdef01234567', alt: 'Image' }] }, assets: [] }] };
+  await assert.rejects(() => publishCourse(plan, { adapter, root: courseRoot }), (error) => error.code === 'MARKDOWN_INTEGRITY_MISMATCH');
+  assert.equal(providerCalls, 0);
 });
