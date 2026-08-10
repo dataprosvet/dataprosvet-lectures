@@ -22,7 +22,7 @@ Slug ветки и `course.yaml:slug` обязаны совпадать и им�
 
 Элемент списка задаёт `slug`, `title`, `summary`, `lifecycleStatus`, `availability`, `sortOrder`, необязательный `markdown` и `assets`. Раздел определяет тип: `lectures` → `lecture`, `seminars` → `seminar`, `homeworks` → `homework`. Markdown обязан называться `<трёхзначный sortOrder>_<slug>.md`: например, для `sortOrder: 1` и `slug: introduction` — `lectures/001_introduction.md`.
 
-Допустимые состояния: lifecycle `draft`, `published`, `archived`; availability `inDevelopment`, `available`, `temporarilyUnavailable`. `published` + `available` материал обязан иметь Markdown. Markdown хранится только в каталоге своего типа. Изображения только в `assets/`: PNG, JPEG или WebP, до 5 MiB, до 4096×4096 и 16 млн пикселей. Markdown до 256 KiB, UTF-8, без raw HTML и Appwrite URL. Ссылка на изображение выглядит как `attachment:diagram`; ключ обязан быть объявлен в `assets` того же материала. Необъявленные Markdown и объявленные, но неиспользуемые assets — ошибки.
+Допустимые состояния: lifecycle `draft`, `published`, `archived`; availability `inDevelopment`, `available`, `temporarilyUnavailable`. `published` + `available` материал обязан иметь Markdown. Markdown хранится только в каталоге своего типа. Изображения только в `assets/`: PNG, JPEG или WebP, до 5 MiB, до 4096×4096 и 16 млн пикселей. Markdown до 256 KiB, UTF-8, без raw HTML и Appwrite URL. Изображение вставляется полным Markdown-синтаксисом `![Описание](attachment:diagram)`; `diagram` обязан быть объявлен в `assets` того же материала. Голая строка `attachment:diagram` не рендерится и отклоняется валидатором. Необъявленные Markdown и объявленные, но неиспользуемые assets — ошибки.
 
 Пример material:
 

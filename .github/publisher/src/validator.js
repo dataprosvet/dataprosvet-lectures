@@ -15,7 +15,8 @@ const githubSecretPattern = /gh[opsu]_[A-Za-z0-9_]{20,}/i;
 const appwriteLiteralPattern = /APPWRITE_API_KEY\s*[=:]\s*["']?(?!\$|process\.env)([A-Za-z0-9._-]{20,})/i;
 const directAppwritePattern = /(?:appwrite\.io|appwrite\.wholedata\.ru|\/v1\/storage\/buckets\/)/i;
 const rawHtmlPattern = /<\/?[a-z][^>]*>/i;
-const attachmentPattern = /attachment:([a-z0-9]+(?:-[a-z0-9]+)*)/g;
+const attachmentImagePattern = /!\[[^\]\r\n]*\]\(attachment:([a-z0-9]+(?:-[a-z0-9]+)*)\)/g;
+const attachmentTokenPattern = /attachment:[a-z0-9]+(?:-[a-z0-9]+)*/;
 const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 export function containsForbiddenSecret(source) {
@@ -85,7 +86,9 @@ function fileHash(bytes) { return checksum(bytes); }
 function parseReferences(markdown, relativePath) {
   if (rawHtmlPattern.test(markdown)) fail('MARKDOWN_HTML_FORBIDDEN', 'Raw HTML is forbidden', { path: relativePath });
   if (directAppwritePattern.test(markdown)) fail('MARKDOWN_APPWRITE_REFERENCE', 'Direct Appwrite references are forbidden', { path: relativePath });
-  return [...markdown.matchAll(attachmentPattern)].map((match) => match[1]);
+  const references = [...markdown.matchAll(attachmentImagePattern)].map((match) => match[1]);
+  if (attachmentTokenPattern.test(markdown.replace(attachmentImagePattern, ''))) fail('ATTACHMENT_SYNTAX_INVALID', 'Attachments must use Markdown image syntax ![alt](attachment:key)', { path: relativePath });
+  return references;
 }
 function normalizeMaterial(course, kind, material, markdown, assets) {
   const publicRead = effectivePublic(course, material);

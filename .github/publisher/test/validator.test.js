@@ -76,7 +76,7 @@ test('attachment references resolve to inspected image metadata', async () => {
   const course = emptyCourse(); const lecture = material('lecture', 1);
   lecture.assets.push({ key: 'diagram', file: 'assets/diagram.png', alt: 'Diagram' }); course.materials.lectures.push(lecture);
   const png = Buffer.alloc(24); Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]).copy(png); png.writeUInt32BE(2, 16); png.writeUInt32BE(3, 20);
-  const plan = await validateCourse({ root: await fixture(course, { 'lectures/001_lecture-1.md': 'attachment:diagram', 'assets/diagram.png': png }), branch: 'courses/fixture-course', schema });
+  const plan = await validateCourse({ root: await fixture(course, { 'lectures/001_lecture-1.md': '![Diagram](attachment:diagram)', 'assets/diagram.png': png }), branch: 'courses/fixture-course', schema });
   assert.deepEqual({ ...plan.materials[0].assets[0], checksum: undefined, fileId: undefined }, { key: 'diagram', file: 'assets/diagram.png', alt: 'Diagram', mimeType: 'image/png', width: 2, height: 3, checksum: undefined, fileId: undefined, publicRead: false });
 });
 
@@ -92,7 +92,8 @@ test('duplicate identity and missing or unresolved content are rejected', async 
   const missing = emptyCourse(); missing.materials.lectures.push(material('lecture', 1));
   await reject(missing, {}, 'FILE_UNTRACKED');
   const unresolved = emptyCourse(); unresolved.materials.lectures.push(material('lecture', 1));
-  await reject(unresolved, { 'lectures/001_lecture-1.md': 'attachment:missing' }, 'ATTACHMENT_UNRESOLVED');
+  await reject(unresolved, { 'lectures/001_lecture-1.md': '![Missing](attachment:missing)' }, 'ATTACHMENT_UNRESOLVED');
+  await reject(unresolved, { 'lectures/001_lecture-1.md': 'attachment:missing' }, 'ATTACHMENT_SYNTAX_INVALID');
 });
 
 test('unsafe tree, raw HTML, invalid UTF-8, and credentials are rejected', async () => {
@@ -108,5 +109,5 @@ test('undeclared, unreferenced, and MIME-mismatched assets are rejected', async 
   await reject(emptyCourse(), { 'assets/orphan.png': png }, 'UNDECLARED_ASSET');
   const unreferenced = emptyCourse(); const lecture = material('lecture', 1); lecture.assets.push({ key: 'diagram', file: 'assets/diagram.png', alt: 'Diagram' }); unreferenced.materials.lectures.push(lecture);
   await reject(unreferenced, { 'lectures/001_lecture-1.md': '# No reference', 'assets/diagram.png': png }, 'ATTACHMENT_UNREFERENCED');
-  await reject(unreferenced, { 'lectures/001_lecture-1.md': 'attachment:diagram', 'assets/diagram.png': Buffer.from('not an image') }, 'IMAGE_INVALID');
+  await reject(unreferenced, { 'lectures/001_lecture-1.md': '![Diagram](attachment:diagram)', 'assets/diagram.png': Buffer.from('not an image') }, 'IMAGE_INVALID');
 });
