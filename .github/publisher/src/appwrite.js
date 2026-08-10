@@ -1,4 +1,5 @@
-import { Client, ID, InputFile, Permission, Query, Role, Storage, TablesDB } from 'node-appwrite';
+import { Client, ID, Permission, Query, Role, Storage, TablesDB } from 'node-appwrite';
+import { InputFile } from 'node-appwrite/dist/inputFile.js';
 import { loadConfig } from './config.js';
 import { fail } from './errors.js';
 
