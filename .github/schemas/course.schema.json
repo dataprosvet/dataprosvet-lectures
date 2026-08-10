@@ -25,12 +25,12 @@
   },
   "$defs": {
     "slug": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 80 },
-    "relativePath": { "type": "string", "pattern": "^(?:lectures|seminars|homeworks|assets)/[A-Za-z0-9][A-Za-z0-9._/-]*$", "maxLength": 240 },
+    "assetPath": { "type": "string", "pattern": "^assets/[^\\u0000\\r\\n\\\\]+$", "maxLength": 240 },
     "materials": { "type": "array", "maxItems": 200, "items": { "$ref": "#/$defs/material" } },
     "material": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["slug", "title", "summary", "lifecycleStatus", "availability", "sortOrder", "assets"],
+      "required": ["slug", "title", "summary", "lifecycleStatus", "availability", "sortOrder"],
       "properties": {
         "slug": { "$ref": "#/$defs/slug" },
         "title": { "type": "string", "minLength": 1, "maxLength": 160 },
@@ -48,7 +48,7 @@
       "required": ["key", "file", "alt"],
       "properties": {
         "key": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 80 },
-        "file": { "$ref": "#/$defs/relativePath" },
+        "file": { "$ref": "#/$defs/assetPath" },
         "alt": { "type": "string", "minLength": 1, "maxLength": 500 }
       }
     }

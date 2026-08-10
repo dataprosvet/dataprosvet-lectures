@@ -8,6 +8,8 @@ lifecycleStatus: draft
 availability: inDevelopment
 sortOrder: 1
 materials:
+  # Image attachments are derived from Obsidian/Markdown embeds during CI.
+  # Authors do not need to add per-material assets entries.
   lectures: []
   seminars: []
   homeworks: []

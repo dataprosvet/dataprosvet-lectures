@@ -2,6 +2,8 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { createAdapter } from './appwrite.js';
 import { PublisherError, fail } from './errors.js';
+import { applyMarkdownRewrites } from './markdown.js';
+import { checksum, stableId } from './models.js';
 
 const locks = new Map();
 function withCourseLock(slug, action) {
@@ -24,6 +26,33 @@ export async function buildDiff(adapter, plan) {
 }
 
 async function bytes(root, relative) { return fs.readFile(path.resolve(root, relative)); }
+async function prepareUploads(plan, root) {
+  const prepared = new Map();
+  for (const material of plan.materials) {
+    if (material.content) {
+      const sourceBytes = await bytes(root, material.content.path);
+      let uploadBytes = sourceBytes;
+      if (material.content.sourceChecksum || material.content.checksum) {
+        if (checksum(sourceBytes) !== material.content.sourceChecksum) fail('MARKDOWN_SOURCE_CHANGED', 'Authored Markdown differs from the validated publication plan', { path: material.content.path });
+        let source;
+        try { source = new TextDecoder('utf-8', { fatal: true }).decode(sourceBytes); } catch { fail('MARKDOWN_UTF8_INVALID', 'Markdown must be valid UTF-8', { path: material.content.path }); }
+        uploadBytes = Buffer.from(applyMarkdownRewrites(source, material.content.rewrites ?? []));
+        const transformedChecksum = checksum(uploadBytes);
+        if (transformedChecksum !== material.content.checksum || stableId('md', transformedChecksum) !== material.content.fileId) fail('MARKDOWN_INTEGRITY_MISMATCH', 'Prepared Markdown differs from the validated transformed content', { path: material.content.path });
+      }
+      prepared.set(`markdown:${material.content.path}`, uploadBytes);
+    }
+    for (const asset of material.assets) {
+      const assetBytes = await bytes(root, asset.file);
+      if (asset.checksum) {
+        const assetChecksum = checksum(assetBytes);
+        if (assetChecksum !== asset.checksum || stableId('asset', assetChecksum) !== asset.fileId) fail('ASSET_INTEGRITY_MISMATCH', 'Asset differs from the validated publication plan', { path: asset.file });
+      }
+      prepared.set(`asset:${asset.file}`, assetBytes);
+    }
+  }
+  return prepared;
+}
 async function lockExisting(adapter, diff) {
   if (diff.course) await adapter.upsertRow(adapter.config.APPWRITE_COURSES_TABLE_ID, diff.course.$id, rowCourse({ ...diff.course, lifecycleStatus: 'draft', availability: 'inDevelopment' }, diff.course), false);
   for (const material of diff.materials) {
@@ -35,21 +64,23 @@ async function lockExisting(adapter, diff) {
     }
   }
 }
-async function uploadFiles(adapter, plan, root) {
+async function uploadFiles(adapter, plan, prepared) {
   for (const material of plan.materials) {
-    if (material.content) await adapter.putFile(adapter.config.APPWRITE_MARKDOWN_BUCKET_ID, material.content.fileId, await bytes(root, material.content.path), material.content.path, false);
-    for (const asset of material.assets) await adapter.putFile(adapter.config.APPWRITE_MEDIA_BUCKET_ID, asset.fileId, await bytes(root, asset.file), asset.file, false);
+    if (material.content) await adapter.putFile(adapter.config.APPWRITE_MARKDOWN_BUCKET_ID, material.content.fileId, prepared.get(`markdown:${material.content.path}`), material.content.path, false);
+    for (const asset of material.assets) await adapter.putFile(adapter.config.APPWRITE_MEDIA_BUCKET_ID, asset.fileId, prepared.get(`asset:${asset.file}`), asset.file, false);
   }
 }
 export async function publishPlan(plan, { adapter = createAdapter(), root = process.cwd() } = {}) {
   return withCourseLock(plan.course.slug, async () => {
-    let stage = 'preflight';
+    let stage = 'prepare-local-files';
     try {
+      const prepared = await prepareUploads(plan, root);
+      stage = 'preflight';
       if (adapter.preflight) await adapter.preflight(plan);
       stage = 'read-current-state';
       const diff = await buildDiff(adapter, plan);
       stage = 'lock-current-state'; await lockExisting(adapter, diff);
-      stage = 'upload-private-files'; await uploadFiles(adapter, plan, root);
+      stage = 'upload-private-files'; await uploadFiles(adapter, plan, prepared);
       stage = 'write-private-rows';
       const course = await adapter.upsertRow(adapter.config.APPWRITE_COURSES_TABLE_ID, diff.course?.$id, rowCourse(plan.course, diff.course), false);
       const seen = new Set();

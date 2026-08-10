@@ -3,6 +3,7 @@ import { mkdtemp, mkdir, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
+import { checksum, stableId } from '../src/models.js';
 import { buildDiff, publishPlan } from '../src/publisher.js';
 
 const config = Object.freeze({
@@ -51,7 +52,7 @@ function memoryAdapter({ course = null, materials = [], failUpload = false } = {
 }
 async function courseRoot() {
   const root = await mkdtemp(path.join(os.tmpdir(), 'publisher-reconcile-'));
-  await mkdir(path.join(root, 'lectures'));
+  await mkdir(path.join(root, 'lectures')); await mkdir(path.join(root, 'assets'));
   await writeFile(path.join(root, 'lectures/001_intro.md'), '# Intro\n');
   return root;
 }
@@ -120,4 +121,19 @@ test('same-course publications are serialized', async () => {
   adapter.preflight = async () => { active += 1; peak = Math.max(peak, active); await new Promise((resolve) => setTimeout(resolve, 10)); active -= 1; };
   await Promise.all([publishPlan(desired(), { adapter }), publishPlan(desired(), { adapter })]);
   assert.equal(peak, 1);
+});
+
+test('generated attachment mappings are idempotent and renamed mappings retire safely', async () => {
+  const root = await courseRoot(); const oldBytes = Buffer.from('old-image'); const newBytes = Buffer.from('new-image');
+  await writeFile(path.join(root, 'assets/old.png'), oldBytes); await writeFile(path.join(root, 'assets/new.png'), newBytes);
+  const asset = (key, file, body) => ({ key, file, alt: key, generated: true, mimeType: 'image/png', width: 1, height: 1, checksum: checksum(body), fileId: stableId('asset', checksum(body)), publicRead: true });
+  const first = desired(); first.materials[0].assets = [asset('asset-old', 'assets/old.png', oldBytes)];
+  const adapter = memoryAdapter(); await publishPlan(first, { adapter, root }); await publishPlan(first, { adapter, root });
+  assert.equal(adapter.state.assets.length, 1);
+  const oldFileId = first.materials[0].assets[0].fileId;
+  const second = desired(); second.materials[0].assets = [asset('asset-new', 'assets/new.png', newBytes)];
+  await publishPlan(second, { adapter, root });
+  assert.deepEqual(adapter.state.assets.map((item) => item.key), ['asset-new']);
+  assert.deepEqual(adapter.state.files.get(`media/${oldFileId}`).$permissions, []);
+  assert.ok(adapter.state.events.includes(`file:private:${oldFileId}`));
 });

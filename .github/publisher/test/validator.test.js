@@ -6,6 +6,7 @@ import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import YAML from 'yaml';
+import { generatedAssetKey } from '../src/markdown.js';
 import { validateCourse } from '../src/validator.js';
 
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -47,6 +48,9 @@ async function reject(course, files, code, setup) {
   const root = await fixture(course, files, setup);
   await assert.rejects(() => validateCourse({ root, branch: 'courses/fixture-course', schema }), (error) => error.code === code);
 }
+function png(width = 1, height = 1, marker = 0) {
+  const bytes = Buffer.alloc(25); Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]).copy(bytes); bytes.writeUInt32BE(width, 16); bytes.writeUInt32BE(height, 20); bytes[24] = marker; return bytes;
+}
 
 test('empty draft plan is deterministic and contains no materials', async () => {
   const root = await fixture();
@@ -77,7 +81,47 @@ test('attachment references resolve to inspected image metadata', async () => {
   lecture.assets.push({ key: 'diagram', file: 'assets/diagram.png', alt: 'Diagram' }); course.materials.lectures.push(lecture);
   const png = Buffer.alloc(24); Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]).copy(png); png.writeUInt32BE(2, 16); png.writeUInt32BE(3, 20);
   const plan = await validateCourse({ root: await fixture(course, { 'lectures/001_lecture-1.md': '![Diagram](attachment:diagram)', 'assets/diagram.png': png }), branch: 'courses/fixture-course', schema });
-  assert.deepEqual({ ...plan.materials[0].assets[0], checksum: undefined, fileId: undefined }, { key: 'diagram', file: 'assets/diagram.png', alt: 'Diagram', mimeType: 'image/png', width: 2, height: 3, checksum: undefined, fileId: undefined, publicRead: false });
+  assert.deepEqual({ ...plan.materials[0].assets[0], checksum: undefined, fileId: undefined }, { key: 'diagram', file: 'assets/diagram.png', alt: 'Diagram', generated: false, mimeType: 'image/png', width: 2, height: 3, checksum: undefined, fileId: undefined, publicRead: false });
+});
+
+test('explicit compatibility assets accept tracked Unicode paths with spaces', async () => {
+  const course = emptyCourse(); const lecture = material('lecture', 1);
+  lecture.assets.push({ key: 'diagram', file: 'assets/Схема 1.png', alt: 'Схема' }); course.materials.lectures.push(lecture);
+  const plan = await validateCourse({ root: await fixture(course, { 'lectures/001_lecture-1.md': '![Схема](attachment:diagram)', 'assets/Схема 1.png': png() }), branch: 'courses/fixture-course', schema });
+  assert.equal(plan.materials[0].assets[0].file, 'assets/Схема 1.png');
+  assert.equal(plan.materials[0].assets[0].generated, false);
+});
+
+test('omitted assets generate a body-free deterministic transformed plan', async () => {
+  const course = emptyCourse(); const lecture = material('lecture', 1); delete lecture.assets; course.materials.lectures.push(lecture);
+  const markdown = '# Lecture\n\n![[assets/Схема 1.png|Пайплайн]]\n';
+  const root = await fixture(course, { 'lectures/001_lecture-1.md': markdown, 'assets/Схема 1.png': png(2, 3) });
+  const before = execFileSync('git', ['status', '--porcelain=v1'], { cwd: root, encoding: 'utf8' });
+  const first = await validateCourse({ root, branch: 'courses/fixture-course', schema });
+  const second = await validateCourse({ root, branch: 'courses/fixture-course', schema });
+  const content = first.materials[0].content; const asset = first.materials[0].assets[0];
+  assert.deepEqual(first, second);
+  assert.equal(asset.key, generatedAssetKey('assets/Схема 1.png'));
+  assert.equal(asset.generated, true);
+  assert.equal(asset.alt, 'Пайплайн');
+  assert.notEqual(content.sourceChecksum, content.checksum);
+  assert.match(content.fileId, /^md[a-f0-9]+$/);
+  assert.equal(content.rewrites.length, 1);
+  assert.deepEqual(first.summary.transformations[0].assets, [{ file: 'assets/Схема 1.png', key: asset.key }]);
+  const serialized = JSON.stringify(first);
+  assert.doesNotMatch(serialized, /# Lecture|!\[\[/);
+  assert.equal(execFileSync('git', ['status', '--porcelain=v1'], { cwd: root, encoding: 'utf8' }), before);
+});
+
+test('generated key survives image replacement while media identity changes', async () => {
+  const course = emptyCourse(); const lecture = material('lecture', 1); delete lecture.assets; course.materials.lectures.push(lecture);
+  const root = await fixture(course, { 'lectures/001_lecture-1.md': '![[image.png]]', 'assets/image.png': png(1, 1, 1) });
+  const first = await validateCourse({ root, branch: 'courses/fixture-course', schema });
+  await writeFile(path.join(root, 'assets/image.png'), png(1, 1, 2));
+  const second = await validateCourse({ root, branch: 'courses/fixture-course', schema });
+  assert.equal(first.materials[0].assets[0].key, second.materials[0].assets[0].key);
+  assert.notEqual(first.materials[0].assets[0].checksum, second.materials[0].assets[0].checksum);
+  assert.notEqual(first.materials[0].assets[0].fileId, second.materials[0].assets[0].fileId);
 });
 
 test('malformed YAML and branch identity mismatch are rejected', async () => {
