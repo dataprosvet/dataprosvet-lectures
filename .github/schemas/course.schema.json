@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dataprosvet.wholedata.ru/schemas/course-v1.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "slug", "title", "description", "lifecycleStatus", "availability", "sortOrder", "materials"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "slug": { "$ref": "#/$defs/slug" },
+    "title": { "type": "string", "minLength": 1, "maxLength": 160 },
+    "description": { "type": "string", "minLength": 1, "maxLength": 4000 },
+    "lifecycleStatus": { "enum": ["draft", "published", "archived"] },
+    "availability": { "enum": ["inDevelopment", "available", "temporarilyUnavailable"] },
+    "sortOrder": { "type": "integer", "minimum": 0, "maximum": 2147483647 },
+    "materials": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["lectures", "seminars", "homeworks"],
+      "properties": {
+        "lectures": { "$ref": "#/$defs/materials" },
+        "seminars": { "$ref": "#/$defs/materials" },
+        "homeworks": { "$ref": "#/$defs/materials" }
+      }
+    }
+  },
+  "$defs": {
+    "slug": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 80 },
+    "relativePath": { "type": "string", "pattern": "^(?:lectures|seminars|homeworks|assets)/[A-Za-z0-9][A-Za-z0-9._/-]*$", "maxLength": 240 },
+    "materials": { "type": "array", "maxItems": 200, "items": { "$ref": "#/$defs/material" } },
+    "material": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["slug", "title", "summary", "lifecycleStatus", "availability", "sortOrder", "assets"],
+      "properties": {
+        "slug": { "$ref": "#/$defs/slug" },
+        "title": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "summary": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "lifecycleStatus": { "enum": ["draft", "published", "archived"] },
+        "availability": { "enum": ["inDevelopment", "available", "temporarilyUnavailable"] },
+        "sortOrder": { "type": "integer", "minimum": 0, "maximum": 2147483647 },
+        "markdown": { "type": "string", "pattern": "^(?:lectures|seminars|homeworks)/[0-9]{3}_[a-z0-9]+(?:-[a-z0-9]+)*\\.md$", "maxLength": 240 },
+        "assets": { "type": "array", "maxItems": 50, "items": { "$ref": "#/$defs/asset" } }
+      }
+    },
+    "asset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "file", "alt"],
+      "properties": {
+        "key": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 80 },
+        "file": { "$ref": "#/$defs/relativePath" },
+        "alt": { "type": "string", "minLength": 1, "maxLength": 500 }
+      }
+    }
+  }
+}
