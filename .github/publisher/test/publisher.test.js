@@ -1,0 +1,45 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { loadConfig } from '../src/config.js';
+import { canonicalJson, effectivePublic, stableId } from '../src/models.js';
+import { inspectImage } from '../src/image.js';
+import { PublisherError } from '../src/errors.js';
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
+
+test('config keeps public values separate and requires the key only for publication', () => {
+  const env = Object.fromEntries(['APPWRITE_ENDPOINT', 'APPWRITE_PROJECT_ID', 'APPWRITE_DATABASE_ID', 'APPWRITE_COURSES_TABLE_ID', 'APPWRITE_MATERIALS_TABLE_ID', 'APPWRITE_ASSETS_TABLE_ID', 'APPWRITE_MARKDOWN_BUCKET_ID', 'APPWRITE_MEDIA_BUCKET_ID'].map((name) => [name, 'value']));
+  assert.equal(loadConfig({ env }).APPWRITE_API_KEY, undefined);
+  assert.throws(() => loadConfig({ env, requireKey: true }), /APPWRITE_API_KEY/);
+});
+
+test('canonical plans and content-addressed IDs are deterministic', () => {
+  assert.equal(canonicalJson({ b: 1, a: [true] }), canonicalJson({ a: [true], b: 1 }));
+  assert.equal(stableId('md', 'abcdef'.repeat(12)), stableId('md', 'abcdef'.repeat(12)));
+  assert.equal(effectivePublic({ lifecycleStatus: 'published', availability: 'available' }, { lifecycleStatus: 'published', availability: 'available' }), true);
+  assert.equal(effectivePublic({ lifecycleStatus: 'draft', availability: 'available' }, { lifecycleStatus: 'published', availability: 'available' }), false);
+});
+
+test('image signature must match extension and dimensions', () => {
+  const png = Buffer.alloc(24); Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]).copy(png); png.writeUInt32BE(1, 16); png.writeUInt32BE(1, 20);
+  assert.deepEqual(inspectImage(png, 'assets/pixel.png'), { mimeType: 'image/png', width: 1, height: 1 });
+  assert.throws(() => inspectImage(png, 'assets/pixel.jpg'), /signature/);
+});
+
+test('validator diagnostics retain a bounded public error type', () => {
+  const error = new PublisherError('MARKDOWN_FILENAME_INVALID', 'Markdown filename must match metadata');
+  assert.equal(error.code, 'MARKDOWN_FILENAME_INVALID');
+});
+
+test('workflow has the required branch and credential boundaries', async () => {
+  const workflow = await readFile(path.join(root, '.github/workflows/publish-course.yml'), 'utf8');
+  assert.match(workflow, /branches: \["courses\/\*\*"\]/);
+  assert.match(workflow, /if: github\.event_name == 'push'/);
+  assert.match(workflow, /environment: appwrite/);
+  assert.match(workflow, /APPWRITE_API_KEY: \$\{\{ secrets\.APPWRITE_API_KEY \}\}/);
+  assert.match(workflow, /actions\/checkout@[a-f0-9]{40}/);
+  assert.match(workflow, /cancel-in-progress: false/);
+});

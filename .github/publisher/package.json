@@ -1,0 +1,18 @@
+{
+  "name": "dataprosvet-course-publisher",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "engines": { "node": ">=20.20.0 <21" },
+  "scripts": {
+    "validate": "node src/cli.js validate",
+    "publish": "node src/cli.js publish",
+    "test": "node --test test/*.test.js",
+    "lint": "node --check src/*.js && node --check test/*.js"
+  },
+  "dependencies": {
+    "ajv": "8.20.0",
+    "node-appwrite": "27.1.0",
+    "yaml": "2.9.0"
+  }
+}
