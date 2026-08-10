@@ -10,6 +10,7 @@ import { inspectImage } from '../src/image.js';
 import { PublisherError } from '../src/errors.js';
 import { containsForbiddenSecret } from '../src/validator.js';
 import { publishCourse } from '../src/publisher.js';
+import { assertContentAddressedFileCompatible } from '../src/appwrite.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 
@@ -25,6 +26,12 @@ test('canonical plans and content-addressed IDs are deterministic', () => {
   assert.equal(stableId('md', 'abcdef'.repeat(12)), stableId('md', 'abcdef'.repeat(12)));
   assert.equal(effectivePublic({ lifecycleStatus: 'published', availability: 'available' }, { lifecycleStatus: 'published', availability: 'available' }), true);
   assert.equal(effectivePublic({ lifecycleStatus: 'draft', availability: 'available' }, { lifecycleStatus: 'published', availability: 'available' }), false);
+});
+
+test('content-addressed files survive a path rename when bytes are unchanged', () => {
+  const bytes = Buffer.from('same-image-bytes');
+  assert.doesNotThrow(() => assertContentAddressedFileCompatible({ name: 'assets/old.png', sizeOriginal: bytes.length }, bytes));
+  assert.throws(() => assertContentAddressedFileCompatible({ name: 'assets/old.png', sizeOriginal: bytes.length + 1 }, bytes), /metadata differs/);
 });
 
 test('image signature must match extension and dimensions', () => {

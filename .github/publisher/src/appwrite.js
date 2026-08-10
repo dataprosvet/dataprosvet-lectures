@@ -8,6 +8,13 @@ const publicRead = Object.freeze([Permission.read(Role.any())]);
 
 export function permissions(publiclyReadable) { return publiclyReadable ? publicRead : privatePermissions; }
 
+export function assertContentAddressedFileCompatible(existing, bytes) {
+  // The Storage ID is derived from the bytes, while the uploaded name is only
+  // descriptive metadata. A path rename must therefore be allowed to reuse the
+  // same immutable object.
+  if (existing.sizeOriginal !== bytes.length) fail('FILE_ID_COLLISION', 'Existing content-addressed file metadata differs');
+}
+
 export function createAdapter({ env = process.env } = {}) {
   const config = loadConfig({ env, requireKey: true });
   const client = new Client().setEndpoint(config.APPWRITE_ENDPOINT).setProject(config.APPWRITE_PROJECT_ID).setKey(config.APPWRITE_API_KEY);
@@ -73,7 +80,7 @@ export function createAdapter({ env = process.env } = {}) {
     async putFile(bucketId, fileId, bytes, name, readable) {
       const existing = await this.getFile(bucketId, fileId);
       if (existing) {
-        if (existing.name !== name || existing.sizeOriginal !== bytes.length) fail('FILE_ID_COLLISION', 'Existing content-addressed file metadata differs');
+        assertContentAddressedFileCompatible(existing, bytes);
         return existing;
       }
       return storage.createFile({ bucketId, fileId: fileId || ID.unique(), file: InputFile.fromBuffer(bytes, name), permissions: permissions(readable) });
