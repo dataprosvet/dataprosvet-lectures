@@ -15,6 +15,7 @@ test('config keeps public values separate and requires the key only for publicat
   const env = Object.fromEntries(['APPWRITE_ENDPOINT', 'APPWRITE_PROJECT_ID', 'APPWRITE_DATABASE_ID', 'APPWRITE_COURSES_TABLE_ID', 'APPWRITE_MATERIALS_TABLE_ID', 'APPWRITE_ASSETS_TABLE_ID', 'APPWRITE_MARKDOWN_BUCKET_ID', 'APPWRITE_MEDIA_BUCKET_ID'].map((name) => [name, 'value']));
   assert.equal(loadConfig({ env }).APPWRITE_API_KEY, undefined);
   assert.throws(() => loadConfig({ env, requireKey: true }), /APPWRITE_API_KEY/);
+  assert.equal(loadConfig({ env: { ...env, APPWRITE_API_KEY: 'k'.repeat(512) }, requireKey: true }).APPWRITE_API_KEY.length, 512);
 });
 
 test('canonical plans and content-addressed IDs are deterministic', () => {
