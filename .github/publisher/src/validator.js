@@ -11,11 +11,16 @@ import { canonicalJson, checksum, effectivePublic, stableId } from './models.js'
 import { inspectImage } from './image.js';
 
 const exec = promisify(execFile);
-const secretPattern = /(?:APPWRITE_API_KEY\s*[=:]|gh[opsu]_[A-Za-z0-9_]+)/i;
+const githubSecretPattern = /gh[opsu]_[A-Za-z0-9_]{20,}/i;
+const appwriteLiteralPattern = /APPWRITE_API_KEY\s*[=:]\s*["']?(?!\$|process\.env)([A-Za-z0-9._-]{20,})/i;
 const directAppwritePattern = /(?:appwrite\.io|appwrite\.wholedata\.ru|\/v1\/storage\/buckets\/)/i;
 const rawHtmlPattern = /<\/?[a-z][^>]*>/i;
 const attachmentPattern = /attachment:([a-z0-9]+(?:-[a-z0-9]+)*)/g;
 const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+export function containsForbiddenSecret(source) {
+  return githubSecretPattern.test(source) || appwriteLiteralPattern.test(source);
+}
 
 function validRelative(file, prefix) {
   return typeof file === 'string' && file.startsWith(`${prefix}/`) && !path.isAbsolute(file) && !file.split('/').includes('..') && !file.includes('\\');
@@ -65,7 +70,7 @@ async function scanTrackedSecrets(root, tree) {
     const bytes = await readFile(root, relative, 1024 * 1024).catch(() => null);
     if (!bytes) continue;
     const source = new TextDecoder('utf-8', { fatal: false }).decode(bytes);
-    if (secretPattern.test(source)) fail('SECRET_PATTERN', 'Tracked source contains a forbidden credential pattern', { path: relative });
+    if (containsForbiddenSecret(source)) fail('SECRET_PATTERN', 'Tracked source contains a forbidden credential pattern', { path: relative });
   }
 }
 function assertSchema(manifest, schema) {
@@ -91,7 +96,7 @@ export async function validateCourse({ root = process.cwd(), branch, schema, all
   if (!allowUntracked && !tree.has('course.yaml')) fail('MANIFEST_MISSING', 'Exactly one tracked course.yaml is required');
   if (tree.has('course.yaml.example') && tree.has('course.yaml') === false) fail('MANIFEST_MISSING', 'course.yaml.example is a template and cannot be published');
   const source = await readFile(root, 'course.yaml', 64 * 1024, 'utf-8').catch((error) => { if (error instanceof PublisherError) throw error; fail('MANIFEST_INVALID', 'course.yaml must be valid UTF-8'); });
-  if (secretPattern.test(source)) fail('SECRET_PATTERN', 'Tracked source contains a forbidden credential pattern', { path: 'course.yaml' });
+  if (containsForbiddenSecret(source)) fail('SECRET_PATTERN', 'Tracked source contains a forbidden credential pattern', { path: 'course.yaml' });
   const manifest = YAML.parse(source, { prettyErrors: false });
   if (!manifest || typeof manifest !== 'object') fail('MANIFEST_YAML_INVALID', 'course.yaml must contain an object');
   assertSchema(manifest, schema);
@@ -114,7 +119,7 @@ export async function validateCourse({ root = process.cwd(), branch, schema, all
       if (path.basename(material.markdown) !== expectedName) fail('MARKDOWN_FILENAME_INVALID', `Markdown filename must be ${expectedName}`, { path: material.markdown });
       if (!tree.has(material.markdown)) fail('FILE_UNTRACKED', 'Markdown must be tracked', { path: material.markdown });
       markdown = await readFile(root, material.markdown, LIMITS.maxMarkdownBytes, 'utf-8').catch((error) => { if (error instanceof PublisherError) throw error; fail('MARKDOWN_UTF8_INVALID', 'Markdown must be UTF-8', { path: material.markdown }); });
-      if (secretPattern.test(markdown)) fail('SECRET_PATTERN', 'Tracked source contains a forbidden credential pattern', { path: material.markdown });
+      if (containsForbiddenSecret(markdown)) fail('SECRET_PATTERN', 'Tracked source contains a forbidden credential pattern', { path: material.markdown });
       references = parseReferences(markdown, material.markdown); markdownHash = fileHash(Buffer.from(markdown)); undeclaredContent.delete(material.markdown);
     }
     unique(material.assets.map((asset) => asset.key), `asset key in ${material.slug}`);

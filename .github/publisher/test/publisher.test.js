@@ -7,6 +7,7 @@ import { loadConfig } from '../src/config.js';
 import { canonicalJson, effectivePublic, stableId } from '../src/models.js';
 import { inspectImage } from '../src/image.js';
 import { PublisherError } from '../src/errors.js';
+import { containsForbiddenSecret } from '../src/validator.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 
@@ -32,6 +33,13 @@ test('image signature must match extension and dimensions', () => {
 test('validator diagnostics retain a bounded public error type', () => {
   const error = new PublisherError('MARKDOWN_FILENAME_INVALID', 'Markdown filename must match metadata');
   assert.equal(error.code, 'MARKDOWN_FILENAME_INVALID');
+});
+
+test('secret scanner allows references but rejects literal credentials', () => {
+  assert.equal(containsForbiddenSecret('APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}'), false);
+  assert.equal(containsForbiddenSecret("env.APPWRITE_API_KEY = process.env.APPWRITE_API_KEY"), false);
+  assert.equal(containsForbiddenSecret('APPWRITE_API_KEY=standard_abcdefghijklmnopqrstuvwxyz0123456789'), true);
+  assert.equal(containsForbiddenSecret('ghp_abcdefghijklmnopqrstuvwxyz0123456789'), true);
 });
 
 test('workflow has the required branch and credential boundaries', async () => {
