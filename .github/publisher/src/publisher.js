@@ -14,6 +14,7 @@ function withCourseLock(slug, action) {
 function publishedAt(target, existing) { return target.lifecycleStatus === 'published' ? existing?.publishedAt ?? new Date().toISOString() : null; }
 function rowCourse(course, existing) { return { slug: course.slug, title: course.title, description: course.description, lifecycleStatus: course.lifecycleStatus, availability: course.availability, sortOrder: course.sortOrder, publishedAt: publishedAt(course, existing) }; }
 function rowMaterial(courseId, material, existing) { return { courseId, kind: material.kind, slug: material.slug, title: material.title, summary: material.summary, contentFileId: material.content?.fileId ?? null, lifecycleStatus: material.lifecycleStatus, availability: material.availability, sortOrder: material.sortOrder, publishedAt: publishedAt(material, existing) }; }
+function rowAsset(materialId, asset) { return { materialId, key: asset.key, fileId: asset.fileId, alt: asset.alt, mimeType: asset.mimeType, width: asset.width, height: asset.height }; }
 
 export async function buildDiff(adapter, plan) {
   const course = await adapter.findCourse(plan.course.slug);
@@ -28,6 +29,10 @@ async function lockExisting(adapter, diff) {
   for (const material of diff.materials) {
     await adapter.upsertRow(adapter.config.APPWRITE_MATERIALS_TABLE_ID, material.$id, rowMaterial(material.courseId, { ...material, lifecycleStatus: 'draft', availability: 'inDevelopment' }, material), false);
     if (material.contentFileId) await adapter.setFilePermissions(adapter.config.APPWRITE_MARKDOWN_BUCKET_ID, material.contentFileId, false);
+    for (const asset of await adapter.listAssets(material.$id)) {
+      await adapter.setFilePermissions(adapter.config.APPWRITE_MEDIA_BUCKET_ID, asset.fileId, false);
+      await adapter.upsertRow(adapter.config.APPWRITE_ASSETS_TABLE_ID, asset.$id, rowAsset(material.$id, asset), false);
+    }
   }
 }
 async function uploadFiles(adapter, plan, root) {
@@ -53,7 +58,7 @@ export async function publishPlan(plan, { adapter = createAdapter(), root = proc
         const row = await adapter.upsertRow(adapter.config.APPWRITE_MATERIALS_TABLE_ID, previous?.$id, rowMaterial(course.$id, material, previous), false);
         seen.add(row.$id);
         const oldAssets = previous ? await adapter.listAssets(previous.$id) : [];
-        for (const asset of material.assets) await adapter.upsertRow(adapter.config.APPWRITE_ASSETS_TABLE_ID, (await adapter.findAsset(row.$id, asset.key))?.$id, { materialId: row.$id, key: asset.key, fileId: asset.fileId, alt: asset.alt, mimeType: asset.mimeType, width: asset.width, height: asset.height }, false);
+        for (const asset of material.assets) await adapter.upsertRow(adapter.config.APPWRITE_ASSETS_TABLE_ID, (await adapter.findAsset(row.$id, asset.key))?.$id, rowAsset(row.$id, asset), false);
         for (const oldAsset of oldAssets.filter((asset) => !material.assets.some((item) => item.key === asset.key))) { await adapter.setFilePermissions(adapter.config.APPWRITE_MEDIA_BUCKET_ID, oldAsset.fileId, false); await adapter.removeRow(adapter.config.APPWRITE_ASSETS_TABLE_ID, oldAsset.$id); }
         if (material.publicRead) {
           if (material.content) await adapter.setFilePermissions(adapter.config.APPWRITE_MARKDOWN_BUCKET_ID, material.content.fileId, true);
@@ -62,7 +67,7 @@ export async function publishPlan(plan, { adapter = createAdapter(), root = proc
         const metadataReadable = plan.course.lifecycleStatus === 'published' && material.lifecycleStatus === 'published';
         for (const asset of material.assets) {
           const assetRow = await adapter.findAsset(row.$id, asset.key);
-          await adapter.upsertRow(adapter.config.APPWRITE_ASSETS_TABLE_ID, assetRow.$id, { materialId: row.$id, key: asset.key, fileId: asset.fileId, alt: asset.alt, mimeType: asset.mimeType, width: asset.width, height: asset.height }, metadataReadable);
+          await adapter.upsertRow(adapter.config.APPWRITE_ASSETS_TABLE_ID, assetRow.$id, rowAsset(row.$id, asset), metadataReadable);
         }
         await adapter.upsertRow(adapter.config.APPWRITE_MATERIALS_TABLE_ID, row.$id, rowMaterial(course.$id, material, previous), metadataReadable);
       }

@@ -95,6 +95,7 @@ export function createAdapter({ env = process.env } = {}) {
       const anonymousCourse = await listOneWith(anonymousTables, config.APPWRITE_COURSES_TABLE_ID, [Query.equal('slug', plan.course.slug)], 'anonymous course');
       if (Boolean(anonymousCourse) !== courseReadable) fail('ANONYMOUS_ACCESS_MISMATCH', 'Course anonymous visibility differs from the publication plan');
       const rows = await this.listMaterials(course.$id);
+      const desiredKeys = new Set(plan.materials.map((material) => `${material.kind}/${material.slug}`));
       for (const material of plan.materials) {
         const row = rows.find((item) => item.kind === material.kind && item.slug === material.slug);
         if (!row) fail('FINAL_STATE_MISMATCH', `Material ${material.resourceKey} is missing after publication`);
@@ -111,6 +112,7 @@ export function createAdapter({ env = process.env } = {}) {
           await expectAnonymousFile(config.APPWRITE_MARKDOWN_BUCKET_ID, material.content.fileId, material.publicRead, `Markdown for ${material.resourceKey}`);
         }
         const assets = await this.listAssets(row.$id);
+        if (assets.length !== material.assets.length) fail('FINAL_STATE_MISMATCH', `Attachment mappings for ${material.resourceKey} differ from the publication plan`);
         for (const asset of material.assets) {
           const assetRow = assets.find((item) => item.key === asset.key);
           if (!assetRow) fail('FINAL_STATE_MISMATCH', `Attachment ${material.resourceKey}/${asset.key} is missing after publication`);
@@ -122,6 +124,25 @@ export function createAdapter({ env = process.env } = {}) {
           if (!file) fail('FINAL_STATE_MISMATCH', `Attachment file ${material.resourceKey}/${asset.key} is missing after publication`);
           assertPermission(file, material.publicRead, `Attachment file ${material.resourceKey}/${asset.key}`);
           await expectAnonymousFile(config.APPWRITE_MEDIA_BUCKET_ID, asset.fileId, material.publicRead, `Attachment file ${material.resourceKey}/${asset.key}`);
+        }
+      }
+      for (const omitted of rows.filter((row) => !desiredKeys.has(`${row.kind}/${row.slug}`))) {
+        if (omitted.lifecycleStatus !== 'archived') fail('FINAL_STATE_MISMATCH', `Omitted material ${omitted.kind}/${omitted.slug} is not archived`);
+        assertPermission(omitted, false, `Omitted material ${omitted.kind}/${omitted.slug}`);
+        const anonymousMaterial = await listOneWith(anonymousTables, config.APPWRITE_MATERIALS_TABLE_ID, [Query.equal('courseId', course.$id), Query.equal('kind', omitted.kind), Query.equal('slug', omitted.slug)], `anonymous omitted material ${omitted.kind}/${omitted.slug}`);
+        if (anonymousMaterial) fail('ANONYMOUS_ACCESS_MISMATCH', `Omitted material ${omitted.kind}/${omitted.slug} remains anonymously visible`);
+        if (omitted.contentFileId) {
+          const file = await this.getFile(config.APPWRITE_MARKDOWN_BUCKET_ID, omitted.contentFileId);
+          if (!file) fail('FINAL_STATE_MISMATCH', `Omitted Markdown ${omitted.kind}/${omitted.slug} is missing`);
+          assertPermission(file, false, `Omitted Markdown ${omitted.kind}/${omitted.slug}`);
+          await expectAnonymousFile(config.APPWRITE_MARKDOWN_BUCKET_ID, omitted.contentFileId, false, `Omitted Markdown ${omitted.kind}/${omitted.slug}`);
+        }
+        for (const asset of await this.listAssets(omitted.$id)) {
+          assertPermission(asset, false, `Omitted attachment ${omitted.kind}/${omitted.slug}/${asset.key}`);
+          const file = await this.getFile(config.APPWRITE_MEDIA_BUCKET_ID, asset.fileId);
+          if (!file) fail('FINAL_STATE_MISMATCH', `Omitted attachment file ${omitted.kind}/${omitted.slug}/${asset.key} is missing`);
+          assertPermission(file, false, `Omitted attachment file ${omitted.kind}/${omitted.slug}/${asset.key}`);
+          await expectAnonymousFile(config.APPWRITE_MEDIA_BUCKET_ID, asset.fileId, false, `Omitted attachment file ${omitted.kind}/${omitted.slug}/${asset.key}`);
         }
       }
     },

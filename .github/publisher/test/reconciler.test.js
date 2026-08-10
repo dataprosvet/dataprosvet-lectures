@@ -88,6 +88,18 @@ test('omitted material is archived and diff reports create/update/archive counts
   assert.ok(adapter.state.events.includes('archive:old'));
 });
 
+test('locking an omitted material revokes its attachment row and file', async () => {
+  const oldCourse = { $id: 'course-1', slug: 'fixture-course', title: 'Fixture', description: 'Description', lifecycleStatus: 'published', availability: 'available', sortOrder: 1 };
+  const old = { $id: 'material-old', courseId: 'course-1', kind: 'lecture', slug: 'old', title: 'Old', summary: 'Old', contentFileId: null, lifecycleStatus: 'published', availability: 'available', sortOrder: 2 };
+  const adapter = memoryAdapter({ course: oldCourse, materials: [old] });
+  adapter.state.assets.push({ $id: 'asset-old', materialId: 'material-old', key: 'diagram', fileId: 'media-old', alt: 'Old', mimeType: 'image/png', width: 1, height: 1, $permissions: ['read("any")'] });
+  adapter.state.files.set('media/media-old', { $id: 'media-old', $permissions: ['read("any")'] });
+  await publishPlan(desired(), { adapter });
+  assert.deepEqual(adapter.state.assets[0].$permissions, []);
+  assert.deepEqual(adapter.state.files.get('media/media-old').$permissions, []);
+  assert.ok(adapter.state.events.includes('file:private:media-old'));
+});
+
 test('partial upload failure remains locked and emits bounded secret-free recovery', async () => {
   const existing = { $id: 'course-1', slug: 'fixture-course', title: 'Old', description: 'Old', lifecycleStatus: 'published', availability: 'available', sortOrder: 1 };
   const adapter = memoryAdapter({ course: existing, failUpload: true });

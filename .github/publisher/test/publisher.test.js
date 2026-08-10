@@ -31,6 +31,10 @@ test('image signature must match extension and dimensions', () => {
   const png = Buffer.alloc(24); Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]).copy(png); png.writeUInt32BE(1, 16); png.writeUInt32BE(1, 20);
   assert.deepEqual(inspectImage(png, 'assets/pixel.png'), { mimeType: 'image/png', width: 1, height: 1 });
   assert.throws(() => inspectImage(png, 'assets/pixel.jpg'), /signature/);
+  const oversizedDimensions = Buffer.from(png); oversizedDimensions.writeUInt32BE(5000, 16);
+  assert.throws(() => inspectImage(oversizedDimensions, 'assets/wide.png'), /dimensions/);
+  const oversizedFile = Buffer.alloc(5 * 1024 * 1024 + 1); png.copy(oversizedFile);
+  assert.throws(() => inspectImage(oversizedFile, 'assets/large.png'), /exceeds/);
 });
 
 test('validator diagnostics retain a bounded public error type', () => {
