@@ -66,7 +66,8 @@ async function readFile(root, relative, maxBytes, encoding = undefined) {
 }
 async function scanTrackedSecrets(root, tree) {
   for (const relative of tree) {
-    if (relative.endsWith('.png') || relative.endsWith('.jpg') || relative.endsWith('.jpeg') || relative.endsWith('.webp')) continue;
+    const isCourseInput = relative === 'course.yaml' || /^(lectures|seminars|homeworks)\/.+\.md$/i.test(relative);
+    if (!isCourseInput) continue;
     const bytes = await readFile(root, relative, 1024 * 1024).catch(() => null);
     if (!bytes) continue;
     const source = new TextDecoder('utf-8', { fatal: false }).decode(bytes);
