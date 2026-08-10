@@ -46,12 +46,18 @@ test('secret scanner allows references but rejects literal credentials', () => {
 
 test('workflow has the required branch and credential boundaries', async () => {
   const workflow = await readFile(path.join(root, '.github/workflows/publish-course.yml'), 'utf8');
+  const deploy = workflow.slice(workflow.indexOf('  deploy:'));
+  const validate = workflow.slice(workflow.indexOf('  validate:'), workflow.indexOf('  deploy:'));
   assert.match(workflow, /branches: \["courses\/\*\*"\]/);
   assert.match(workflow, /if: github\.event_name == 'push'/);
   assert.match(workflow, /environment: appwrite/);
   assert.match(workflow, /APPWRITE_API_KEY: \$\{\{ secrets\.APPWRITE_API_KEY \}\}/);
-  assert.match(workflow, /actions\/checkout@[a-f0-9]{40}/);
+  assert.equal([...workflow.matchAll(/uses: actions\/(?:checkout|setup-node)@([a-f0-9]+)/g)].every((match) => match[1].length === 40), true);
   assert.match(workflow, /cancel-in-progress: false/);
+  assert.match(workflow, /^permissions:\n  contents: read$/m);
+  assert.doesNotMatch(validate, /secrets\.|APPWRITE_API_KEY/);
+  assert.doesNotMatch(deploy, /cache:|actions\/(?:cache|upload-artifact|download-artifact)@/);
+  assert.doesNotMatch(deploy, /run:.*\$\{\{ github\.(?:ref_name|head_ref) \}\}/);
 });
 
 test('publisher reads files from the explicit course root', async () => {
