@@ -44,7 +44,7 @@ export async function inspectTree(root) {
     if (!['100644', '100755'].includes(mode)) fail('TREE_UNSAFE', 'Unsupported tracked file mode', { path: file });
     if (mode === '100755') fail('TREE_UNSAFE', 'Executable tracked files are not allowed', { path: file });
     const rootName = file.split('/')[0];
-    if (!['README.md', 'course.yaml', 'course.yaml.example', 'lectures', 'seminars', 'homeworks', 'assets', '.github'].includes(rootName)) fail('TREE_UNDOCUMENTED', 'Tracked path is outside the documented repository contract', { path: file });
+    if (!['.gitignore', 'README.md', 'course.yaml', 'course.yaml.example', 'lectures', 'seminars', 'homeworks', 'assets', '.github'].includes(rootName)) fail('TREE_UNDOCUMENTED', 'Tracked path is outside the documented repository contract', { path: file });
     const stat = await fs.lstat(path.join(root, file));
     if (stat.isSymbolicLink()) fail('TREE_UNSAFE', 'Symbolic links are not allowed', { path: file });
   }
