@@ -7,7 +7,8 @@ const locks = new Map();
 function withCourseLock(slug, action) {
   const previous = locks.get(slug) ?? Promise.resolve();
   const next = previous.catch(() => undefined).then(action);
-  locks.set(slug, next.finally(() => { if (locks.get(slug) === next) locks.delete(slug); }));
+  locks.set(slug, next);
+  next.finally(() => { if (locks.get(slug) === next) locks.delete(slug); }).catch(() => undefined);
   return next;
 }
 function publishedAt(target, existing) { return target.lifecycleStatus === 'published' ? existing?.publishedAt ?? new Date().toISOString() : null; }
@@ -37,8 +38,12 @@ async function uploadFiles(adapter, plan, root) {
 }
 export async function publishPlan(plan, { adapter = createAdapter(), root = process.cwd() } = {}) {
   return withCourseLock(plan.course.slug, async () => {
+    let stage = 'read-current-state';
     try {
-      const diff = await buildDiff(adapter, plan); await lockExisting(adapter, diff); await uploadFiles(adapter, plan, root);
+      const diff = await buildDiff(adapter, plan);
+      stage = 'lock-current-state'; await lockExisting(adapter, diff);
+      stage = 'upload-private-files'; await uploadFiles(adapter, plan, root);
+      stage = 'write-private-rows';
       const course = await adapter.upsertRow(adapter.config.APPWRITE_COURSES_TABLE_ID, diff.course?.$id, rowCourse(plan.course, diff.course), false);
       const seen = new Set();
       for (const material of plan.materials) {
@@ -54,10 +59,17 @@ export async function publishPlan(plan, { adapter = createAdapter(), root = proc
         }
         await adapter.upsertRow(adapter.config.APPWRITE_MATERIALS_TABLE_ID, row.$id, rowMaterial(course.$id, material, previous), material.lifecycleStatus === 'published');
       }
+      stage = 'archive-omitted-content';
       for (const omitted of diff.archive) await adapter.archiveRow(adapter.config.APPWRITE_MATERIALS_TABLE_ID, omitted);
+      stage = 'expose-course';
       await adapter.upsertRow(adapter.config.APPWRITE_COURSES_TABLE_ID, course.$id, rowCourse(plan.course, diff.course), plan.course.lifecycleStatus === 'published');
+      stage = 'verify-final-state';
       await adapter.verifyAnonymous(plan); return diff;
-    } catch (error) { if (error instanceof PublisherError) throw error; fail('PUBLISH_FAILED', 'Publication failed in a recoverable fail-closed stage'); }
+    } catch (error) {
+      if (error instanceof PublisherError) throw error;
+      const providerCode = typeof error?.code === 'number' || typeof error?.code === 'string' ? ` (provider code ${String(error.code).slice(0, 40)})` : '';
+      fail('PUBLISH_FAILED', `Publication failed during ${stage}${providerCode}; retry the same commit after correction`);
+    }
   });
 }
 export async function publishCourse(plan) { return publishPlan(plan); }
