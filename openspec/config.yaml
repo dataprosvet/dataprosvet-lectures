@@ -1,0 +1,109 @@
+schema: spec-driven
+
+context: |
+  Course identity (DECIDED):
+    - Title: «Теория вероятностей».
+    - Audience: бакалавры направления 09.03.03 «Прикладная информатика»,
+      направленность «Программные решения для бизнеса», 2 курс, 3 семестр,
+      очная форма обучения.
+    - Workload: 3 зачётные единицы, 108 часов; 8 лекций (16 часов),
+      17 семинаров (34 часа), 57,65 часа самостоятельной работы; итоговый
+      контроль — зачёт с оценкой.
+    - Purpose: сформировать последовательное понимание вероятностных моделей —
+      от случайных экспериментов, событий и комбинаторики до распределений,
+      числовых характеристик, нормального закона и предельных теорем — и научить
+      интерпретировать результаты в задачах бизнеса, информационных систем,
+      надёжности и машинного обучения.
+
+  Lecture sequence (DECIDED):
+    1. Случайный эксперимент, события и комбинаторика.
+    2. Вероятность события и её определения.
+    3. Основные теоремы теории вероятностей.
+    4. Полная вероятность, Байес и повторные испытания.
+    5. Дискретные случайные величины и законы распределения.
+    6. Числовые характеристики и совместное распределение.
+    7. Непрерывные случайные величины.
+    8. Нормальное распределение и предельные теоремы.
+
+  Source hierarchy (DECIDED):
+    - `sources/Б1.О.09.01 Теория вероятностей РПД СИИ ПРБ.pdf` is the
+      normative source for mandatory structure, topics, workload, learning
+      outcomes, individual assignments, control works, cases, and assessment.
+    - `sources/Gmurman_V_E_Teoria_veroyatnostey_i_matematicheskaya_statistika.pdf`
+      is the primary substantive source for definitions, theorem statements,
+      formulas, derivations, notation comparisons, and core examples.
+    - `sources/математика для машинного обучения.pdf` and
+      `sources/Glubokoe_obuchenie_Pogruzhenie_v_mir_neyronnykh_setey.pdf`
+      must be considered for applied interpretation, examples from data and
+      machine learning, and relevant extensions beyond Gmurman.
+    - `sources/4816 методичка ТВМС.pdf`,
+      `sources/Savyolova_Metodicheskie_ukazaniya_k_resheniyu_zadach_po_veroyatnostnym_razdelam_2014.pdf`,
+      `sources/Savelova_Metod_Monte-Karlo_2011.pdf`, and
+      `sources/2_5451720465485703829.pdf` provide targeted exercises,
+      computational methods, and enrichment.
+    - `sources/ПЛАН_КУРСА_ТЕОРИЯ_ВЕРОЯТНОСТЕЙ_ПО_РПД.md` fixes the curriculum
+      map; `sources/PLAN_LECTURE_REVISIONS_1_8.md` records revision decisions;
+      `sources/AUDIT_LECTURES_1_8.md` records coverage and known defects.
+    - `sources/` is a local ignored corpus and is never published. If a task
+      needs direct source verification and a required file is absent, stop and
+      report the missing source rather than reconstructing it from memory.
+
+  Content products (DECIDED):
+    - `lectures-teacher/` contains complete teacher scripts and is tracked but
+      never published.
+    - `lectures/` contains concise student notes and is the only lecture source
+      referenced by `course.yaml`.
+    - Student notes contain definitions, formulas with applicability conditions,
+      key conclusions, compact explanations/examples, and topic summaries.
+    - Student notes exclude timing tables, instructor prompts, teaching advice,
+      planned-error facilitation, curriculum coverage matrices, source maps, and
+      reproducible generator code.
+    - `attachments/` is tracked support content but is not published until a
+      separate downloadable-material capability is approved.
+
+  Mathematical conventions (DECIDED):
+    - Use `P(A)` for event probability and `P(A|B)` for conditional probability.
+    - Use the modern distribution-function convention `F_X(x)=P(X\le x)` and
+      explain translations when an older source uses a different boundary.
+    - Use `M(X)=E[X]` for expectation, `D(X)=Var(X)` for variance, and
+      `σ(X)=sqrt(D(X))` for standard deviation.
+    - Write `X~N(μ,σ²)` so the second parameter is variance; standardization is
+      `Z=(X-μ)/σ`.
+    - State assumptions before using independence, Bernoulli, Poisson, Laplace,
+      normal, or limit-theorem formulas. Label exact, bounded, approximate, and
+      asymptotic conclusions distinctly.
+
+  Known source defects and decisions (DECIDED):
+    - Control-work task 3.5 references a missing graph. Do not invent its data;
+      use only a clearly labelled educational analogue until the graph is supplied.
+    - Individual assignment 6.3 omits independence. Give the covariance-aware
+      general result and a separate conditional result under independence.
+    - Present the general Chebyshev law of large numbers for independent variables
+      with uniformly bounded variances and identify the identically distributed
+      version as a useful special case.
+    - Preserve the adopted `F_X(x)=P(X\le x)` convention and explain any older
+      Gmurman/RPD convention explicitly.
+
+rules:
+  proposal:
+    - Keep proposals focused on course outcomes, source-grounded content, or publication-safe structure.
+    - State explicit non-goals and identify any normative source defect that affects scope.
+  design:
+    - Preserve the separation between teacher scripts, student notes, ignored sources, and published assets.
+    - Explain how source priority and mathematical conditions will be checked.
+  specs:
+    - Express educational and publication requirements as observable, verifiable behavior.
+    - Do not reproduce copyrighted source passages; capture requirements and source roles instead.
+  tasks:
+    - Keep tasks small, source-grounded, and independently verifiable.
+    - Require preservation checks before replacing or shortening educational content.
+
+operations:
+  apply:
+    guidance:
+      - Preserve user edits and unrelated untracked files.
+      - Validate teacher-file preservation before authoring student replacements.
+      - Run strict OpenSpec and publisher validation before completion.
+  archive:
+    guidance:
+      - Confirm the archived main specs retain curriculum, source hierarchy, and lecture-format requirements.
