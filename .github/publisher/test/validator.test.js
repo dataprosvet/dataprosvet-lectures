@@ -61,6 +61,26 @@ test('empty draft plan is deterministic and contains no materials', async () => 
   assert.match(first.digest, /^[a-f0-9]{64}$/);
 });
 
+test('tracked support paths are accepted and excluded from the publication plan', async () => {
+  const plan = await validateCourse({
+    root: await fixture(emptyCourse(), {
+      '.gitattributes': '*.png filter=lfs diff=lfs merge=lfs -text\n',
+      'lectures-teacher/001_teacher.md': '# Teacher-only marker\n',
+      'attachments/slides.pptx': 'repository-only marker\n',
+      'openspec/config.yaml': 'schema: spec-driven\n',
+    }),
+    branch: 'courses/fixture-course',
+    schema,
+  });
+  assert.equal(plan.materials.length, 0);
+  assert.doesNotMatch(JSON.stringify(plan), /Teacher-only marker|repository-only marker|spec-driven|slides\.pptx/);
+});
+
+test('unknown and tracked source roots remain rejected', async () => {
+  await reject(emptyCourse(), { 'notes/private.md': '# Unknown' }, 'TREE_UNDOCUMENTED');
+  await reject(emptyCourse(), { 'sources/book.pdf': 'local source' }, 'TREE_UNDOCUMENTED');
+});
+
 test('all material kinds and effective status combinations normalize in sort order', async () => {
   const course = emptyCourse();
   course.lifecycleStatus = 'published'; course.availability = 'available';
@@ -154,4 +174,11 @@ test('undeclared, unreferenced, and MIME-mismatched assets are rejected', async 
   const unreferenced = emptyCourse(); const lecture = material('lecture', 1); lecture.assets.push({ key: 'diagram', file: 'assets/diagram.png', alt: 'Diagram' }); unreferenced.materials.lectures.push(lecture);
   await reject(unreferenced, { 'lectures/001_lecture-1.md': '# No reference', 'assets/diagram.png': png }, 'ATTACHMENT_UNREFERENCED');
   await reject(unreferenced, { 'lectures/001_lecture-1.md': '![Diagram](attachment:diagram)', 'assets/diagram.png': Buffer.from('not an image') }, 'IMAGE_INVALID');
+});
+
+test('unmaterialized Git LFS publication input is rejected explicitly', async () => {
+  const course = emptyCourse(); const lecture = material('lecture', 1);
+  lecture.assets.push({ key: 'diagram', file: 'assets/diagram.png', alt: 'Diagram' }); course.materials.lectures.push(lecture);
+  const pointer = 'version https://git-lfs.github.com/spec/v1\noid sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\nsize 12345\n';
+  await reject(course, { 'lectures/001_lecture-1.md': '![Diagram](attachment:diagram)', 'assets/diagram.png': pointer }, 'LFS_POINTER_UNRESOLVED');
 });

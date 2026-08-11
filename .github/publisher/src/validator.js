@@ -17,6 +17,22 @@ const appwriteLiteralPattern = /APPWRITE_API_KEY\s*[=:]\s*["']?(?!\$|process\.en
 const directAppwritePattern = /(?:appwrite\.io|appwrite\.wholedata\.ru|\/v1\/storage\/buckets\/)/i;
 const rawHtmlPattern = /<\/?[a-z][^>]*>/i;
 const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const allowedTrackedRoots = new Set([
+  '.gitignore',
+  '.gitattributes',
+  'README.md',
+  'course.yaml',
+  'course.yaml.example',
+  'lectures',
+  'seminars',
+  'homeworks',
+  'assets',
+  'lectures-teacher',
+  'attachments',
+  'openspec',
+  '.github',
+]);
+const gitLfsPointerPrefix = 'version https://git-lfs.github.com/spec/v1\n';
 
 export function containsForbiddenSecret(source) {
   return githubSecretPattern.test(source) || appwriteLiteralPattern.test(source);
@@ -50,7 +66,7 @@ export async function inspectTree(root) {
     if (!['100644', '100755'].includes(mode)) fail('TREE_UNSAFE', 'Unsupported tracked file mode', { path: file });
     if (mode === '100755') fail('TREE_UNSAFE', 'Executable tracked files are not allowed', { path: file });
     const rootName = file.split('/')[0];
-    if (!['.gitignore', 'README.md', 'course.yaml', 'course.yaml.example', 'lectures', 'seminars', 'homeworks', 'assets', '.github'].includes(rootName)) fail('TREE_UNDOCUMENTED', 'Tracked path is outside the documented repository contract', { path: file });
+    if (!allowedTrackedRoots.has(rootName)) fail('TREE_UNDOCUMENTED', 'Tracked path is outside the documented repository contract', { path: file });
     const stat = await fs.lstat(path.join(root, file));
     if (stat.isSymbolicLink()) fail('TREE_UNSAFE', 'Symbolic links are not allowed', { path: file });
   }
@@ -63,6 +79,7 @@ async function readFile(root, relative, maxBytes, encoding = undefined) {
   if (!stat.isFile() || stat.isSymbolicLink()) fail('FILE_INVALID', 'Declared path must be a regular file', { path: relative });
   if (stat.size > maxBytes) fail('FILE_TOO_LARGE', `File exceeds ${maxBytes} bytes`, { path: relative });
   const data = await fs.readFile(target);
+  if (data.length < 1024 && data.toString('utf8').startsWith(gitLfsPointerPrefix)) fail('LFS_POINTER_UNRESOLVED', 'Git LFS object was not materialized before validation', { path: relative });
   return encoding ? new TextDecoder(encoding, { fatal: true }).decode(data) : data;
 }
 async function scanTrackedSecrets(root, tree) {

@@ -16,6 +16,25 @@ GITHUB_REF_NAME=courses/data-engineering npm run validate
 
 Slug ветки и `course.yaml:slug` обязаны совпадать и иметь lowercase kebab-case. В ветке должен быть ровно один `course.yaml`; `course.yaml.example` publisher не публикует.
 
+## Контракт каталогов
+
+Публикационными входами являются `course.yaml`, объявленные Markdown-файлы в `lectures/`, `seminars/` и `homeworks/`, а также объявленные изображения из `assets/`.
+
+Репозиторий также разрешает tracked support-файлы, которые никогда не попадают в publication plan:
+
+- `.gitattributes` — правила Git LFS;
+- `lectures-teacher/` — полные сценарии преподавателя;
+- `attachments/` — резерв для будущих дополнительных материалов;
+- `openspec/` — спецификация конкретного курса.
+
+Наличие файла в `attachments/` пока не публикует его и не делает доступным в приложении. Для скачиваемых дополнительных материалов потребуется отдельное изменение manifest, валидации, Appwrite и клиента.
+
+`sources/` предназначен для локального корпуса источников, должен оставаться в `.gitignore` курса и не может быть tracked. Любой другой неизвестный корневой путь отклоняется валидатором.
+
+Файлы, управляемые Git LFS, загружаются в validation и deployment jobs до чтения publisher. Если вместо содержимого остался LFS pointer, validation завершается ошибкой до любых изменений в Appwrite.
+
+Изменения этого общего контракта сначала вносятся в защищённый `master`. Курсовая ветка не должна самостоятельно менять унаследованные `.github/**`, `README.md` или `course.yaml.example`.
+
 ## Manifest и контент
 
 `schemaVersion` всегда `1`. У курса обязательны `slug`, `title` (до 160 символов), `description` (до 4000), `lifecycleStatus`, `availability`, `sortOrder` и три списка `materials.lectures`, `materials.seminars`, `materials.homeworks`.

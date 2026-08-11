@@ -65,6 +65,7 @@ test('workflow has the required branch and credential boundaries', async () => {
   assert.match(workflow, /environment: appwrite/);
   assert.match(workflow, /APPWRITE_API_KEY: \$\{\{ secrets\.APPWRITE_API_KEY \}\}/);
   assert.equal([...workflow.matchAll(/uses: actions\/(?:checkout|setup-node)@([a-f0-9]+)/g)].every((match) => match[1].length === 40), true);
+  assert.equal([...workflow.matchAll(/with: \{[^}\n]*lfs: true[^}\n]*\}/g)].length, 2);
   assert.match(workflow, /cancel-in-progress: false/);
   assert.match(workflow, /^permissions:\n  contents: read$/m);
   assert.doesNotMatch(validate, /secrets\.|APPWRITE_API_KEY/);
