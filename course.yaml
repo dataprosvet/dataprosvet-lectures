@@ -28,7 +28,7 @@ materials:
         Аксиомы вероятности, классическое определение и равновозможность,
         относительная частота, статистическая и геометрическая вероятность.
       lifecycleStatus: published
-      availability: inDevelopment
+      availability: available
       sortOrder: 2
       markdown: lectures/002_event-probability-definitions.md
     - slug: probability-theorems
@@ -37,7 +37,7 @@ materials:
         Теоремы сложения и умножения, условная вероятность, деревья
         вероятностей, независимость событий и формула «хотя бы одного».
       lifecycleStatus: published
-      availability: inDevelopment
+      availability: available
       sortOrder: 3
       markdown: lectures/003_probability-theorems.md
     - slug: total-probability-bayes-repeated-trials
@@ -46,7 +46,7 @@ materials:
         Разбиение на гипотезы, формулы полной вероятности и Байеса, схема
         Бернулли, наиболее вероятное число успехов и приближение Пуассона.
       lifecycleStatus: published
-      availability: inDevelopment
+      availability: available
       sortOrder: 4
       markdown: lectures/004_total-probability-bayes-repeated-trials.md
     - slug: discrete-random-variables-distributions
@@ -55,7 +55,7 @@ materials:
         Ряд, многоугольник и функция распределения дискретной случайной
         величины, биномиальный закон и распределение Пуассона.
       lifecycleStatus: published
-      availability: inDevelopment
+      availability: available
       sortOrder: 5
       markdown: lectures/005_discrete-random-variables-distributions.md
     - slug: numerical-characteristics-joint-distribution
@@ -64,7 +64,7 @@ materials:
         Математическое ожидание, дисперсия и стандартное отклонение, совместные
         и маргинальные распределения, ковариация, корреляция и независимость.
       lifecycleStatus: published
-      availability: inDevelopment
+      availability: available
       sortOrder: 6
       markdown: lectures/006_numerical-characteristics-joint-distribution.md
     - slug: continuous-random-variables
@@ -73,7 +73,7 @@ materials:
         Плотность и функция распределения, вероятности и характеристики через
         интегрирование, равномерное и показательное распределения.
       lifecycleStatus: published
-      availability: inDevelopment
+      availability: available
       sortOrder: 7
       markdown: lectures/007_continuous-random-variables.md
     - slug: normal-distribution-limit-theorems
@@ -82,7 +82,7 @@ materials:
         Стандартизация нормальной величины, правило трёх сигм, неравенство
         Чебышёва, закон больших чисел и центральная предельная теорема.
       lifecycleStatus: published
-      availability: inDevelopment
+      availability: available
       sortOrder: 8
       markdown: lectures/008_normal-distribution-limit-theorems.md
   seminars: []
