@@ -49,5 +49,8 @@ jobs:
           APPWRITE_ASSETS_TABLE_ID: ${{ vars.APPWRITE_ASSETS_TABLE_ID }}
           APPWRITE_MARKDOWN_BUCKET_ID: ${{ vars.APPWRITE_MARKDOWN_BUCKET_ID }}
           APPWRITE_MEDIA_BUCKET_ID: ${{ vars.APPWRITE_MEDIA_BUCKET_ID }}
+          APPWRITE_ATTACHMENTS_TABLE_ID: ${{ vars.APPWRITE_ATTACHMENTS_TABLE_ID }}
+          APPWRITE_ATTACHMENTS_BUCKET_ID: ${{ vars.APPWRITE_ATTACHMENTS_BUCKET_ID }}
+          COURSE_ATTACHMENT_MAX_BYTES: ${{ vars.COURSE_ATTACHMENT_MAX_BYTES }}
       - run: |
           printf '## Course publication\n\n- Repository: `%s`\n- Branch: `%s`\n- Commit: `%s`\n- Result: success; retry the same commit if recovery is needed.\n' "${GITHUB_REPOSITORY}" "${GITHUB_REF_NAME}" "${GITHUB_SHA}" >> "$GITHUB_STEP_SUMMARY"
