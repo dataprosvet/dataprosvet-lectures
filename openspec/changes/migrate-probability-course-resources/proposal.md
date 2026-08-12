@@ -1,3 +1,5 @@
+> **Superseded release decision (2026-08-12):** this migration records the historical split of teacher scripts, concise notes, and support attachments. Its requirement to declare `attachments/lecture_1.pptx` is no longer the current release contract. The active change `refine-probability-lectures-and-publish-first` keeps the PPTX tracked but dormant and publishes lecture one with complete and concise Markdown only.
+
 ## Why
 
 The generic publisher now distinguishes full student lectures, concise notes,

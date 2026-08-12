@@ -1,3 +1,5 @@
+> **Historical design note (superseded for publication):** the attachment declaration below was implemented as part of the resource migration but was subsequently withdrawn from the current staged release by `refine-probability-lectures-and-publish-first`. Use that change for present publication decisions.
+
 ## Decisions
 
 Existing files under `lectures/` are concise reference notes, so they move

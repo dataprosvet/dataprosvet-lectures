@@ -21,12 +21,8 @@ materials:
       lifecycleStatus: published
       availability: available
       sortOrder: 1
-      # briefMarkdown: lecture-notes/001_random-experiments-events-combinatorics.md
-      # attachments:
-      #   - key: slides
-      #     title: Презентация к лекции
-      #     file: attachments/lecture_1.pptx
-      #     sortOrder: 10
+      markdown: lectures/001_random-experiments-events-combinatorics.md
+      briefMarkdown: lecture-notes/001_random-experiments-events-combinatorics.md
     - slug: event-probability-definitions
       title: Вероятность события и её определения
       summary: >-
@@ -35,7 +31,6 @@ materials:
       lifecycleStatus: published
       availability: inDevelopment
       sortOrder: 2
-      briefMarkdown: lecture-notes/002_event-probability-definitions.md
     - slug: probability-theorems
       title: Основные теоремы теории вероятностей
       summary: >-
@@ -44,7 +39,6 @@ materials:
       lifecycleStatus: published
       availability: inDevelopment
       sortOrder: 3
-      briefMarkdown: lecture-notes/003_probability-theorems.md
     - slug: total-probability-bayes-repeated-trials
       title: Полная вероятность, Байес и повторные испытания
       summary: >-
@@ -53,7 +47,6 @@ materials:
       lifecycleStatus: published
       availability: inDevelopment
       sortOrder: 4
-      briefMarkdown: lecture-notes/004_total-probability-bayes-repeated-trials.md
     - slug: discrete-random-variables-distributions
       title: Дискретные случайные величины и законы распределения
       summary: >-
@@ -62,7 +55,6 @@ materials:
       lifecycleStatus: published
       availability: inDevelopment
       sortOrder: 5
-      briefMarkdown: lecture-notes/005_discrete-random-variables-distributions.md
     - slug: numerical-characteristics-joint-distribution
       title: Числовые характеристики и совместное распределение
       summary: >-
@@ -71,7 +63,6 @@ materials:
       lifecycleStatus: published
       availability: inDevelopment
       sortOrder: 6
-      briefMarkdown: lecture-notes/006_numerical-characteristics-joint-distribution.md
     - slug: continuous-random-variables
       title: Непрерывные случайные величины
       summary: >-
@@ -80,7 +71,6 @@ materials:
       lifecycleStatus: published
       availability: inDevelopment
       sortOrder: 7
-      briefMarkdown: lecture-notes/007_continuous-random-variables.md
     - slug: normal-distribution-limit-theorems
       title: Нормальное распределение и предельные теоремы
       summary: >-
@@ -89,6 +79,5 @@ materials:
       lifecycleStatus: published
       availability: inDevelopment
       sortOrder: 8
-      briefMarkdown: lecture-notes/008_normal-distribution-limit-theorems.md
   seminars: []
   homeworks: []

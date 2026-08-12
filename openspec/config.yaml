@@ -42,8 +42,10 @@ context: |
       `sources/2_5451720465485703829.pdf` provide targeted exercises,
       computational methods, and enrichment.
     - `sources/ПЛАН_КУРСА_ТЕОРИЯ_ВЕРОЯТНОСТЕЙ_ПО_РПД.md` fixes the curriculum
-      map; `sources/PLAN_LECTURE_REVISIONS_1_8.md` records revision decisions;
-      `sources/AUDIT_LECTURES_1_8.md` records coverage and known defects.
+      map; `sources/PLAN_LECTURE_REVISIONS_1_8.md` records revision decisions.
+      `sources/archive/AUDIT_LECTURES_1_8.superseded.md` is historical only;
+      the active final review is
+      `openspec/changes/refine-probability-lectures-and-publish-first/review-report.md`.
     - `sources/` is a local ignored corpus and is never published. If a task
       needs direct source verification and a required file is absent, stop and
       report the missing source rather than reconstructing it from memory.
@@ -51,15 +53,20 @@ context: |
   Content products (DECIDED):
     - `lectures-teacher/` contains complete teacher scripts and is tracked but
       never published.
-    - `lectures/` contains concise student notes and is the only lecture source
-      referenced by `course.yaml`.
-    - Student notes contain definitions, formulas with applicability conditions,
-      key conclusions, compact explanations/examples, and topic summaries.
-    - Student notes exclude timing tables, instructor prompts, teaching advice,
+    - `lectures/` contains complete student lectures; `lecture-notes/` contains
+      distinct concise revision notes. Both variants are tracked for all eight
+      lectures, but only lecture one is declared in the current staged release.
+    - Student materials contain definitions, formulas with applicability
+      conditions, key conclusions, explanations/examples, and topic summaries.
+    - Student materials exclude timing tables, instructor prompts, teaching advice,
       planned-error facilitation, curriculum coverage matrices, source maps, and
       reproducible generator code.
     - `attachments/` is tracked support content but is not published until a
       separate downloadable-material capability is approved.
+    - Current release state: the course and lecture one are published; lecture one
+      declares both complete `markdown` and concise `briefMarkdown`; lectures 2–8
+      remain in development without public text declarations; the presentation is
+      tracked but undeclared.
 
   Mathematical conventions (DECIDED):
     - Use `P(A)` for event probability and `P(A|B)` for conditional probability.
