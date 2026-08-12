@@ -14,11 +14,11 @@ The 2026 RPD for Б1.О.09.01 SHALL govern mandatory course structure, required 
 - **THEN** the mandatory scope is checked against the RPD, core mathematical treatment is grounded first in Gmurman, and the machine-learning books are actively considered for useful applications, examples, interpretation, or extension
 
 ### Requirement: The expected source inventory is documented
-The course OpenSpec context SHALL identify the normative RPD, Gmurman, *Mathematics for Machine Learning*, *Deep Learning: Immersion into the World of Neural Networks*, the probability-method guidance, the Monte Carlo materials, the course plan, the lecture revision plan, and the lecture audit by stable filenames and assigned source roles. The source files MAY remain local under ignored `sources/`, but their absence SHALL be reported when a requested revision requires direct source verification.
+The course OpenSpec context SHALL identify the normative RPD, Gmurman, *Mathematics for Machine Learning*, *Deep Learning: Immersion into the World of Neural Networks*, the probability-method guidance, the Monte Carlo materials, the course plan, and the lecture revision plan by stable filenames and assigned source roles. It SHALL identify the former lecture audit as a superseded historical record under the ignored source archive and SHALL identify the versioned review evidence from the completed editorial and publication change as the active record for the final decision. The source files MAY remain local under ignored `sources/`, but their absence SHALL be reported when a requested revision requires direct source verification.
 
 #### Scenario: Agent begins source-grounded course work
 - **WHEN** an agent reads the course specification before editing educational content
-- **THEN** it can identify which local files to consult and which source has authority for curriculum, mathematical substance, applied enrichment, and known corrections
+- **THEN** it can identify the authoritative curriculum and mathematical sources, distinguish the active review evidence from the superseded audit, and avoid treating an obsolete defect list as current state
 
 ### Requirement: Source conflicts and defects are handled explicitly
 A lecture MUST NOT invent missing normative data or conceal a conflict between sources. The course SHALL retain documented handling for the missing graph in control-work task 3.5, the absent independence condition in individual assignment 6.3, the general and special forms of Chebyshev's law of large numbers, and the distinction between the modern convention `F(x)=P(X\le x)` and conventions used in older sources.
@@ -37,3 +37,14 @@ Material taken from machine-learning or deep-learning sources SHALL clarify, mot
 #### Scenario: Machine-learning example is added
 - **WHEN** a lecture uses an example involving data, models, loss, noise, uncertainty, or neural networks
 - **THEN** the example is connected explicitly to the current probability concept and preserves the required definitions and conditions
+
+### Requirement: Superseded audits remain historical and inactive
+An audit whose findings have been resolved or invalidated by later revisions SHALL be marked superseded and moved to a non-published archive location rather than deleted or left as active guidance. A current versioned review record SHALL state which findings remain applicable, which were resolved, and which external blockers persist.
+
+#### Scenario: Historical audit is consulted
+- **WHEN** a maintainer opens the archived audit
+- **THEN** its superseded status and successor review are unambiguous and its old recommendations are not mistaken for current acceptance failures
+
+#### Scenario: Current review is completed
+- **WHEN** all eight lecture families have been checked and the staged release is ready
+- **THEN** versioned evidence records source coverage, accepted editorial changes, independent calculation checks, unresolved normative defects, and the publication decision

@@ -137,10 +137,12 @@ Checks were run with Python standard-library arithmetic (`fractions`, `math`, ex
 | PPTX | tracked, dormant, absent from plan | pass |
 | Lecture 2–8 text | tracked, dormant, absent from plan | pass; 14 dormant content diagnostics |
 | Teacher/source/audit/OpenSpec content | absent from plan | pass |
-| Production site | exact staged-release behavior | pending |
+| Production site | exact staged-release behavior | pass; owner accepted the live release at `https://dataprosvet.ru` on 2026-08-12 |
 
 The first staged validation identified the same lecture-one PNG in both student variants and rejected the duplicate asset key. The concise note did not require the illustration, so its duplicate embed was removed; the full lecture remains the single public owner. Regenerated validation then passed with the exact allowlist above.
 
 Repository acceptance also passed all 47 publisher tests, JavaScript syntax lint, UTF-8 and size checks, teacher-only leakage scans, and `git diff --check`. Final teacher diffs contain only bounded oral-readability edits, the heading normalization in lecture 6, and the requested source navigators; no mathematical section, timing aid, interaction, worked solution, RPD warning, coverage record, or computational appendix was removed.
 
 The exact release commit scope is the 30 staged course/content/OpenSpec paths listed by `git diff --cached --stat`; `.agents/` and the ignored `sources/` corpus are excluded. The production course branch was already four commits ahead of its remote: three commits implementing dormant-resource publisher support plus their merge. Those prerequisite commits are already present on the remote feature branch and are required for the staged manifest behavior; pushing the course branch will advance it through that reviewed baseline and this course change together.
+
+Release commit `ac1ea32071186ce911290cf0f4836a86775fc4d3` was pushed to `courses/probability-theory`. GitHub Actions run `31616832952` completed successfully, including validation and production publication. The course owner then checked the primary site and explicitly accepted the published course, lecture-one complete text, and lecture-one concise note. The detailed positive and negative evidence is recorded in `publication-verification.md`.

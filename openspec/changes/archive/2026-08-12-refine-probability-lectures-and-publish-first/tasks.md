@@ -72,11 +72,11 @@
 ## 14. Repository Publication
 
 - [x] 14.1 Confirm the exact file scope and cleanly commit the accepted change on the course branch without unrelated user files or ignored sources.
-- [ ] 14.2 Push through the normal reviewed repository workflow and wait for validation and production publication for the exact commit to complete successfully.
+- [x] 14.2 Push through the normal reviewed repository workflow and wait for validation and production publication for the exact commit to complete successfully.
 
 ## 15. Primary-Site Verification
 
-- [ ] 15.1 Open the primary site after deployment and verify the probability-theory course and lecture-one metadata are visible for the intended audience.
-- [ ] 15.2 Verify lecture one opens both the complete lecture and concise note with correct headings, formulas, links, and images, and verify that no presentation action is exposed.
-- [ ] 15.3 Verify lectures two through eight are not publicly available and no teacher, source, audit, OpenSpec, dormant, or attachment resource can be reached through the course UI.
-- [ ] 15.4 Create `publication-verification.md` with the deployed commit, workflow result, checked pages, positive and negative checks, screenshots or equivalent evidence, and final acceptance or rollback/corrective action.
+- [x] 15.1 Open the primary site after deployment and verify the probability-theory course and lecture-one metadata are visible for the intended audience.
+- [x] 15.2 Verify lecture one opens both the complete lecture and concise note with correct headings, formulas, links, and images, and verify that no presentation action is exposed.
+- [x] 15.3 Verify lectures two through eight are not publicly available and no teacher, source, audit, OpenSpec, dormant, or attachment resource can be reached through the course UI.
+- [x] 15.4 Create `publication-verification.md` with the deployed commit, workflow result, checked pages, positive and negative checks, screenshots or equivalent evidence, and final acceptance or rollback/corrective action.
