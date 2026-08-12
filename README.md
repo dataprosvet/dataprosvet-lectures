@@ -24,10 +24,12 @@ Slug ветки и `course.yaml:slug` обязаны совпадать и им�
 
 - `.gitattributes` — правила Git LFS;
 - `lectures-teacher/` — полные сценарии преподавателя;
-- `attachments/` — резерв для будущих дополнительных материалов;
+- `attachments/` — дополнительные скачиваемые материалы и их dormant-заготовки;
 - `openspec/` — спецификация конкретного курса.
 
-Наличие файла в `attachments/` пока не публикует его и не делает доступным в приложении. Для скачиваемых дополнительных материалов потребуется отдельное изменение manifest, валидации, Appwrite и клиента.
+Само наличие файла в каталоге публикации ничего не публикует. `course.yaml` — единственный allowlist: только явно объявленные Markdown, используемые ими изображения и элементы `attachments` проходят публикационную валидацию, попадают в plan и могут быть загружены в Appwrite. Остальные tracked-файлы под `lectures/`, `lecture-notes/`, `seminars/`, `homeworks/`, `assets/` и `attachments/` считаются dormant-заготовками. CI выводит их repository-relative пути как информационные diagnostics, но не читает их как публичный контент, не включает в digest и не загружает.
+
+Dormant Markdown всё равно проверяется на запрещённые credential patterns: отсутствие декларации не является исключением из secret scanning. При добавлении пути в manifest файл становится публикационным input и обязан пройти все строгие проверки. Отсутствующий, untracked, небезопасный или некорректный объявленный файл всегда завершает validation ошибкой до Appwrite mutation.
 
 `sources/` предназначен для локального корпуса источников, должен оставаться в `.gitignore` курса и не может быть tracked. Любой другой неизвестный корневой путь отклоняется валидатором.
 
@@ -41,7 +43,7 @@ Slug ветки и `course.yaml:slug` обязаны совпадать и им�
 
 Элемент списка задаёт `slug`, `title`, `summary`, `lifecycleStatus`, `availability`, `sortOrder` и необязательный `markdown`. Раздел определяет тип: `lectures` → `lecture`, `seminars` → `seminar`, `homeworks` → `homework`. Markdown обязан называться `<трёхзначный sortOrder>_<slug>.md`: например, для `sortOrder: 1` и `slug: introduction` — `lectures/001_introduction.md`.
 
-Допустимые состояния: lifecycle `draft`, `published`, `archived`; availability `inDevelopment`, `available`, `temporarilyUnavailable`. `published` + `available` материал обязан иметь Markdown. Markdown хранится только в каталоге своего типа. Изображения — только tracked-файлы в `assets/`: PNG, JPEG или WebP, до 5 MiB, до 4096×4096 и 16 млн пикселей. Markdown — до 256 KiB, UTF-8, без raw HTML, удалённых изображений и Appwrite URL. Необъявленные Markdown и неиспользуемые файлы в `assets/` — ошибки.
+Допустимые состояния: lifecycle `draft`, `published`, `archived`; availability `inDevelopment`, `available`, `temporarilyUnavailable`. Даже `published` + `available` material может содержать только metadata: отсутствие `markdown` и `briefMarkdown` оставляет соответствующие переходы в клиенте disabled. Markdown хранится только в каталоге своего типа. Объявленные изображения — только tracked-файлы в `assets/`: PNG, JPEG или WebP, до 5 MiB, до 4096×4096 и 16 млн пикселей. Объявленный Markdown — до 256 KiB, UTF-8, без raw HTML, удалённых изображений и Appwrite URL.
 
 Обычный material не содержит ручного списка assets:
 
@@ -92,6 +94,8 @@ assets:
 
 PR и push в `courses/**` сначала запускают validation без Appwrite credentials. Только успешный push получает Environment `appwrite` и публикует заново вычисленный plan. Publisher сначала скрывает текущий курс, загружает файлы приватно, затем открывает файлы, metadata материалов и metadata курса — именно в таком порядке. Повтор того же коммита безопасен; удалённый из manifest материал архивируется, а его файлы становятся приватными.
 
+Чтобы временно снять с публикации отдельный документ или attachment, удалите только соответствующую декларацию из `course.yaml`, оставив сам файл tracked. Следующая публикация обнулит `contentFileId`/`briefContentFileId` либо удалит active attachment mapping и предварительно отзовёт anonymous read у прежнего Storage object. Metadata материала останется доступной. Чтобы вернуть ресурс, снова добавьте его декларацию: перед публикацией он заново пройдёт полный набор проверок.
+
 Откат — reviewed `git revert` (или восстановление известного good commit) в course branch. Обычное восстановление не редактирует Appwrite Console. При аварии отключите Environment deployment policy или workflow, исправьте Git-источник и повторите publish. Перед удалением ветки сначала переведите курс в `archived` и дождитесь успешного deployment; удаление ветки само Appwrite не меняет.
 
 ## GitHub rules и Environment
@@ -107,6 +111,10 @@ Lectures may independently declare a full student document with `markdown`
 under `lectures/` and concise notes with `briefMarkdown` under
 `lecture-notes/`. A lecture with neither document is valid metadata. Files in
 `lectures-teacher/` are support-only and are never used as a public fallback.
+Tracked files that are not declared remain dormant in their established
+directories. Dormant paths are reported without failing validation or entering
+the publication plan. All tracked Markdown remains subject to secret scanning;
+full content validation starts when a manifest field declares the file.
 
 Any lecture, seminar, or homework may declare an ordered `attachments` list.
 Each item contains a stable `key`, Russian-facing `title`, tracked `file` under

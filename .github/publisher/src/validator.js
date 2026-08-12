@@ -88,8 +88,7 @@ async function scanTrackedSecrets(root, tree) {
   for (const relative of tree) {
     const isCourseInput = relative === 'course.yaml' || /^(lectures|lecture-notes|seminars|homeworks)\/.+\.md$/i.test(relative);
     if (!isCourseInput) continue;
-    const bytes = await readFile(root, relative, 1024 * 1024).catch(() => null);
-    if (!bytes) continue;
+    const bytes = await readFile(root, relative, 1024 * 1024);
     const source = new TextDecoder('utf-8', { fatal: false }).decode(bytes);
     if (containsForbiddenSecret(source)) fail('SECRET_PATTERN', 'Tracked source contains a forbidden credential pattern', { path: relative });
   }
@@ -110,7 +109,7 @@ function normalizeMaterial(course, kind, material, markdown, assets) {
   const publicRead = effectivePublic(course, material);
   return Object.freeze({ ...material, kind, publicRead, content: markdown, assets, resourceKey: `${course.slug}/${kind}/${material.slug}` });
 }
-export async function validateCourse({ root = process.cwd(), branch, schema, allowUntracked = false, maxAttachmentBytes = Number(process.env.COURSE_ATTACHMENT_MAX_BYTES ?? DEFAULT_MAX_ATTACHMENT_BYTES) } = {}) {
+export async function validateCourse({ root = process.cwd(), branch, schema, allowUntracked = false, maxAttachmentBytes = Number(process.env.COURSE_ATTACHMENT_MAX_BYTES ?? DEFAULT_MAX_ATTACHMENT_BYTES), onDiagnostic = () => {} } = {}) {
   if (!Number.isSafeInteger(maxAttachmentBytes) || maxAttachmentBytes <= 0) fail('CONFIG_INVALID', 'Invalid COURSE_ATTACHMENT_MAX_BYTES');
   const tree = await inspectTree(root);
   await scanTrackedSecrets(root, tree);
@@ -194,11 +193,14 @@ export async function validateCourse({ root = process.cwd(), branch, schema, all
     }
     normalized.push(Object.freeze({ ...normalizeMaterial(manifest, kind, { ...material, assets: undefined, attachments: undefined, briefMarkdown: undefined }, content, assets), briefContent, attachments: downloadable.sort((a, b) => a.sortOrder - b.sortOrder || a.key.localeCompare(b.key)) }));
   }
-  if (undeclaredContent.size) fail('UNDECLARED_CONTENT', 'Undeclared Markdown exists in a content directory', { path: [...undeclaredContent].sort()[0] });
-  const undeclaredAsset = [...tree].find((item) => item.startsWith('assets/') && !item.endsWith('/.gitkeep') && !declaredAssets.has(item));
-  if (undeclaredAsset) fail('UNDECLARED_ASSET', 'Undeclared asset exists in assets/', { path: undeclaredAsset });
-  const undeclaredAttachment = [...tree].find((item) => item.startsWith('attachments/') && !item.endsWith('/.gitkeep') && !declaredAttachments.has(item));
-  if (undeclaredAttachment) fail('UNDECLARED_ATTACHMENT', 'Undeclared file exists in attachments/', { path: undeclaredAttachment });
+  const dormantResources = [
+    ...[...undeclaredContent].map((resourcePath) => ({ kind: 'content', path: resourcePath })),
+    ...[...tree].filter((item) => item.startsWith('assets/') && !item.endsWith('/.gitkeep') && !declaredAssets.has(item)).map((resourcePath) => ({ kind: 'asset', path: resourcePath })),
+    ...[...tree].filter((item) => item.startsWith('attachments/') && !item.endsWith('/.gitkeep') && !declaredAttachments.has(item)).map((resourcePath) => ({ kind: 'attachment', path: resourcePath })),
+  ].sort((left, right) => left.path.localeCompare(right.path) || left.kind.localeCompare(right.kind));
+  for (const resource of dormantResources) {
+    onDiagnostic(Object.freeze({ code: 'DORMANT_RESOURCE', message: 'Tracked resource is dormant because course.yaml does not declare it', ...resource }));
+  }
   const sorted = normalized.sort((a, b) => a.sortOrder - b.sortOrder || a.resourceKey.localeCompare(b.resourceKey));
   const plan = {
     version: 1,

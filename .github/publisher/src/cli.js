@@ -9,7 +9,12 @@ const directory = path.dirname(fileURLToPath(import.meta.url));
 const schema = JSON.parse(await fs.readFile(path.resolve(directory, '../../schemas/course.schema.json'), 'utf8'));
 const [command] = process.argv.slice(2);
 try {
-  const input = { root: process.env.COURSE_ROOT || process.cwd(), branch: process.env.GITHUB_HEAD_REF || process.env.GITHUB_REF_NAME || '', schema };
+  const input = {
+    root: process.env.COURSE_ROOT || process.cwd(),
+    branch: process.env.GITHUB_HEAD_REF || process.env.GITHUB_REF_NAME || '',
+    schema,
+    onDiagnostic: (diagnostic) => log('validate', diagnostic.message, { code: diagnostic.code, kind: diagnostic.kind, path: diagnostic.path }),
+  };
   const plan = await validateCourse(input);
   if (command === 'validate') { log('validate', 'Validated course', { course: plan.course.slug, digest: plan.digest }); process.stdout.write(`${JSON.stringify(plan)}\n`); }
   else if (command === 'publish') { await publishCourse(plan, { root: input.root }); log('publish', 'Publication completed', { course: plan.course.slug, digest: plan.digest }); }

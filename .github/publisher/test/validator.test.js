@@ -107,13 +107,64 @@ test('declared download attachment records deterministic inert metadata', async 
   assert.match(attachment.fileId, /^att/);
 });
 
-test('attachment size override and undeclared files fail closed', async () => {
+test('attachment size override applies only to declared publication inputs', async () => {
   const course = emptyCourse(); const lecture = material('lecture', 1); delete lecture.markdown;
   lecture.attachments = [{ key: 'script', title: 'Script', file: 'attachments/script.py', sortOrder: 1 }];
   course.materials.lectures.push(lecture);
   const root = await fixture(course, { 'attachments/script.py': 'print(1)\n' });
   await assert.rejects(() => validateCourse({ root, branch: 'courses/fixture-course', schema, maxAttachmentBytes: 4 }), (error) => error.code === 'FILE_TOO_LARGE');
-  await reject(emptyCourse(), { 'attachments/orphan.pdf': '%PDF-1.7\n' }, 'UNDECLARED_ATTACHMENT');
+});
+
+test('undeclared resources are reported as dormant and excluded from the plan', async () => {
+  const diagnostics = [];
+  const plan = await validateCourse({
+    root: await fixture(emptyCourse(), {
+      'lectures/001_draft.md': '<script>not parsed as public Markdown</script>',
+      'lecture-notes/001_notes.md': '# Draft notes',
+      'assets/orphan.png': Buffer.from('not inspected as an image'),
+      'attachments/orphan.exe': Buffer.from('not inspected as an attachment'),
+    }),
+    branch: 'courses/fixture-course',
+    schema,
+    onDiagnostic: (diagnostic) => diagnostics.push(diagnostic),
+  });
+  assert.deepEqual(diagnostics.map(({ code, kind, path: resourcePath }) => [code, kind, resourcePath]), [
+    ['DORMANT_RESOURCE', 'asset', 'assets/orphan.png'],
+    ['DORMANT_RESOURCE', 'attachment', 'attachments/orphan.exe'],
+    ['DORMANT_RESOURCE', 'content', 'lecture-notes/001_notes.md'],
+    ['DORMANT_RESOURCE', 'content', 'lectures/001_draft.md'],
+  ]);
+  const serialized = JSON.stringify(plan);
+  assert.doesNotMatch(serialized, /orphan|001_draft|001_notes|not parsed/);
+});
+
+test('dormant Markdown remains secret-scanned without publication parsing', async () => {
+  await reject(emptyCourse(), { 'lectures/001_draft.md': 'ghp_abcdefghijklmnopqrstuvwxyz0123456789' }, 'SECRET_PATTERN');
+  const diagnostics = [];
+  const plan = await validateCourse({
+    root: await fixture(emptyCourse(), { 'lectures/001_draft.md': '<script>safe dormant draft</script>' }),
+    branch: 'courses/fixture-course',
+    schema,
+    onDiagnostic: (diagnostic) => diagnostics.push(diagnostic),
+  });
+  assert.equal(diagnostics[0].path, 'lectures/001_draft.md');
+  assert.doesNotMatch(JSON.stringify(plan), /safe dormant draft|001_draft/);
+  await reject(emptyCourse(), { 'lectures/001_large.md': Buffer.alloc(1024 * 1024 + 1, 0x61) }, 'FILE_TOO_LARGE');
+});
+
+test('dormant path and byte changes do not affect the publication digest', async () => {
+  const first = await validateCourse({
+    root: await fixture(emptyCourse(), { 'lectures/001_first.md': '# First draft' }),
+    branch: 'courses/fixture-course',
+    schema,
+  });
+  const second = await validateCourse({
+    root: await fixture(emptyCourse(), { 'lecture-notes/999_other.md': '# Different draft bytes' }),
+    branch: 'courses/fixture-course',
+    schema,
+  });
+  assert.equal(first.digest, second.digest);
+  assert.deepEqual(first, second);
 });
 
 test('unknown and tracked source roots remain rejected', async () => {
@@ -200,6 +251,28 @@ test('duplicate identity and missing or unresolved content are rejected', async 
   await reject(unresolved, { 'lectures/001_lecture-1.md': 'attachment:missing' }, 'ATTACHMENT_SYNTAX_INVALID');
 });
 
+test('declared resource paths retain strict validation', async () => {
+  const wrongName = emptyCourse(); const wrongNameLecture = material('lecture', 1);
+  wrongNameLecture.markdown = 'lectures/999_wrong.md'; wrongName.materials.lectures.push(wrongNameLecture);
+  await reject(wrongName, { 'lectures/999_wrong.md': '# Wrong name' }, 'MARKDOWN_FILENAME_INVALID');
+
+  const escaping = emptyCourse(); const escapingLecture = material('lecture', 1);
+  escapingLecture.markdown = '../outside.md'; escaping.materials.lectures.push(escapingLecture);
+  await reject(escaping, {}, 'MANIFEST_SCHEMA_INVALID');
+
+  const unsupported = emptyCourse(); const unsupportedLecture = material('lecture', 1); delete unsupportedLecture.markdown;
+  unsupportedLecture.attachments = [{ key: 'binary', title: 'Binary', file: 'attachments/file.exe', sortOrder: 1 }];
+  unsupported.materials.lectures.push(unsupportedLecture);
+  await reject(unsupported, { 'attachments/file.exe': Buffer.from('binary') }, 'ATTACHMENT_TYPE_UNSUPPORTED');
+
+  const ambiguous = emptyCourse(); const first = material('lecture', 1); const second = material('lecture', 2);
+  delete first.markdown; delete second.markdown;
+  first.attachments = [{ key: 'slides', title: 'Slides', file: 'attachments/shared.pdf', sortOrder: 1 }];
+  second.attachments = [{ key: 'slides', title: 'Slides', file: 'attachments/shared.pdf', sortOrder: 1 }];
+  ambiguous.materials.lectures.push(first, second);
+  await reject(ambiguous, { 'attachments/shared.pdf': '%PDF-1.7\n' }, 'ATTACHMENT_OWNERSHIP_AMBIGUOUS');
+});
+
 test('unsafe tree, raw HTML, invalid UTF-8, and credentials are rejected', async () => {
   await reject(emptyCourse(), {}, 'TREE_UNSAFE', (root) => symlink('../course.yaml', path.join(root, 'assets/unsafe.png')));
   const html = emptyCourse(); html.materials.lectures.push(material('lecture', 1));
@@ -208,9 +281,8 @@ test('unsafe tree, raw HTML, invalid UTF-8, and credentials are rejected', async
   await reject(html, { 'lectures/001_lecture-1.md': 'ghp_abcdefghijklmnopqrstuvwxyz0123456789' }, 'SECRET_PATTERN');
 });
 
-test('undeclared, unreferenced, and MIME-mismatched assets are rejected', async () => {
+test('declared unreferenced and MIME-mismatched assets are rejected', async () => {
   const png = Buffer.alloc(24); Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]).copy(png); png.writeUInt32BE(1, 16); png.writeUInt32BE(1, 20);
-  await reject(emptyCourse(), { 'assets/orphan.png': png }, 'UNDECLARED_ASSET');
   const unreferenced = emptyCourse(); const lecture = material('lecture', 1); lecture.assets.push({ key: 'diagram', file: 'assets/diagram.png', alt: 'Diagram' }); unreferenced.materials.lectures.push(lecture);
   await reject(unreferenced, { 'lectures/001_lecture-1.md': '# No reference', 'assets/diagram.png': png }, 'ATTACHMENT_UNREFERENCED');
   await reject(unreferenced, { 'lectures/001_lecture-1.md': '![Diagram](attachment:diagram)', 'assets/diagram.png': Buffer.from('not an image') }, 'IMAGE_INVALID');
