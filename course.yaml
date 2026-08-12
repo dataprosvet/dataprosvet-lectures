@@ -21,19 +21,19 @@ materials:
       lifecycleStatus: published
       availability: available
       sortOrder: 1
-      briefMarkdown: lecture-notes/001_random-experiments-events-combinatorics.md
-      attachments:
-        - key: slides
-          title: Презентация к лекции
-          file: attachments/lecture_1.pptx
-          sortOrder: 10
+      # briefMarkdown: lecture-notes/001_random-experiments-events-combinatorics.md
+      # attachments:
+      #   - key: slides
+      #     title: Презентация к лекции
+      #     file: attachments/lecture_1.pptx
+      #     sortOrder: 10
     - slug: event-probability-definitions
       title: Вероятность события и её определения
       summary: >-
         Аксиомы вероятности, классическое определение и равновозможность,
         относительная частота, статистическая и геометрическая вероятность.
       lifecycleStatus: published
-      availability: available
+      availability: inDevelopment
       sortOrder: 2
       briefMarkdown: lecture-notes/002_event-probability-definitions.md
     - slug: probability-theorems
@@ -42,7 +42,7 @@ materials:
         Теоремы сложения и умножения, условная вероятность, деревья
         вероятностей, независимость событий и формула «хотя бы одного».
       lifecycleStatus: published
-      availability: available
+      availability: inDevelopment
       sortOrder: 3
       briefMarkdown: lecture-notes/003_probability-theorems.md
     - slug: total-probability-bayes-repeated-trials
@@ -51,7 +51,7 @@ materials:
         Разбиение на гипотезы, формулы полной вероятности и Байеса, схема
         Бернулли, наиболее вероятное число успехов и приближение Пуассона.
       lifecycleStatus: published
-      availability: available
+      availability: inDevelopment
       sortOrder: 4
       briefMarkdown: lecture-notes/004_total-probability-bayes-repeated-trials.md
     - slug: discrete-random-variables-distributions
@@ -60,7 +60,7 @@ materials:
         Ряд, многоугольник и функция распределения дискретной случайной
         величины, биномиальный закон и распределение Пуассона.
       lifecycleStatus: published
-      availability: available
+      availability: inDevelopment
       sortOrder: 5
       briefMarkdown: lecture-notes/005_discrete-random-variables-distributions.md
     - slug: numerical-characteristics-joint-distribution
@@ -69,7 +69,7 @@ materials:
         Математическое ожидание, дисперсия и стандартное отклонение, совместные
         и маргинальные распределения, ковариация, корреляция и независимость.
       lifecycleStatus: published
-      availability: available
+      availability: inDevelopment
       sortOrder: 6
       briefMarkdown: lecture-notes/006_numerical-characteristics-joint-distribution.md
     - slug: continuous-random-variables
@@ -78,7 +78,7 @@ materials:
         Плотность и функция распределения, вероятности и характеристики через
         интегрирование, равномерное и показательное распределения.
       lifecycleStatus: published
-      availability: available
+      availability: inDevelopment
       sortOrder: 7
       briefMarkdown: lecture-notes/007_continuous-random-variables.md
     - slug: normal-distribution-limit-theorems
@@ -87,7 +87,7 @@ materials:
         Стандартизация нормальной величины, правило трёх сигм, неравенство
         Чебышёва, закон больших чисел и центральная предельная теорема.
       lifecycleStatus: published
-      availability: available
+      availability: inDevelopment
       sortOrder: 8
       briefMarkdown: lecture-notes/008_normal-distribution-limit-theorems.md
   seminars: []
