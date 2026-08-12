@@ -34,7 +34,7 @@ const material = (kind, order, status = ['draft', 'inDevelopment']) => ({
 async function fixture(course = emptyCourse(), files = {}, setup) {
   const root = await mkdtemp(path.join(os.tmpdir(), 'publisher-validator-'));
   execFileSync('git', ['init', '-q'], { cwd: root });
-  for (const directory of ['lectures', 'seminars', 'homeworks', 'assets']) await mkdir(path.join(root, directory));
+  for (const directory of ['lectures', 'lecture-notes', 'seminars', 'homeworks', 'assets', 'attachments']) await mkdir(path.join(root, directory));
   await writeFile(path.join(root, 'course.yaml'), YAML.stringify(course));
   for (const [relative, body] of Object.entries(files)) {
     await mkdir(path.dirname(path.join(root, relative)), { recursive: true });
@@ -66,14 +66,54 @@ test('tracked support paths are accepted and excluded from the publication plan'
     root: await fixture(emptyCourse(), {
       '.gitattributes': '*.png filter=lfs diff=lfs merge=lfs -text\n',
       'lectures-teacher/001_teacher.md': '# Teacher-only marker\n',
-      'attachments/slides.pptx': 'repository-only marker\n',
       'openspec/config.yaml': 'schema: spec-driven\n',
     }),
     branch: 'courses/fixture-course',
     schema,
   });
   assert.equal(plan.materials.length, 0);
-  assert.doesNotMatch(JSON.stringify(plan), /Teacher-only marker|repository-only marker|spec-driven|slides\.pptx/);
+  assert.doesNotMatch(JSON.stringify(plan), /Teacher-only marker|spec-driven/);
+});
+
+test('metadata-only and concise-only lectures remain valid', async () => {
+  const course = emptyCourse();
+  const metadataOnly = material('lecture', 1); delete metadataOnly.markdown;
+  const concise = material('lecture', 2); delete concise.markdown;
+  concise.briefMarkdown = 'lecture-notes/002_lecture-2.md';
+  course.materials.lectures.push(metadataOnly, concise);
+  const plan = await validateCourse({
+    root: await fixture(course, { 'lecture-notes/002_lecture-2.md': '# Notes' }),
+    branch: 'courses/fixture-course',
+    schema,
+  });
+  assert.equal(plan.materials[0].content, null);
+  assert.equal(plan.materials[0].briefContent, null);
+  assert.equal(plan.materials[1].content, null);
+  assert.match(plan.materials[1].briefContent.path, /^lecture-notes\//);
+});
+
+test('declared download attachment records deterministic inert metadata', async () => {
+  const course = emptyCourse(); const lecture = material('lecture', 1);
+  delete lecture.markdown;
+  lecture.attachments = [{ key: 'slides', title: 'Slides', file: 'attachments/slides.pptx', sortOrder: 10 }];
+  course.materials.lectures.push(lecture);
+  const plan = await validateCourse({
+    root: await fixture(course, { 'attachments/slides.pptx': Buffer.from([0x50, 0x4b, 0x03, 0x04]) }),
+    branch: 'courses/fixture-course',
+    schema,
+  });
+  const attachment = plan.materials[0].attachments[0];
+  assert.deepEqual({ key: attachment.key, fileName: attachment.fileName, extension: attachment.extension, sizeBytes: attachment.sizeBytes }, { key: 'slides', fileName: 'slides.pptx', extension: 'pptx', sizeBytes: 4 });
+  assert.match(attachment.fileId, /^att/);
+});
+
+test('attachment size override and undeclared files fail closed', async () => {
+  const course = emptyCourse(); const lecture = material('lecture', 1); delete lecture.markdown;
+  lecture.attachments = [{ key: 'script', title: 'Script', file: 'attachments/script.py', sortOrder: 1 }];
+  course.materials.lectures.push(lecture);
+  const root = await fixture(course, { 'attachments/script.py': 'print(1)\n' });
+  await assert.rejects(() => validateCourse({ root, branch: 'courses/fixture-course', schema, maxAttachmentBytes: 4 }), (error) => error.code === 'FILE_TOO_LARGE');
+  await reject(emptyCourse(), { 'attachments/orphan.pdf': '%PDF-1.7\n' }, 'UNDECLARED_ATTACHMENT');
 });
 
 test('unknown and tracked source roots remain rejected', async () => {

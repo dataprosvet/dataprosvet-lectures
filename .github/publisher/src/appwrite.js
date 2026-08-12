@@ -76,6 +76,8 @@ export function createAdapter({ env = process.env } = {}) {
     async listMaterials(courseId) { return (await tables.listRows({ databaseId: config.APPWRITE_DATABASE_ID, tableId: config.APPWRITE_MATERIALS_TABLE_ID, queries: [Query.equal('courseId', courseId)] })).rows; },
     async findAsset(materialId, key) { return listOne(config.APPWRITE_ASSETS_TABLE_ID, [Query.equal('materialId', materialId), Query.equal('key', key)], 'asset'); },
     async listAssets(materialId) { return (await tables.listRows({ databaseId: config.APPWRITE_DATABASE_ID, tableId: config.APPWRITE_ASSETS_TABLE_ID, queries: [Query.equal('materialId', materialId)] })).rows; },
+    async findAttachment(materialId, key) { return listOne(config.APPWRITE_ATTACHMENTS_TABLE_ID, [Query.equal('materialId', materialId), Query.equal('key', key)], 'download attachment'); },
+    async listAttachments(materialId) { return (await tables.listRows({ databaseId: config.APPWRITE_DATABASE_ID, tableId: config.APPWRITE_ATTACHMENTS_TABLE_ID, queries: [Query.equal('materialId', materialId), Query.orderAsc('sortOrder')], total: false })).rows; },
     async getFile(bucketId, fileId) { try { return await storage.getFile({ bucketId, fileId }); } catch { return null; } },
     async putFile(bucketId, fileId, bytes, name, readable) {
       const existing = await this.getFile(bucketId, fileId);
@@ -106,7 +108,7 @@ export function createAdapter({ env = process.env } = {}) {
       for (const material of plan.materials) {
         const row = rows.find((item) => item.kind === material.kind && item.slug === material.slug);
         if (!row) fail('FINAL_STATE_MISMATCH', `Material ${material.resourceKey} is missing after publication`);
-        const rowFields = { courseId: course.$id, kind: material.kind, slug: material.slug, title: material.title, summary: material.summary, contentFileId: material.content?.fileId ?? null, lifecycleStatus: material.lifecycleStatus, availability: material.availability, sortOrder: material.sortOrder };
+        const rowFields = { courseId: course.$id, kind: material.kind, slug: material.slug, title: material.title, summary: material.summary, contentFileId: material.content?.fileId ?? null, briefContentFileId: material.briefContent?.fileId ?? null, lifecycleStatus: material.lifecycleStatus, availability: material.availability, sortOrder: material.sortOrder };
         assertFields(row, rowFields, `Material ${material.resourceKey}`);
         const metadataReadable = courseReadable && material.lifecycleStatus === 'published';
         assertPermission(row, metadataReadable, `Material ${material.resourceKey}`);
@@ -117,6 +119,12 @@ export function createAdapter({ env = process.env } = {}) {
           if (!file) fail('FINAL_STATE_MISMATCH', `Markdown for ${material.resourceKey} is missing after publication`);
           assertPermission(file, material.publicRead, `Markdown for ${material.resourceKey}`);
           await expectAnonymousFile(config.APPWRITE_MARKDOWN_BUCKET_ID, material.content.fileId, material.publicRead, `Markdown for ${material.resourceKey}`);
+        }
+        if (material.briefContent) {
+          const file = await this.getFile(config.APPWRITE_MARKDOWN_BUCKET_ID, material.briefContent.fileId);
+          if (!file) fail('FINAL_STATE_MISMATCH', `Concise Markdown for ${material.resourceKey} is missing after publication`);
+          assertPermission(file, material.publicRead, `Concise Markdown for ${material.resourceKey}`);
+          await expectAnonymousFile(config.APPWRITE_MARKDOWN_BUCKET_ID, material.briefContent.fileId, material.publicRead, `Concise Markdown for ${material.resourceKey}`);
         }
         const assets = await this.listAssets(row.$id);
         if (assets.length !== material.assets.length) fail('FINAL_STATE_MISMATCH', `Attachment mappings for ${material.resourceKey} differ from the publication plan`);
@@ -132,6 +140,18 @@ export function createAdapter({ env = process.env } = {}) {
           assertPermission(file, material.publicRead, `Attachment file ${material.resourceKey}/${asset.key}`);
           await expectAnonymousFile(config.APPWRITE_MEDIA_BUCKET_ID, asset.fileId, material.publicRead, `Attachment file ${material.resourceKey}/${asset.key}`);
         }
+        const attachments = await this.listAttachments(row.$id);
+        if (attachments.length !== material.attachments.length) fail('FINAL_STATE_MISMATCH', `Download attachment mappings for ${material.resourceKey} differ from the publication plan`);
+        for (const attachment of material.attachments) {
+          const attachmentRow = attachments.find((item) => item.key === attachment.key);
+          if (!attachmentRow) fail('FINAL_STATE_MISMATCH', `Download attachment ${material.resourceKey}/${attachment.key} is missing`);
+          assertFields(attachmentRow, { materialId: row.$id, key: attachment.key, title: attachment.title, fileId: attachment.fileId, fileName: attachment.fileName, mimeType: attachment.mimeType, sizeBytes: attachment.sizeBytes, sortOrder: attachment.sortOrder }, `Download attachment ${material.resourceKey}/${attachment.key}`);
+          assertPermission(attachmentRow, metadataReadable, `Download attachment ${material.resourceKey}/${attachment.key}`);
+          const file = await this.getFile(config.APPWRITE_ATTACHMENTS_BUCKET_ID, attachment.fileId);
+          if (!file || file.sizeOriginal !== attachment.sizeBytes) fail('FINAL_STATE_MISMATCH', `Download attachment file ${material.resourceKey}/${attachment.key} is missing or has wrong size`);
+          assertPermission(file, material.publicRead, `Download attachment file ${material.resourceKey}/${attachment.key}`);
+          await expectAnonymousFile(config.APPWRITE_ATTACHMENTS_BUCKET_ID, attachment.fileId, material.publicRead, `Download attachment file ${material.resourceKey}/${attachment.key}`);
+        }
       }
       for (const omitted of rows.filter((row) => !desiredKeys.has(`${row.kind}/${row.slug}`))) {
         if (omitted.lifecycleStatus !== 'archived') fail('FINAL_STATE_MISMATCH', `Omitted material ${omitted.kind}/${omitted.slug} is not archived`);
@@ -144,12 +164,21 @@ export function createAdapter({ env = process.env } = {}) {
           assertPermission(file, false, `Omitted Markdown ${omitted.kind}/${omitted.slug}`);
           await expectAnonymousFile(config.APPWRITE_MARKDOWN_BUCKET_ID, omitted.contentFileId, false, `Omitted Markdown ${omitted.kind}/${omitted.slug}`);
         }
+        if (omitted.briefContentFileId) {
+          const file = await this.getFile(config.APPWRITE_MARKDOWN_BUCKET_ID, omitted.briefContentFileId);
+          if (file) { assertPermission(file, false, `Omitted concise Markdown ${omitted.kind}/${omitted.slug}`); await expectAnonymousFile(config.APPWRITE_MARKDOWN_BUCKET_ID, omitted.briefContentFileId, false, `Omitted concise Markdown ${omitted.kind}/${omitted.slug}`); }
+        }
         for (const asset of await this.listAssets(omitted.$id)) {
           assertPermission(asset, false, `Omitted attachment ${omitted.kind}/${omitted.slug}/${asset.key}`);
           const file = await this.getFile(config.APPWRITE_MEDIA_BUCKET_ID, asset.fileId);
           if (!file) fail('FINAL_STATE_MISMATCH', `Omitted attachment file ${omitted.kind}/${omitted.slug}/${asset.key} is missing`);
           assertPermission(file, false, `Omitted attachment file ${omitted.kind}/${omitted.slug}/${asset.key}`);
           await expectAnonymousFile(config.APPWRITE_MEDIA_BUCKET_ID, asset.fileId, false, `Omitted attachment file ${omitted.kind}/${omitted.slug}/${asset.key}`);
+        }
+        for (const attachment of await this.listAttachments(omitted.$id)) {
+          assertPermission(attachment, false, `Omitted download attachment ${omitted.kind}/${omitted.slug}/${attachment.key}`);
+          const file = await this.getFile(config.APPWRITE_ATTACHMENTS_BUCKET_ID, attachment.fileId);
+          if (file) { assertPermission(file, false, `Omitted download attachment file ${omitted.kind}/${omitted.slug}/${attachment.key}`); await expectAnonymousFile(config.APPWRITE_ATTACHMENTS_BUCKET_ID, attachment.fileId, false, `Omitted download attachment file ${omitted.kind}/${omitted.slug}/${attachment.key}`); }
         }
       }
     },

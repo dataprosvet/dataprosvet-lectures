@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { loadConfig } from '../src/config.js';
 import { canonicalJson, checksum, effectivePublic, stableId } from '../src/models.js';
 import { inspectImage } from '../src/image.js';
+import { inspectAttachment } from '../src/attachment.js';
 import { PublisherError } from '../src/errors.js';
 import { containsForbiddenSecret } from '../src/validator.js';
 import { publishCourse } from '../src/publisher.js';
@@ -15,8 +16,9 @@ import { assertContentAddressedFileCompatible } from '../src/appwrite.js';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 
 test('config keeps public values separate and requires the key only for publication', () => {
-  const env = Object.fromEntries(['APPWRITE_ENDPOINT', 'APPWRITE_PROJECT_ID', 'APPWRITE_DATABASE_ID', 'APPWRITE_COURSES_TABLE_ID', 'APPWRITE_MATERIALS_TABLE_ID', 'APPWRITE_ASSETS_TABLE_ID', 'APPWRITE_MARKDOWN_BUCKET_ID', 'APPWRITE_MEDIA_BUCKET_ID'].map((name) => [name, 'value']));
+  const env = Object.fromEntries(['APPWRITE_ENDPOINT', 'APPWRITE_PROJECT_ID', 'APPWRITE_DATABASE_ID', 'APPWRITE_COURSES_TABLE_ID', 'APPWRITE_MATERIALS_TABLE_ID', 'APPWRITE_ASSETS_TABLE_ID', 'APPWRITE_MARKDOWN_BUCKET_ID', 'APPWRITE_MEDIA_BUCKET_ID', 'APPWRITE_ATTACHMENTS_TABLE_ID', 'APPWRITE_ATTACHMENTS_BUCKET_ID'].map((name) => [name, 'value']));
   assert.equal(loadConfig({ env }).APPWRITE_API_KEY, undefined);
+  assert.equal(loadConfig({ env }).COURSE_ATTACHMENT_MAX_BYTES, 15728640);
   assert.throws(() => loadConfig({ env, requireKey: true }), /APPWRITE_API_KEY/);
   assert.equal(loadConfig({ env: { ...env, APPWRITE_API_KEY: 'k'.repeat(512) }, requireKey: true }).APPWRITE_API_KEY.length, 512);
 });
@@ -42,6 +44,19 @@ test('image signature must match extension and dimensions', () => {
   assert.throws(() => inspectImage(oversizedDimensions, 'assets/wide.png'), /dimensions/);
   const oversizedFile = Buffer.alloc(5 * 1024 * 1024 + 1); png.copy(oversizedFile);
   assert.throws(() => inspectImage(oversizedFile, 'assets/large.png'), /exceeds/);
+});
+
+test('download attachment formats are structurally inspected without execution', () => {
+  const zip = Buffer.from([0x50, 0x4b, 0x03, 0x04]);
+  for (const extension of ['pptx', 'xlsx', 'docx']) {
+    assert.equal(inspectAttachment(zip, `attachments/file.${extension}`).extension, extension);
+  }
+  assert.equal(inspectAttachment(Buffer.from('%PDF-1.7\n'), 'attachments/file.PDF').extension, 'pdf');
+  assert.equal(inspectAttachment(Buffer.from('{"cells":[],"metadata":{},"nbformat":4}'), 'attachments/file.ipynb').extension, 'ipynb');
+  assert.equal(inspectAttachment(Buffer.from('print("inert")\n'), 'attachments/file.py').extension, 'py');
+  assert.throws(() => inspectAttachment(Buffer.from('legacy'), 'attachments/file.doc'), /Unsupported/);
+  assert.throws(() => inspectAttachment(Buffer.from('legacy'), 'attachments/file.xls'), /Unsupported/);
+  assert.throws(() => inspectAttachment(Buffer.from('not pdf'), 'attachments/file.pdf'), /signature/);
 });
 
 test('validator diagnostics retain a bounded public error type', () => {

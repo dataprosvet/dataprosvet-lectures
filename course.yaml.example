@@ -10,6 +10,9 @@ sortOrder: 1
 materials:
   # Image attachments are derived from Obsidian/Markdown embeds during CI.
   # Authors do not need to add per-material assets entries.
+  # Lectures may independently declare markdown under lectures/ and concise
+  # briefMarkdown under lecture-notes/. Any material may declare ordered files:
+  # attachments: [{ key: slides, title: Slides, file: attachments/slides.pptx, sortOrder: 10 }]
   lectures: []
   seminars: []
   homeworks: []
