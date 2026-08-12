@@ -98,9 +98,9 @@ test('publisher reads files from the explicit course root', async () => {
     config: {
       APPWRITE_COURSES_TABLE_ID: 'courses',
       APPWRITE_MATERIALS_TABLE_ID: 'materials',
-      APPWRITE_ASSETS_TABLE_ID: 'assets',
-      APPWRITE_MARKDOWN_BUCKET_ID: 'markdown',
-      APPWRITE_MEDIA_BUCKET_ID: 'media',
+      APPWRITE_ASSETS_TABLE_ID: 'material_assets',
+      APPWRITE_MARKDOWN_BUCKET_ID: 'course-markdown',
+      APPWRITE_MEDIA_BUCKET_ID: 'course-media',
     },
     async findCourse() { return null; },
     async listMaterials() { return []; },
@@ -114,7 +114,7 @@ test('publisher reads files from the explicit course root', async () => {
   };
   await publishCourse(plan, { adapter, root: courseRoot });
   assert.equal(calls.length, 1);
-  assert.deepEqual({ ...calls[0], body: undefined }, { bucket: 'markdown', id: 'md-test', body: undefined, name: 'lectures/001_introduction.md' });
+  assert.deepEqual({ ...calls[0], body: undefined }, { bucket: 'course-markdown', id: 'md-test', body: undefined, name: 'lectures/001_introduction.md' });
   assert.match(calls[0].body, /^# Publisher acceptance/m);
 });
 
@@ -125,7 +125,7 @@ test('publisher uploads the validated transformed Markdown copy without modifyin
   const markdownPath = 'lectures/001_introduction.md'; await writeFile(path.join(courseRoot, markdownPath), source);
   const calls = [];
   const adapter = {
-    config: { APPWRITE_COURSES_TABLE_ID: 'courses', APPWRITE_MATERIALS_TABLE_ID: 'materials', APPWRITE_ASSETS_TABLE_ID: 'assets', APPWRITE_MARKDOWN_BUCKET_ID: 'markdown', APPWRITE_MEDIA_BUCKET_ID: 'media' },
+    config: { APPWRITE_COURSES_TABLE_ID: 'courses', APPWRITE_MATERIALS_TABLE_ID: 'materials', APPWRITE_ASSETS_TABLE_ID: 'material_assets', APPWRITE_MARKDOWN_BUCKET_ID: 'course-markdown', APPWRITE_MEDIA_BUCKET_ID: 'course-media' },
     async findCourse() { return null; }, async listMaterials() { return []; },
     async putFile(bucket, id, body) { calls.push({ bucket, id, body: body.toString() }); },
     async upsertRow(table, rowId, data) { return { $id: rowId ?? `${table}-1`, ...data }; }, async verifyFinal() {},
