@@ -9,7 +9,18 @@ export const LIMITS = Object.freeze({
   maxImageWidth: 4096,
   maxImageHeight: 4096,
   maxImagePixels: 16_000_000,
+  maxAttachmentsPerMaterial: 100,
   maxFileIdLength: 36,
+});
+
+export const DEFAULT_MAX_ATTACHMENT_BYTES = 15 * 1024 * 1024;
+export const ATTACHMENT_TYPES = Object.freeze({
+  '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  '.pdf': 'application/pdf',
+  '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  '.ipynb': 'application/x-ipynb+json',
+  '.py': 'text/x-python',
 });
 
 export const LIFECYCLE_STATUSES = Object.freeze(['draft', 'published', 'archived']);

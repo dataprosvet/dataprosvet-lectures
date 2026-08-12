@@ -26,6 +26,7 @@
   "$defs": {
     "slug": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 80 },
     "assetPath": { "type": "string", "pattern": "^assets/[^\\u0000\\r\\n\\\\]+$", "maxLength": 240 },
+    "attachmentPath": { "type": "string", "pattern": "^attachments/[^\\u0000\\r\\n\\\\]+$", "maxLength": 240 },
     "materials": { "type": "array", "maxItems": 200, "items": { "$ref": "#/$defs/material" } },
     "material": {
       "type": "object",
@@ -39,7 +40,9 @@
         "availability": { "enum": ["inDevelopment", "available", "temporarilyUnavailable"] },
         "sortOrder": { "type": "integer", "minimum": 0, "maximum": 2147483647 },
         "markdown": { "type": "string", "pattern": "^(?:lectures|seminars|homeworks)/[0-9]{3}_[a-z0-9]+(?:-[a-z0-9]+)*\\.md$", "maxLength": 240 },
-        "assets": { "type": "array", "maxItems": 50, "items": { "$ref": "#/$defs/asset" } }
+        "briefMarkdown": { "type": "string", "pattern": "^lecture-notes/[0-9]{3}_[a-z0-9]+(?:-[a-z0-9]+)*\\.md$", "maxLength": 240 },
+        "assets": { "type": "array", "maxItems": 50, "items": { "$ref": "#/$defs/asset" } },
+        "attachments": { "type": "array", "maxItems": 100, "items": { "$ref": "#/$defs/attachment" } }
       }
     },
     "asset": {
@@ -50,6 +53,17 @@
         "key": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 80 },
         "file": { "$ref": "#/$defs/assetPath" },
         "alt": { "type": "string", "minLength": 1, "maxLength": 500 }
+      }
+    },
+    "attachment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "title", "file", "sortOrder"],
+      "properties": {
+        "key": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 80 },
+        "title": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "file": { "$ref": "#/$defs/attachmentPath" },
+        "sortOrder": { "type": "integer", "minimum": 0, "maximum": 2147483647 }
       }
     }
   }

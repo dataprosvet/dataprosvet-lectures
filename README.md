@@ -101,3 +101,17 @@ PR и push в `courses/**` сначала запускают validation без A
 Создайте Environment `appwrite`, ограничьте deployment branches шаблоном `courses/*`. Он используется текущим production-equivalent publisher; для будущего test-контура будет отдельный Environment. Его единственный secret — `APPWRITE_API_KEY` c конечной датой истечения и ровно scopes `rows.read`, `rows.write`, `files.read`, `files.write`. У существующего ключа удалите остальные scopes либо замените его, отзовите предыдущий и фиксируйте владельца/дату ротации. Не добавляйте ключ в repository secrets.
 
 В Environment variables (не secrets) добавьте `APPWRITE_ENDPOINT`, `APPWRITE_PROJECT_ID`, `APPWRITE_DATABASE_ID`, `APPWRITE_COURSES_TABLE_ID`, `APPWRITE_MATERIALS_TABLE_ID`, `APPWRITE_ASSETS_TABLE_ID`, `APPWRITE_MARKDOWN_BUCKET_ID`, `APPWRITE_MEDIA_BUCKET_ID`. Перед включением deploy owner вручную проверяет существующие TablesDB schema/indexes/row security и buckets/file security; CI не получает scopes для их изменения.
+# Course content variants and attachments
+
+Lectures may independently declare a full student document with `markdown`
+under `lectures/` and concise notes with `briefMarkdown` under
+`lecture-notes/`. A lecture with neither document is valid metadata. Files in
+`lectures-teacher/` are support-only and are never used as a public fallback.
+
+Any lecture, seminar, or homework may declare an ordered `attachments` list.
+Each item contains a stable `key`, Russian-facing `title`, tracked `file` under
+`attachments/`, and unique `sortOrder`. Supported extensions are `.pptx`,
+`.pdf`, `.xlsx`, `.docx`, `.ipynb`, and `.py`; `.doc` and `.xls` are rejected.
+Files are downloaded as inert bytes and are never executed by the publisher.
+The default maximum is 15 MiB and can be changed with the reviewed
+`COURSE_ATTACHMENT_MAX_BYTES` workflow variable.
