@@ -9,10 +9,10 @@ import { buildDiff, publishPlan } from '../src/publisher.js';
 const config = Object.freeze({
   APPWRITE_COURSES_TABLE_ID: 'courses',
   APPWRITE_MATERIALS_TABLE_ID: 'materials',
-  APPWRITE_ASSETS_TABLE_ID: 'assets',
-  APPWRITE_ATTACHMENTS_TABLE_ID: 'attachments',
-  APPWRITE_MARKDOWN_BUCKET_ID: 'markdown',
-  APPWRITE_MEDIA_BUCKET_ID: 'media',
+  APPWRITE_ASSETS_TABLE_ID: 'material_assets',
+  APPWRITE_ATTACHMENTS_TABLE_ID: 'material_attachments',
+  APPWRITE_MARKDOWN_BUCKET_ID: 'course-markdown',
+  APPWRITE_MEDIA_BUCKET_ID: 'course-media',
   APPWRITE_ATTACHMENTS_BUCKET_ID: 'course-attachments',
 });
 function desired({ courseStatus = 'published', courseAvailability = 'available', materialStatus = 'published', materialAvailability = 'available', content = null, briefContent = null, attachments = [] } = {}) {
@@ -46,15 +46,15 @@ function memoryAdapter({ course = null, materials = [], failUpload = false } = {
       state.events.push(`${table}:${readable ? 'public' : 'private'}:${row.slug ?? row.key}`);
       if (table === 'courses') state.course = row;
       if (table === 'materials') { const index = state.materials.findIndex((item) => item.$id === row.$id); if (index < 0) state.materials.push(row); else state.materials[index] = row; }
-      if (table === 'assets') { const index = state.assets.findIndex((item) => item.$id === row.$id); if (index < 0) state.assets.push(row); else state.assets[index] = row; }
-      if (table === 'attachments') { const index = state.attachments.findIndex((item) => item.$id === row.$id); if (index < 0) state.attachments.push(row); else state.attachments[index] = row; }
+      if (table === 'material_assets') { const index = state.assets.findIndex((item) => item.$id === row.$id); if (index < 0) state.assets.push(row); else state.assets[index] = row; }
+      if (table === 'material_attachments') { const index = state.attachments.findIndex((item) => item.$id === row.$id); if (index < 0) state.attachments.push(row); else state.attachments[index] = row; }
       return row;
     },
     async archiveRow(_table, row) { row.lifecycleStatus = 'archived'; row.availability = 'inDevelopment'; row.$permissions = []; state.events.push(`archive:${row.slug}`); },
     async removeRow(table, id) {
       state.events.push(`${table}:remove:${id}`);
-      if (table === 'assets') state.assets = state.assets.filter((row) => row.$id !== id);
-      if (table === 'attachments') state.attachments = state.attachments.filter((row) => row.$id !== id);
+      if (table === 'material_assets') state.assets = state.assets.filter((row) => row.$id !== id);
+      if (table === 'material_attachments') state.attachments = state.attachments.filter((row) => row.$id !== id);
     },
     async verifyFinal() { state.events.push('verify'); state.verified += 1; },
   };
@@ -103,10 +103,10 @@ test('locking an omitted material revokes its attachment row and file', async ()
   const old = { $id: 'material-old', courseId: 'course-1', kind: 'lecture', slug: 'old', title: 'Old', summary: 'Old', contentFileId: null, lifecycleStatus: 'published', availability: 'available', sortOrder: 2 };
   const adapter = memoryAdapter({ course: oldCourse, materials: [old] });
   adapter.state.assets.push({ $id: 'asset-old', materialId: 'material-old', key: 'diagram', fileId: 'media-old', alt: 'Old', mimeType: 'image/png', width: 1, height: 1, $permissions: ['read("any")'] });
-  adapter.state.files.set('media/media-old', { $id: 'media-old', $permissions: ['read("any")'] });
+  adapter.state.files.set('course-media/media-old', { $id: 'media-old', $permissions: ['read("any")'] });
   await publishPlan(desired(), { adapter });
   assert.deepEqual(adapter.state.assets[0].$permissions, []);
-  assert.deepEqual(adapter.state.files.get('media/media-old').$permissions, []);
+  assert.deepEqual(adapter.state.files.get('course-media/media-old').$permissions, []);
   assert.ok(adapter.state.events.includes('file:private:media-old'));
 });
 
@@ -114,16 +114,16 @@ test('removing reading declarations nulls references and revokes prior file acce
   const oldCourse = { $id: 'course-1', slug: 'fixture-course', title: 'Fixture', description: 'Description', lifecycleStatus: 'published', availability: 'available', sortOrder: 1 };
   const old = { $id: 'material-1', courseId: 'course-1', kind: 'lecture', slug: 'intro', title: 'Intro', summary: 'Summary', contentFileId: 'md-primary', briefContentFileId: 'md-brief', lifecycleStatus: 'published', availability: 'available', sortOrder: 1 };
   const adapter = memoryAdapter({ course: oldCourse, materials: [old] });
-  adapter.state.files.set('markdown/md-primary', { $id: 'md-primary', $permissions: ['read("any")'] });
-  adapter.state.files.set('markdown/md-brief', { $id: 'md-brief', $permissions: ['read("any")'] });
+  adapter.state.files.set('course-markdown/md-primary', { $id: 'md-primary', $permissions: ['read("any")'] });
+  adapter.state.files.set('course-markdown/md-brief', { $id: 'md-brief', $permissions: ['read("any")'] });
 
   await publishPlan(desired(), { adapter });
 
   assert.equal(adapter.state.materials[0].contentFileId, null);
   assert.equal(adapter.state.materials[0].briefContentFileId, null);
   assert.deepEqual(adapter.state.materials[0].$permissions, ['read("any")']);
-  assert.deepEqual(adapter.state.files.get('markdown/md-primary').$permissions, []);
-  assert.deepEqual(adapter.state.files.get('markdown/md-brief').$permissions, []);
+  assert.deepEqual(adapter.state.files.get('course-markdown/md-primary').$permissions, []);
+  assert.deepEqual(adapter.state.files.get('course-markdown/md-brief').$permissions, []);
   assert.ok(adapter.state.events.includes('file:private:md-primary'));
   assert.ok(adapter.state.events.includes('file:private:md-brief'));
 });
@@ -141,7 +141,7 @@ test('removing attachment declarations revokes files before mappings and preserv
   assert.equal(adapter.state.materials.length, 1);
   assert.equal(adapter.state.materials[0].lifecycleStatus, 'published');
   assert.deepEqual(adapter.state.files.get('course-attachments/att-old').$permissions, []);
-  assert.ok(adapter.state.events.indexOf('file:private:att-old') < adapter.state.events.indexOf('attachments:remove:attachment-old'));
+  assert.ok(adapter.state.events.indexOf('file:private:att-old') < adapter.state.events.indexOf('material_attachments:remove:attachment-old'));
 });
 
 test('partial upload failure remains locked and emits bounded secret-free recovery', async () => {
@@ -177,6 +177,6 @@ test('generated attachment mappings are idempotent and renamed mappings retire s
   const second = desired(); second.materials[0].assets = [asset('asset-new', 'assets/new.png', newBytes)];
   await publishPlan(second, { adapter, root });
   assert.deepEqual(adapter.state.assets.map((item) => item.key), ['asset-new']);
-  assert.deepEqual(adapter.state.files.get(`media/${oldFileId}`).$permissions, []);
+  assert.deepEqual(adapter.state.files.get(`course-media/${oldFileId}`).$permissions, []);
   assert.ok(adapter.state.events.includes(`file:private:${oldFileId}`));
 });
