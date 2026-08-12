@@ -9,18 +9,20 @@ import { buildDiff, publishPlan } from '../src/publisher.js';
 const config = Object.freeze({
   APPWRITE_COURSES_TABLE_ID: 'courses',
   APPWRITE_MATERIALS_TABLE_ID: 'materials',
-  APPWRITE_ASSETS_TABLE_ID: 'assets',
-  APPWRITE_MARKDOWN_BUCKET_ID: 'markdown',
-  APPWRITE_MEDIA_BUCKET_ID: 'media',
+  APPWRITE_ASSETS_TABLE_ID: 'material_assets',
+  APPWRITE_ATTACHMENTS_TABLE_ID: 'material_attachments',
+  APPWRITE_MARKDOWN_BUCKET_ID: 'course-markdown',
+  APPWRITE_MEDIA_BUCKET_ID: 'course-media',
+  APPWRITE_ATTACHMENTS_BUCKET_ID: 'course-attachments',
 });
-function desired({ courseStatus = 'published', courseAvailability = 'available', materialStatus = 'published', materialAvailability = 'available', content = null } = {}) {
+function desired({ courseStatus = 'published', courseAvailability = 'available', materialStatus = 'published', materialAvailability = 'available', content = null, briefContent = null, attachments = [] } = {}) {
   return {
     course: { slug: 'fixture-course', title: 'Fixture', description: 'Description', lifecycleStatus: courseStatus, availability: courseAvailability, sortOrder: 1 },
-    materials: [{ kind: 'lecture', slug: 'intro', title: 'Intro', summary: 'Summary', lifecycleStatus: materialStatus, availability: materialAvailability, sortOrder: 1, publicRead: courseStatus === 'published' && courseAvailability === 'available' && materialStatus === 'published' && materialAvailability === 'available', content, assets: [], resourceKey: 'fixture-course/lecture/intro' }],
+    materials: [{ kind: 'lecture', slug: 'intro', title: 'Intro', summary: 'Summary', lifecycleStatus: materialStatus, availability: materialAvailability, sortOrder: 1, publicRead: courseStatus === 'published' && courseAvailability === 'available' && materialStatus === 'published' && materialAvailability === 'available', content, briefContent, assets: [], attachments, resourceKey: 'fixture-course/lecture/intro' }],
   };
 }
 function memoryAdapter({ course = null, materials = [], failUpload = false } = {}) {
-  const state = { course, materials: [...materials], assets: [], files: new Map(), events: [], next: 1, verified: 0 };
+  const state = { course, materials: [...materials], assets: [], attachments: [], files: new Map(), events: [], next: 1, verified: 0 };
   return {
     config, state,
     async findCourse(slug) { return state.course?.slug === slug ? state.course : null; },
@@ -28,6 +30,8 @@ function memoryAdapter({ course = null, materials = [], failUpload = false } = {
     async findMaterial(courseId, kind, slug) { return state.materials.find((row) => row.courseId === courseId && row.kind === kind && row.slug === slug) ?? null; },
     async findAsset(materialId, key) { return state.assets.find((row) => row.materialId === materialId && row.key === key) ?? null; },
     async listAssets(materialId) { return state.assets.filter((row) => row.materialId === materialId); },
+    async findAttachment(materialId, key) { return state.attachments.find((row) => row.materialId === materialId && row.key === key) ?? null; },
+    async listAttachments(materialId) { return state.attachments.filter((row) => row.materialId === materialId); },
     async getFile(bucket, id) { return state.files.get(`${bucket}/${id}`) ?? null; },
     async putFile(bucket, id, bytes, name) {
       state.events.push(`file:private:${id}`);
@@ -42,11 +46,16 @@ function memoryAdapter({ course = null, materials = [], failUpload = false } = {
       state.events.push(`${table}:${readable ? 'public' : 'private'}:${row.slug ?? row.key}`);
       if (table === 'courses') state.course = row;
       if (table === 'materials') { const index = state.materials.findIndex((item) => item.$id === row.$id); if (index < 0) state.materials.push(row); else state.materials[index] = row; }
-      if (table === 'assets') { const index = state.assets.findIndex((item) => item.$id === row.$id); if (index < 0) state.assets.push(row); else state.assets[index] = row; }
+      if (table === 'material_assets') { const index = state.assets.findIndex((item) => item.$id === row.$id); if (index < 0) state.assets.push(row); else state.assets[index] = row; }
+      if (table === 'material_attachments') { const index = state.attachments.findIndex((item) => item.$id === row.$id); if (index < 0) state.attachments.push(row); else state.attachments[index] = row; }
       return row;
     },
     async archiveRow(_table, row) { row.lifecycleStatus = 'archived'; row.availability = 'inDevelopment'; row.$permissions = []; state.events.push(`archive:${row.slug}`); },
-    async removeRow(_table, id) { state.assets = state.assets.filter((row) => row.$id !== id); },
+    async removeRow(table, id) {
+      state.events.push(`${table}:remove:${id}`);
+      if (table === 'material_assets') state.assets = state.assets.filter((row) => row.$id !== id);
+      if (table === 'material_attachments') state.attachments = state.attachments.filter((row) => row.$id !== id);
+    },
     async verifyFinal() { state.events.push('verify'); state.verified += 1; },
   };
 }
@@ -94,11 +103,45 @@ test('locking an omitted material revokes its attachment row and file', async ()
   const old = { $id: 'material-old', courseId: 'course-1', kind: 'lecture', slug: 'old', title: 'Old', summary: 'Old', contentFileId: null, lifecycleStatus: 'published', availability: 'available', sortOrder: 2 };
   const adapter = memoryAdapter({ course: oldCourse, materials: [old] });
   adapter.state.assets.push({ $id: 'asset-old', materialId: 'material-old', key: 'diagram', fileId: 'media-old', alt: 'Old', mimeType: 'image/png', width: 1, height: 1, $permissions: ['read("any")'] });
-  adapter.state.files.set('media/media-old', { $id: 'media-old', $permissions: ['read("any")'] });
+  adapter.state.files.set('course-media/media-old', { $id: 'media-old', $permissions: ['read("any")'] });
   await publishPlan(desired(), { adapter });
   assert.deepEqual(adapter.state.assets[0].$permissions, []);
-  assert.deepEqual(adapter.state.files.get('media/media-old').$permissions, []);
+  assert.deepEqual(adapter.state.files.get('course-media/media-old').$permissions, []);
   assert.ok(adapter.state.events.includes('file:private:media-old'));
+});
+
+test('removing reading declarations nulls references and revokes prior file access', async () => {
+  const oldCourse = { $id: 'course-1', slug: 'fixture-course', title: 'Fixture', description: 'Description', lifecycleStatus: 'published', availability: 'available', sortOrder: 1 };
+  const old = { $id: 'material-1', courseId: 'course-1', kind: 'lecture', slug: 'intro', title: 'Intro', summary: 'Summary', contentFileId: 'md-primary', briefContentFileId: 'md-brief', lifecycleStatus: 'published', availability: 'available', sortOrder: 1 };
+  const adapter = memoryAdapter({ course: oldCourse, materials: [old] });
+  adapter.state.files.set('course-markdown/md-primary', { $id: 'md-primary', $permissions: ['read("any")'] });
+  adapter.state.files.set('course-markdown/md-brief', { $id: 'md-brief', $permissions: ['read("any")'] });
+
+  await publishPlan(desired(), { adapter });
+
+  assert.equal(adapter.state.materials[0].contentFileId, null);
+  assert.equal(adapter.state.materials[0].briefContentFileId, null);
+  assert.deepEqual(adapter.state.materials[0].$permissions, ['read("any")']);
+  assert.deepEqual(adapter.state.files.get('course-markdown/md-primary').$permissions, []);
+  assert.deepEqual(adapter.state.files.get('course-markdown/md-brief').$permissions, []);
+  assert.ok(adapter.state.events.includes('file:private:md-primary'));
+  assert.ok(adapter.state.events.includes('file:private:md-brief'));
+});
+
+test('removing attachment declarations revokes files before mappings and preserves material', async () => {
+  const oldCourse = { $id: 'course-1', slug: 'fixture-course', title: 'Fixture', description: 'Description', lifecycleStatus: 'published', availability: 'available', sortOrder: 1 };
+  const old = { $id: 'material-1', courseId: 'course-1', kind: 'lecture', slug: 'intro', title: 'Intro', summary: 'Summary', contentFileId: null, briefContentFileId: null, lifecycleStatus: 'published', availability: 'available', sortOrder: 1 };
+  const adapter = memoryAdapter({ course: oldCourse, materials: [old] });
+  adapter.state.attachments.push({ $id: 'attachment-old', materialId: 'material-1', key: 'slides', title: 'Slides', fileId: 'att-old', fileName: 'slides.pptx', mimeType: 'application/vnd.openxmlformats-officedocument.presentationml.presentation', sizeBytes: 10, sortOrder: 1, $permissions: ['read("any")'] });
+  adapter.state.files.set('course-attachments/att-old', { $id: 'att-old', $permissions: ['read("any")'] });
+
+  await publishPlan(desired(), { adapter });
+
+  assert.equal(adapter.state.attachments.length, 0);
+  assert.equal(adapter.state.materials.length, 1);
+  assert.equal(adapter.state.materials[0].lifecycleStatus, 'published');
+  assert.deepEqual(adapter.state.files.get('course-attachments/att-old').$permissions, []);
+  assert.ok(adapter.state.events.indexOf('file:private:att-old') < adapter.state.events.indexOf('material_attachments:remove:attachment-old'));
 });
 
 test('partial upload failure remains locked and emits bounded secret-free recovery', async () => {
@@ -134,6 +177,6 @@ test('generated attachment mappings are idempotent and renamed mappings retire s
   const second = desired(); second.materials[0].assets = [asset('asset-new', 'assets/new.png', newBytes)];
   await publishPlan(second, { adapter, root });
   assert.deepEqual(adapter.state.assets.map((item) => item.key), ['asset-new']);
-  assert.deepEqual(adapter.state.files.get(`media/${oldFileId}`).$permissions, []);
+  assert.deepEqual(adapter.state.files.get(`course-media/${oldFileId}`).$permissions, []);
   assert.ok(adapter.state.events.includes(`file:private:${oldFileId}`));
 });
