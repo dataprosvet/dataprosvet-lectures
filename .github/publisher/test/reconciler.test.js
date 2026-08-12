@@ -13,7 +13,7 @@ const config = Object.freeze({
   APPWRITE_ATTACHMENTS_TABLE_ID: 'attachments',
   APPWRITE_MARKDOWN_BUCKET_ID: 'markdown',
   APPWRITE_MEDIA_BUCKET_ID: 'media',
-  APPWRITE_ATTACHMENTS_BUCKET_ID: 'attachment-files',
+  APPWRITE_ATTACHMENTS_BUCKET_ID: 'course-attachments',
 });
 function desired({ courseStatus = 'published', courseAvailability = 'available', materialStatus = 'published', materialAvailability = 'available', content = null, briefContent = null, attachments = [] } = {}) {
   return {
@@ -133,14 +133,14 @@ test('removing attachment declarations revokes files before mappings and preserv
   const old = { $id: 'material-1', courseId: 'course-1', kind: 'lecture', slug: 'intro', title: 'Intro', summary: 'Summary', contentFileId: null, briefContentFileId: null, lifecycleStatus: 'published', availability: 'available', sortOrder: 1 };
   const adapter = memoryAdapter({ course: oldCourse, materials: [old] });
   adapter.state.attachments.push({ $id: 'attachment-old', materialId: 'material-1', key: 'slides', title: 'Slides', fileId: 'att-old', fileName: 'slides.pptx', mimeType: 'application/vnd.openxmlformats-officedocument.presentationml.presentation', sizeBytes: 10, sortOrder: 1, $permissions: ['read("any")'] });
-  adapter.state.files.set('attachment-files/att-old', { $id: 'att-old', $permissions: ['read("any")'] });
+  adapter.state.files.set('course-attachments/att-old', { $id: 'att-old', $permissions: ['read("any")'] });
 
   await publishPlan(desired(), { adapter });
 
   assert.equal(adapter.state.attachments.length, 0);
   assert.equal(adapter.state.materials.length, 1);
   assert.equal(adapter.state.materials[0].lifecycleStatus, 'published');
-  assert.deepEqual(adapter.state.files.get('attachment-files/att-old').$permissions, []);
+  assert.deepEqual(adapter.state.files.get('course-attachments/att-old').$permissions, []);
   assert.ok(adapter.state.events.indexOf('file:private:att-old') < adapter.state.events.indexOf('attachments:remove:attachment-old'));
 });
 
