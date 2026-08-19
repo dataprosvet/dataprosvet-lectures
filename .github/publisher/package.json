@@ -5,6 +5,7 @@
   "type": "module",
   "engines": { "node": ">=20.20.0 <21" },
   "scripts": {
+    "branch-policy": "node src/branch-policy-cli.js",
     "validate": "node src/cli.js validate",
     "publish": "node src/cli.js publish",
     "test": "node --test test/*.test.js",

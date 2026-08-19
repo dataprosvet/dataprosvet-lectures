@@ -11,7 +11,7 @@ const [command] = process.argv.slice(2);
 try {
   const input = {
     root: process.env.COURSE_ROOT || process.cwd(),
-    branch: process.env.GITHUB_HEAD_REF || process.env.GITHUB_REF_NAME || '',
+    branch: process.env.COURSE_BRANCH || process.env.GITHUB_REF_NAME || '',
     schema,
     onDiagnostic: (diagnostic) => log('validate', diagnostic.message, { code: diagnostic.code, kind: diagnostic.kind, path: diagnostic.path }),
   };

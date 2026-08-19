@@ -2,6 +2,56 @@
 
 Приватный исходник курсов для DataProsvet. В `master` нет учебного контента: только этот документ, `course.yaml.example`, пустые каталоги и publisher CI. Один курс живёт в одной ветке `courses/<course-slug>`.
 
+## Изменение существующего курса через PR
+
+Всегда создавайте рабочую ветку от актуальной ветки нужного курса. Не создавайте её от `master` и не коммитьте напрямую в `courses/<course-slug>`.
+
+Пример для курса теории вероятностей:
+
+```sh
+git fetch origin
+git switch courses/probability-theory
+git pull --ff-only origin courses/probability-theory
+git switch -c course/probability-theory/lecture-5-fixes
+git branch --show-current
+```
+
+Имя рабочей ветки имеет формат `course/<course-slug>/<work-slug>`. Slug курса обязан совпадать с целевой веткой `courses/<course-slug>`, а `work-slug` кратко описывает изменение. Оба slug используют lowercase kebab-case.
+
+Редактируйте файлы и создавайте логические коммиты только в рабочей ветке. Добавляйте явные пути, чтобы не захватить чужие или локальные изменения:
+
+```sh
+git add lectures/005_discrete-random-variables.md course.yaml
+git commit -m "Refine probability lecture five"
+git push -u origin course/probability-theory/lecture-5-fixes
+```
+
+Откройте PR обратно в ту ветку курса, от которой создана рабочая ветка:
+
+```sh
+gh pr create \
+  --base courses/probability-theory \
+  --head course/probability-theory/lecture-5-fixes \
+  --title "Refine probability lecture five"
+```
+
+CI отклонит произвольное имя рабочей ветки, PR в другой курс или ветку без истории целевого курса. Pull request выполняет validation без Appwrite credentials и ничего не публикует. Публикация возможна только после merge и успешного push workflow постоянной ветки курса.
+
+Если целевая ветка продвинулась во время review, включите её новые commits в рабочую ветку, повторите validation и push. Base PR остаётся прежним:
+
+```sh
+git fetch origin
+git switch course/probability-theory/lecture-5-fixes
+git merge --no-edit origin/courses/probability-theory
+cd .github/publisher
+npm ci
+COURSE_ROOT=../.. COURSE_BRANCH=courses/probability-theory npm run validate
+cd ../..
+git push
+```
+
+Для общей рабочей ветки предпочитайте merge целевого курса: он не переписывает опубликованную историю. Rebase допустим до совместной работы, но потребует безопасно обновить remote branch. Никогда не меняйте base PR на `master` или другой курс.
+
 ## Создание курса
 
 ```sh
@@ -11,7 +61,7 @@ git switch -c courses/data-engineering
 cp course.yaml.example course.yaml
 # заполните course.yaml, lectures/, seminars/, homeworks/ и assets/
 cd .github/publisher && npm ci
-GITHUB_REF_NAME=courses/data-engineering npm run validate
+COURSE_BRANCH=courses/data-engineering npm run validate
 ```
 
 Slug ветки и `course.yaml:slug` обязаны совпадать и иметь lowercase kebab-case. В ветке должен быть ровно один `course.yaml`; `course.yaml.example` publisher не публикует.
@@ -92,7 +142,7 @@ assets:
 
 ## Публикация и восстановление
 
-PR и push в `courses/**` сначала запускают validation без Appwrite credentials. Только успешный push получает Environment `appwrite` и публикует заново вычисленный plan. Publisher сначала скрывает текущий курс, загружает файлы приватно, затем открывает файлы, metadata материалов и metadata курса — именно в таком порядке. Повтор того же коммита безопасен; удалённый из manifest материал архивируется, а его файлы становятся приватными.
+PR и push в точные ветки `courses/*` сначала запускают validation без Appwrite credentials. PR обязан приходить из `course/<тот-же-course-slug>/<work-slug>`. Только успешный push постоянной ветки курса получает Environment `appwrite` и публикует заново вычисленный plan. Publisher сначала скрывает текущий курс, загружает файлы приватно, затем открывает файлы, metadata материалов и metadata курса — именно в таком порядке. Повтор того же коммита безопасен; удалённый из manifest материал архивируется, а его файлы становятся приватными.
 
 Чтобы временно снять с публикации отдельный документ или attachment, удалите только соответствующую декларацию из `course.yaml`, оставив сам файл tracked. Следующая публикация обнулит `contentFileId`/`briefContentFileId` либо удалит active attachment mapping и предварительно отзовёт anonymous read у прежнего Storage object. Metadata материала останется доступной. Чтобы вернуть ресурс, снова добавьте его декларацию: перед публикацией он заново пройдёт полный набор проверок.
 
@@ -100,7 +150,23 @@ PR и push в `courses/**` сначала запускают validation без A
 
 ## GitHub rules и Environment
 
-Защитите `master`: обычным maintainers запретить push, PR merge, force-push и deletion; только узкому owner/bypass разрешён maintenance baseline. Создание `courses/**` — только trusted maintainers; для них потребуйте PR и checks, запретите force-push и удаление до архивирования. Курсовые ветки начинаются от актуального `master` и не должны менять наследованные `.github/**`, `README.md` и `course.yaml.example`.
+Защитите `master`: обычным maintainers запретить push, PR merge, force-push и deletion; только узкому owner/bypass разрешён maintenance baseline. Создание `courses/*` — только trusted maintainers; для них потребуйте PR и check `validate`, запретите force-push и удаление до архивирования. Курсовые ветки начинаются от актуального `master` и не должны самостоятельно менять унаследованные `.github/**`, `README.md` и `course.yaml.example`.
+
+После принятия нового общего baseline в `master` синхронизируйте его в курс тем же PR-процессом. Например:
+
+```sh
+git fetch origin
+git switch courses/probability-theory
+git pull --ff-only origin courses/probability-theory
+git switch -c course/probability-theory/sync-contribution-ci
+git merge --no-edit origin/master
+git push -u origin course/probability-theory/sync-contribution-ci
+gh pr create --base courses/probability-theory --head course/probability-theory/sync-contribution-ci --title "Inherit contribution CI baseline"
+```
+
+Перед merge убедитесь, что diff наследует только принятые общие файлы и не меняет `course.yaml` или материалы курса. Ruleset с обязательным check включается после того, как `courses/probability-theory` унаследовала новый workflow и успешно прошла его PR и push проверки.
+
+Существующий PR из ветки с произвольным именем переносится без policy-исключения. Для PR #10 maintainer или автор может создать `course/probability-theory/ivanshmidt-lectures-1-4` на том же commit, push новой ветки и открыть replacement PR в `courses/probability-theory`; исходный PR не закрывайте до проверки замены.
 
 Создайте Environment `appwrite`, ограничьте deployment branches шаблоном `courses/*`. Он используется текущим production-equivalent publisher; для будущего test-контура будет отдельный Environment. Его единственный secret — `APPWRITE_API_KEY` c конечной датой истечения и ровно scopes `rows.read`, `rows.write`, `files.read`, `files.write`. У существующего ключа удалите остальные scopes либо замените его, отзовите предыдущий и фиксируйте владельца/дату ротации. Не добавляйте ключ в repository secrets.
 
