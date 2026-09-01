@@ -5,6 +5,7 @@ import { fail } from './errors.js';
 
 const privatePermissions = Object.freeze([]);
 const publicRead = Object.freeze([Permission.read(Role.any())]);
+const rowPageSize = 100;
 
 export function permissions(publiclyReadable) { return publiclyReadable ? publicRead : privatePermissions; }
 
@@ -15,6 +16,21 @@ export function assertContentAddressedFileCompatible(existing, bytes) {
   if (existing.sizeOriginal !== bytes.length) fail('FILE_ID_COLLISION', 'Existing content-addressed file metadata differs');
 }
 
+export async function collectRows(fetchPage, queries = [], pageSize = rowPageSize) {
+  const rows = [];
+  let cursor = null;
+  while (true) {
+    const pageQueries = [...queries, Query.limit(pageSize)];
+    if (cursor) pageQueries.push(Query.cursorAfter(cursor));
+    const page = (await fetchPage(pageQueries))?.rows ?? [];
+    rows.push(...page);
+    if (page.length < pageSize) return rows;
+    const nextCursor = page.at(-1)?.$id;
+    if (!nextCursor || nextCursor === cursor) fail('APPWRITE_PAGINATION_INVALID', 'Appwrite row pagination did not advance');
+    cursor = nextCursor;
+  }
+}
+
 export function createAdapter({ env = process.env } = {}) {
   const config = loadConfig({ env, requireKey: true });
   const client = new Client().setEndpoint(config.APPWRITE_ENDPOINT).setProject(config.APPWRITE_PROJECT_ID).setKey(config.APPWRITE_API_KEY);
@@ -22,11 +38,15 @@ export function createAdapter({ env = process.env } = {}) {
   const anonymousClient = new Client().setEndpoint(config.APPWRITE_ENDPOINT).setProject(config.APPWRITE_PROJECT_ID);
   const anonymousTables = new TablesDB(anonymousClient); const anonymousStorage = new Storage(anonymousClient);
   const listOneWith = async (service, tableId, queries, label) => {
-    const result = await service.listRows({ databaseId: config.APPWRITE_DATABASE_ID, tableId, queries, total: false });
+    const result = await service.listRows({ databaseId: config.APPWRITE_DATABASE_ID, tableId, queries: [...queries, Query.limit(2)], total: false, ttl: 0 });
     if (result.rows.length > 1) fail('APPWRITE_AMBIGUOUS', `Multiple ${label} rows match a stable key`);
     return result.rows[0] ?? null;
   };
   const listOne = (tableId, queries, label) => listOneWith(tables, tableId, queries, label);
+  const listAllWith = (service, tableId, queries) => collectRows(
+    (pageQueries) => service.listRows({ databaseId: config.APPWRITE_DATABASE_ID, tableId, queries: pageQueries, total: false, ttl: 0 }),
+    queries,
+  );
   const assertPermission = (resource, readable, label) => {
     const actual = resource.$permissions ?? [];
     const expected = permissions(readable);
@@ -73,11 +93,11 @@ export function createAdapter({ env = process.env } = {}) {
     },
     async findCourse(slug) { return listOne(config.APPWRITE_COURSES_TABLE_ID, [Query.equal('slug', slug)], 'course'); },
     async findMaterial(courseId, kind, slug) { return listOne(config.APPWRITE_MATERIALS_TABLE_ID, [Query.equal('courseId', courseId), Query.equal('kind', kind), Query.equal('slug', slug)], 'material'); },
-    async listMaterials(courseId) { return (await tables.listRows({ databaseId: config.APPWRITE_DATABASE_ID, tableId: config.APPWRITE_MATERIALS_TABLE_ID, queries: [Query.equal('courseId', courseId)] })).rows; },
+    async listMaterials(courseId) { return listAllWith(tables, config.APPWRITE_MATERIALS_TABLE_ID, [Query.equal('courseId', courseId)]); },
     async findAsset(materialId, key) { return listOne(config.APPWRITE_ASSETS_TABLE_ID, [Query.equal('materialId', materialId), Query.equal('key', key)], 'asset'); },
-    async listAssets(materialId) { return (await tables.listRows({ databaseId: config.APPWRITE_DATABASE_ID, tableId: config.APPWRITE_ASSETS_TABLE_ID, queries: [Query.equal('materialId', materialId)] })).rows; },
+    async listAssets(materialId) { return listAllWith(tables, config.APPWRITE_ASSETS_TABLE_ID, [Query.equal('materialId', materialId)]); },
     async findAttachment(materialId, key) { return listOne(config.APPWRITE_ATTACHMENTS_TABLE_ID, [Query.equal('materialId', materialId), Query.equal('key', key)], 'download attachment'); },
-    async listAttachments(materialId) { return (await tables.listRows({ databaseId: config.APPWRITE_DATABASE_ID, tableId: config.APPWRITE_ATTACHMENTS_TABLE_ID, queries: [Query.equal('materialId', materialId), Query.orderAsc('sortOrder')], total: false })).rows; },
+    async listAttachments(materialId) { return listAllWith(tables, config.APPWRITE_ATTACHMENTS_TABLE_ID, [Query.equal('materialId', materialId), Query.orderAsc('sortOrder')]); },
     async getFile(bucketId, fileId) { try { return await storage.getFile({ bucketId, fileId }); } catch { return null; } },
     async putFile(bucketId, fileId, bytes, name, readable) {
       const existing = await this.getFile(bucketId, fileId);
