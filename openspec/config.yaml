@@ -16,19 +16,32 @@ context: |
       надёжности и машинного обучения.
 
   Lecture sequence (DECIDED):
-    1. Случайный эксперимент, события и комбинаторика.
-    2. Вероятность события и её определения.
-    3. Основные теоремы теории вероятностей.
-    4. Полная вероятность, Байес и повторные испытания.
-    5. Дискретные случайные величины и законы распределения.
-    6. Числовые характеристики и совместное распределение.
-    7. Непрерывные случайные величины.
-    8. Нормальное распределение и предельные теоремы.
+    1. Основные понятия теории вероятностей: события, операции, комбинаторика,
+       определения и свойства вероятности.
+    2. Основные теоремы теории вероятностей: условная вероятность,
+       независимость, сложение, умножение, полная вероятность и Байес.
+    3. Формула Бернулли: повторные независимые испытания, следствия,
+       локальная и интегральная теоремы Лапласа, формула Пуассона.
+    4. Случайные величины: дискретные и непрерывные виды, способы задания,
+       ряд распределения, функция распределения и плотность.
+    5. Числовые характеристики: ожидание, мода, медиана, дисперсия,
+       стандартное отклонение, вариация, моменты, асимметрия и эксцесс.
+    6. Примеры законов распределения: дискретное равномерное, биномиальное,
+       Пуассона, геометрическое, гипергеометрическое; непрерывное равномерное,
+       экспоненциальное, нормальное и Вейбулла.
+    7. Закон больших чисел: неравенства Маркова, Чебышёва и Бернулли,
+       теоремы Чебышёва и Бернулли, центральная предельная теорема.
+    8. Элементы двумерной случайной величины — факультативно, если останется
+       время; отдельный семинар не проводится, время можно отдать лекциям 1–7.
 
   Source hierarchy (DECIDED):
-    - `sources/Б1.О.09.01 Теория вероятностей РПД СИИ ПРБ.pdf` is the
-      normative source for mandatory structure, topics, workload, learning
-      outcomes, individual assignments, control works, cases, and assessment.
+    - `sources/лекции.pdf` is the newest and highest-priority source for lecture
+      titles, topic boundaries, order, and the optional status of lecture 8.
+    - `sources/Б1.О.09.01 Теория вероятностей РПД СИИ ПРБ.pdf` and
+      `sources/Б1.О.09.01 Теория вероятностей ОМД СИИ ПРБ.pdf` remain normative
+      for workload, learning outcomes, individual assignments, control works,
+      cases, and assessment except where `sources/лекции.pdf` explicitly changes
+      topic placement.
     - `sources/Gmurman_V_E_Teoria_veroyatnostey_i_matematicheskaya_statistika.pdf`
       is the primary substantive source for definitions, theorem statements,
       formulas, derivations, notation comparisons, and core examples.
@@ -93,15 +106,19 @@ context: |
 
 rules:
   proposal:
+    - Write all change-artifact prose in Russian for easier review; preserve only required OpenSpec syntax, technical identifiers, filenames, paths, and code tokens in their original form.
     - Keep proposals focused on course outcomes, source-grounded content, or publication-safe structure.
     - State explicit non-goals and identify any normative source defect that affects scope.
   design:
+    - Write all change-artifact prose in Russian for easier review; preserve only required OpenSpec syntax, technical identifiers, filenames, paths, and code tokens in their original form.
     - Preserve the separation between teacher scripts, student notes, ignored sources, and published assets.
     - Explain how source priority and mathematical conditions will be checked.
   specs:
+    - Write all change-artifact prose in Russian for easier review; preserve required OpenSpec headings and normative keywords such as SHALL, MUST, WHEN, and THEN where the validator depends on them.
     - Express educational and publication requirements as observable, verifiable behavior.
     - Do not reproduce copyrighted source passages; capture requirements and source roles instead.
   tasks:
+    - Write all change-artifact prose in Russian for easier review; preserve only required checkbox syntax, technical identifiers, filenames, paths, and code tokens in their original form.
     - Keep tasks small, source-grounded, and independently verifiable.
     - Require preservation checks before replacing or shortening educational content.
 
