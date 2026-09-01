@@ -14,70 +14,173 @@ sortOrder: 1
 materials:
   lectures:
     - slug: random-experiments-events-combinatorics
-      title: Случайный эксперимент, события и комбинаторика
+      title: Основные понятия теории вероятностей
       summary: >-
-        Пространство элементарных исходов, виды и операции над событиями,
-        правила суммы и произведения, перестановки, размещения и сочетания.
+        Случайные эксперименты, элементарные исходы, события и операции над
+        ними, несовместность, комбинаторика, определения и свойства вероятности.
       lifecycleStatus: published
       availability: available
       sortOrder: 1
       markdown: lectures/001_random-experiments-events-combinatorics.md
       briefMarkdown: lecture-notes/001_random-experiments-events-combinatorics.md
-    - slug: event-probability-definitions
-      title: Вероятность события и её определения
+    - slug: probability-theorems-bayes
+      title: Основные теоремы теории вероятностей
       summary: >-
-        Аксиомы вероятности, классическое определение и равновозможность,
-        относительная частота, статистическая и геометрическая вероятность.
+        Условная вероятность и независимость, теоремы сложения и умножения,
+        формула полной вероятности и формула Байеса с приложениями в ML.
       lifecycleStatus: published
       availability: inDevelopment
       sortOrder: 2
-    - slug: probability-theorems
-      title: Основные теоремы теории вероятностей
+    - slug: bernoulli-laplace-poisson
+      title: Формула Бернулли
       summary: >-
-        Теоремы сложения и умножения, условная вероятность, деревья
-        вероятностей, независимость событий и формула «хотя бы одного».
+        Повторные независимые испытания, точная формула Бернулли, наивероятнейшее
+        число успехов, локальная и интегральная теоремы Лапласа и формула Пуассона.
       lifecycleStatus: published
       availability: inDevelopment
       sortOrder: 3
-    - slug: total-probability-bayes-repeated-trials
-      title: Полная вероятность, Байес и повторные испытания
+    - slug: random-variables
+      title: Случайные величины
       summary: >-
-        Разбиение на гипотезы, формулы полной вероятности и Байеса, схема
-        Бернулли, наиболее вероятное число успехов и приближение Пуассона.
+        Дискретные и непрерывные случайные величины, способы их задания, ряд и
+        функция распределения, плотность и вычисление вероятностей интервалов.
       lifecycleStatus: published
       availability: inDevelopment
       sortOrder: 4
-    - slug: discrete-random-variables-distributions
-      title: Дискретные случайные величины и законы распределения
+    - slug: numerical-characteristics
+      title: Числовые характеристики случайных величин
       summary: >-
-        Ряд, многоугольник и функция распределения дискретной случайной
-        величины, биномиальный закон и распределение Пуассона.
+        Математическое ожидание, мода, медиана, дисперсия, среднее квадратическое
+        отклонение, коэффициент вариации, моменты, асимметрия и эксцесс.
       lifecycleStatus: published
       availability: inDevelopment
       sortOrder: 5
-    - slug: numerical-characteristics-joint-distribution
-      title: Числовые характеристики и совместное распределение
+    - slug: distribution-laws
+      title: Некоторые примеры законов распределения
       summary: >-
-        Математическое ожидание, дисперсия и стандартное отклонение, совместные
-        и маргинальные распределения, ковариация, корреляция и независимость.
+        Дискретное равномерное, биномиальное, пуассоновское, геометрическое и
+        гипергеометрическое распределения, а также равномерное, показательное,
+        нормальное распределения и распределение Вейбулла.
       lifecycleStatus: published
       availability: inDevelopment
       sortOrder: 6
-    - slug: continuous-random-variables
-      title: Непрерывные случайные величины
+    - slug: law-of-large-numbers-clt
+      title: Закон больших чисел
       summary: >-
-        Плотность и функция распределения, вероятности и характеристики через
-        интегрирование, равномерное и показательное распределения.
+        Неравенства Маркова, Чебышёва и Бернулли, закон больших чисел в формах
+        Чебышёва и Бернулли, центральная предельная теорема и их интерпретация.
       lifecycleStatus: published
       availability: inDevelopment
       sortOrder: 7
-    - slug: normal-distribution-limit-theorems
-      title: Нормальное распределение и предельные теоремы
+    - slug: bivariate-random-variables
+      title: Элементы двумерной случайной величины (опционально)
       summary: >-
-        Стандартизация нормальной величины, правило трёх сигм, неравенство
-        Чебышёва, закон больших чисел и центральная предельная теорема.
+        Факультативное знакомство с совместными и маргинальными распределениями,
+        независимостью случайных величин, ковариацией и корреляцией.
       lifecycleStatus: published
       availability: inDevelopment
       sortOrder: 8
-  seminars: []
+  seminars:
+    - slug: combinatorics-and-probabilit
+      title: Комбинаторика и определения вероятности
+      summary: Описание будет добавлено позднее.
+      lifecycleStatus: published
+      availability: inDevelopment
+      sortOrder: 101
+    - slug: combinations-and-permutations-with-repetitions
+      title: Перестановки, размещения и сочетания
+      summary: Описание будет добавлено позднее.
+      lifecycleStatus: published
+      availability: inDevelopment
+      sortOrder: 102
+    - slug: classical-probability
+      title: Классическая вероятность
+      summary: Описание будет добавлено позднее.
+      lifecycleStatus: published
+      availability: inDevelopment
+      sortOrder: 103
+    - slug: geometric-statistical-probability
+      title: Геометрическая, статистическая и имитационная вероятность
+      summary: Описание будет добавлено позднее.
+      lifecycleStatus: published
+      availability: inDevelopment
+      sortOrder: 104
+    - slug: control-work-1
+      title: Обобщение темы 1 и контрольная работа № 1
+      summary: Описание будет добавлено позднее.
+      lifecycleStatus: published
+      availability: inDevelopment
+      sortOrder: 105
+    - slug: addition-and-multiplication-theorems
+      title: Сложение, умножение, условная вероятность и независимость
+      summary: Описание будет добавлено позднее.
+      lifecycleStatus: published
+      availability: inDevelopment
+      sortOrder: 106
+    - slug: total-probability-and-bayes
+      title: Полная вероятность и формула Байеса
+      summary: Описание будет добавлено позднее.
+      lifecycleStatus: published
+      availability: inDevelopment
+      sortOrder: 107
+    - slug: repeated-trials-bernoulli-laplace-poisson
+      title: Бернулли, Лаплас и Пуассон
+      summary: Описание будет добавлено позднее.
+      lifecycleStatus: published
+      availability: inDevelopment
+      sortOrder: 108
+    - slug: control-work-2
+      title: Обобщение лекций 2–3 и контрольная работа № 2
+      summary: Описание будет добавлено позднее.
+      lifecycleStatus: published
+      availability: inDevelopment
+      sortOrder: 109
+    - slug: random-variables-distribution-series
+      title: Способы задания случайных величин, CDF и плотность
+      summary: Описание будет добавлено позднее.
+      lifecycleStatus: published
+      availability: inDevelopment
+      sortOrder: 110
+    - slug: mathematical-expectation
+      title: Математическое ожидание, мода и медиана
+      summary: Описание будет добавлено позднее.
+      lifecycleStatus: published
+      availability: inDevelopment
+      sortOrder: 111
+    - slug: variance-and-standard-deviation
+      title: Дисперсия, моменты, асимметрия и эксцесс
+      summary: Описание будет добавлено позднее.
+      lifecycleStatus: published
+      availability: inDevelopment
+      sortOrder: 112
+    - slug: discrete-cdf-binomial-poisson
+      title: Стандартные дискретные распределения
+      summary: Описание будет добавлено позднее.
+      lifecycleStatus: published
+      availability: inDevelopment
+      sortOrder: 113
+    - slug: continuous-distributions
+      title: Равномерное, экспоненциальное и распределение Вейбулла
+      summary: Описание будет добавлено позднее.
+      lifecycleStatus: published
+      availability: inDevelopment
+      sortOrder: 114
+    - slug: normal-distribution-three-sigma
+      title: Нормальное распределение и правило трёх сигм
+      summary: Описание будет добавлено позднее.
+      lifecycleStatus: published
+      availability: inDevelopment
+      sortOrder: 115
+    - slug: limit-theorems
+      title: Неравенства, закон больших чисел и ЦПТ
+      summary: Описание будет добавлено позднее.
+      lifecycleStatus: published
+      availability: inDevelopment
+      sortOrder: 116
+    - slug: continuous-distributions-control-work-3
+      title: Контрольная работа № 3 и итоговый выбор модели
+      summary: Описание будет добавлено позднее.
+      lifecycleStatus: published
+      availability: inDevelopment
+      sortOrder: 117
   homeworks: []

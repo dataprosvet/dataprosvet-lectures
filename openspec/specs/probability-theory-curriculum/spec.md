@@ -21,11 +21,18 @@ The course SHALL enable students to model random experiments and events, calcula
 - **THEN** the student can select, calculate, and interpret an appropriate elementary probability model for problems in business, information systems, reliability, and machine learning
 
 ### Requirement: Eight lectures preserve the approved topic sequence
-The lecture sequence SHALL remain: (1) random experiments, events, and combinatorics; (2) definitions of event probability; (3) principal probability theorems; (4) total probability, Bayes, and repeated trials; (5) discrete random variables and distributions; (6) numerical characteristics and joint distributions; (7) continuous random variables; and (8) the normal distribution and limit theorems.
+The lecture sequence SHALL follow the newest supplied topic plan: (1) events, operations, combinatorics, definitions and properties of probability; (2) conditional probability, independence, addition and multiplication theorems, complete systems, total probability, and Bayes; (3) repeated independent trials, Bernoulli, local and integral Laplace, and Poisson; (4) discrete and continuous random variables, distribution series, CDFs, and densities; (5) expectation, mode, median, variance, standard deviation, variation, moments, skewness, and kurtosis; (6) named discrete and continuous distribution laws; (7) Markov, Chebyshev, and Bernoulli inequalities, laws of large numbers, and the central limit theorem; and (8) optional bivariate random variables if time remains. Lecture 8 SHALL have no dedicated seminar, and its time SHALL be returned to lectures 1-7 when required.
 
 #### Scenario: Public lecture set is inspected
 - **WHEN** the eight lecture materials are ordered by their manifest sort order
-- **THEN** their titles and substantive scope follow the approved progression without a missing or duplicated topic block
+- **THEN** their titles and substantive scope follow the newest progression without a missing or duplicated required topic block, and lecture 8 is marked optional
+
+### Requirement: Seminars and formal homework align to the lecture progression
+The course SHALL maintain 17 ordered seminar capabilities and seven formal homework capabilities. Each seminar and homework SHALL identify its prerequisite lecture topics, and no seminar SHALL depend on optional lecture 8.
+
+#### Scenario: Curriculum map is validated
+- **WHEN** the complete curriculum map is inspected
+- **THEN** lectures 1-7 have aligned practice and assessment coverage, all 17 seminars and seven IDZ capabilities are present, and lecture 8 has no seminar dependency
 
 ### Requirement: Required learning outcomes remain covered
 Course materials SHALL cover event operations and combinatorics; classical, geometric, and statistical probability; addition and multiplication theorems; conditional probability; total probability and Bayes; Bernoulli, Poisson, local Laplace, and integral Laplace methods; discrete and continuous distributions; expectation, variance, and standard deviation; binomial, Poisson, uniform, exponential, and normal laws; joint distributions, covariance, and correlation; Chebyshev and Bernoulli laws of large numbers; the central limit theorem; and an introductory interpretation of statistical hypotheses and p-values.

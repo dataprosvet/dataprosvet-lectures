@@ -244,3 +244,9 @@ inside = sum(
     if random.uniform(-1, 1)**2 + random.uniform(-1, 1)**2 <= 1
 )
 print(4 * inside / n)
+```
+
+## Связанные семинары
+
+- [Семинар № 3. Классическая вероятность](../seminars/003_classical-probability.md)
+- [Семинар № 4. Геометрическая и статистическая вероятность](../seminars/004_geometric-statistical-probability.md)
