@@ -33,6 +33,15 @@ PROBLEM_RE = re.compile(r"^##+ Задача (S\d{2}-P\d{2})(?: \[типовая\
 SOLUTION_RE = re.compile(r"^\*\*Решение\.\*\*", re.M)
 SOURCE_LEAK_RE = re.compile(r"(?:sources/|Gmurman_|Savyolova_|2_545|4816 методичка)", re.I)
 LINK_RE = re.compile(r"!?(?:\[[^\]]*\])\(([^)]+)\)")
+UNLATEXED_MATH_PATTERNS = (
+    re.compile(r"[Ωω∅∪∩≤≥Σ×≈⁰¹²³⁴⁵⁶⁷⁸⁹₀₁₂₃₄₅₆₇₈₉ₙᵢᵏ]"),
+    re.compile(r"\b(?:P|W|C|A)\s*\("),
+    re.compile(r"(?<![\w/])(?:A|B|C|N|P|W|m|n|k|x|y)(?![\w/])"),
+    re.compile(r"\{[^}\n]+\}"),
+    re.compile(r"\bmes\b"),
+    re.compile(r"\d\s*(?:=|/|[!^<>])\s*\d"),
+)
+SUPERSCRIPT_TRANSLATION = str.maketrans("⁰¹²³⁴⁵⁶⁷⁸⁹₀₁₂₃₄₅₆₇₈₉ₙᵢᵏ", "01234567890123456789nik")
 
 
 def sha256(path: Path) -> str:
@@ -44,15 +53,75 @@ def sha256(path: Path) -> str:
 
 
 def normalize_format_only(text: str) -> str:
-    """Игнорирует только разрешённые для лекции 1 изменения Markdown."""
+    """Канонизирует разрешённые Markdown/LaTeX-изменения лекции 1."""
     normalized = []
     for line in text.splitlines():
         line = re.sub(r"^> ?", "", line)
         line = re.sub(r"^- (?=\$\$)", "", line)
         line = re.sub(r"\$[ \t]+", "$", line)
         line = re.sub(r"[ \t]+\$", "$", line)
-        normalized.append(line.rstrip())
+        line = line.replace("{,}", ",").replace(r"\,", "")
+        line = re.sub(r"\\(?:operatorname|text)\{([^{}]*)\}", r"\1", line)
+        previous = None
+        while previous != line:
+            previous = line
+            line = re.sub(r"\\d?frac\{([^{}]*)\}\{([^{}]*)\}", r"\1/\2", line)
+        replacements = {
+            r"\Omega": "Ω",
+            r"\omega": "ω",
+            r"\varnothing": "∅",
+            r"\cup": "∪",
+            r"\cap": "∩",
+            r"\le": "≤",
+            r"\ge": "≥",
+            r"\sum": "Σ",
+            r"\times": "×",
+            r"\cdot": "·",
+            r"\approx": "≈",
+            r"\dots": "…",
+        }
+        for source, target in replacements.items():
+            line = line.replace(source, target)
+        line = line.replace("...", "…").translate(SUPERSCRIPT_TRANSLATION)
+        line = line.replace("−", "-").replace("–", "-")
+        line = line.replace(r"\{", "{").replace(r"\}", "}")
+        if re.fullmatch(r"\s*\|(?:\s*:?-+:?\s*\|)+\s*", line):
+            line = re.sub(r":?-+:?", "---", line)
+        line = re.sub(r"[$\\{}()_^\s]", "", line.rstrip())
+        if line:
+            normalized.append(line)
     return "\n".join(normalized)
+
+
+def unlatexed_math_tokens(text: str) -> list[tuple[int, str]]:
+    """Возвращает математические токены лекции 1, оставшиеся вне LaTeX."""
+    findings: list[tuple[int, str]] = []
+    for line_number, line in enumerate(text.splitlines(), 1):
+        prose = re.sub(r"`[^`]*`", "", line)
+        prose = re.sub(r"\$\$.*?\$\$", "", prose)
+        prose = re.sub(r"(?<!\$)\$(?!\$).*?(?<!\$)\$(?!\$)", "", prose)
+        for pattern in UNLATEXED_MATH_PATTERNS:
+            match = pattern.search(prose)
+            if match:
+                findings.append((line_number, match.group(0)))
+                break
+    return findings
+
+
+def table_without_leading_blank(text: str) -> list[int]:
+    """Находит GFM-таблицы без пустой строки перед заголовком."""
+    lines = text.splitlines()
+    findings: list[int] = []
+    for index in range(len(lines) - 1):
+        header = lines[index].strip()
+        delimiter = lines[index + 1].strip()
+        if not (header.startswith("|") and header.endswith("|")):
+            continue
+        if not re.fullmatch(r"\|(?:\s*:?-+:?\s*\|)+", delimiter):
+            continue
+        if index > 0 and lines[index - 1].strip():
+            findings.append(index + 1)
+    return findings
 
 
 def compact_math(text: str) -> str:
@@ -118,10 +187,23 @@ def check_lectures(errors: list[str]) -> None:
                     errors.append(f"формула осталась внутри Markdown-цитаты: {path.relative_to(ROOT)}")
                 if text.count("$$") % 2:
                     errors.append(f"несбалансированы блоки $$: {path.relative_to(ROOT)}")
+                if text.replace("$$", "").count("$") % 2:
+                    errors.append(f"несбалансированы встроенные $: {path.relative_to(ROOT)}")
                 if "$$*" in text or "*$$" in text:
                     errors.append(f"маркер курсива примыкает к блоку формулы: {path.relative_to(ROOT)}")
                 if re.search(r"(?<!\\)(?<!q)(?:qquad|quad)\b", text):
                     errors.append(f"команда LaTeX записана без обратного слеша: {path.relative_to(ROOT)}")
+                if number == 1:
+                    for line_number, token in unlatexed_math_tokens(text):
+                        errors.append(
+                            f"лекция 1: математический токен {token!r} вне LaTeX в "
+                            f"{path.relative_to(ROOT)}:{line_number}"
+                        )
+                    for line_number in table_without_leading_blank(text):
+                        errors.append(
+                            f"лекция 1: нет пустой строки перед таблицей в "
+                            f"{path.relative_to(ROOT)}:{line_number}"
+                        )
         if len(texts) == 3 and not (len(texts[2][1]) < len(texts[1][1]) < len(texts[0][1])):
             errors.append(f"нарушено соотношение объёмов вариантов лекции {number}")
         for path, text in texts:
