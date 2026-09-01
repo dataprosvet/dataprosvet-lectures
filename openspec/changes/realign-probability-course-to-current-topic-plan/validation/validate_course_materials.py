@@ -49,6 +49,8 @@ def normalize_format_only(text: str) -> str:
     for line in text.splitlines():
         line = re.sub(r"^> ?", "", line)
         line = re.sub(r"^- (?=\$\$)", "", line)
+        line = re.sub(r"\$[ \t]+", "$", line)
+        line = re.sub(r"[ \t]+\$", "$", line)
         normalized.append(line.rstrip())
     return "\n".join(normalized)
 

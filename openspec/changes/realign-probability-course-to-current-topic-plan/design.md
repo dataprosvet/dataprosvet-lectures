@@ -72,9 +72,11 @@ Alternative: cite books directly in every student problem. Rejected because loca
 
 ### 7. Preserve staged release and migrate identities explicitly
 
-Create an old-to-new mapping for filenames, slugs, titles, assets, and cross-links. Lecture 1 remains the sole exposed lecture unless publication requirements separately change. New seminar and homework files are prepared but not declared publicly. Publisher validation must prove that teacher directories, solution keys, and `sources/` are absent from the output plan.
+Создать явное соответствие старых и новых имён файлов, slug, названий, ресурсов и перекрёстных ссылок. Все восемь лекций остаются metadata-записями `published`; лекция 1 сохраняет `available` и является единственной лекцией с подключёнными полной и краткой версиями, а лекции 2–8 остаются `inDevelopment` без путей к содержимому. Все 17 семинаров объявляются metadata-записями `published` + `inDevelopment` без `markdown`; обязательное непустое поле `summary` получает единый нейтральный текст `Описание будет добавлено позднее.` вместо тематического описания. ИДЗ остаются вне манифеста.
 
-Alternative: publish completed materials automatically. Rejected because content readiness and release authorization are separate decisions.
+Проверка publisher должна подтвердить 8 лекционных и 17 семинарских metadata-записей, отсутствие публичного содержимого у `inDevelopment`-материалов и отсутствие преподавательских каталогов, ключей решений и `sources/` в публикуемых ресурсах.
+
+Альтернатива: сразу подключить `markdown` готовых лекций и семинаров. Отклонено, потому что metadata-регистрация и разрешение на публикацию содержимого являются разными решениями.
 
 ### 8. Применить правки коллеги для лекции 1 и семинара 1 без повторной содержательной переработки
 
@@ -112,7 +114,7 @@ Alternative: publish completed materials automatically. Rejected because content
 4. Migrate lecture variants in topic order, validating each capability before proceeding.
 5. Build teacher seminar banks and public projections in order, enforcing 15-20 distinct tasks and problem-ID parity.
 6. Extract and rebuild IDZ 1-7 into student and teacher products with rubrics and defect handling.
-7. Update manifests and cross-links while preserving dormant availability.
+7. Обновить темы и описания восьми лекций в манифесте, добавить metadata-записи 17 семинаров и сохранить содержимое всех `inDevelopment`-материалов неподключённым.
 8. Run strict OpenSpec, mathematical, content-parity, answer-leak, Markdown, asset, and publisher-plan validation.
 9. Keep the previous files recoverable until all preservation evidence passes; rollback by restoring the old identity map and manifest references if validation fails.
 10. После `pull` зафиксировать новые исходные файлы лекции 1 и семинара 1, выполнить ограниченную форматную корректуру и повторить полную приёмку.

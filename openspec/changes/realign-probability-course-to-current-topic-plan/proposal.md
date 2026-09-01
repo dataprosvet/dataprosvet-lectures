@@ -13,7 +13,7 @@ The course's eight-lecture structure and its seminar sequence no longer match th
 - Maintain seven formal individual homework packages (ИДЗ 1-7), each as its own capability. Short preparation prompts or error-correction work that is local to a seminar remains governed by that seminar rather than becoming an additional formal homework product.
 - Use the complete local source corpus for definitions, proofs, examples, exercise selection, computational enrichment, and applications, with special emphasis on probability modeling in machine learning. Source use must be transformative and must not reproduce copyrighted passages or exercise collections wholesale.
 - Preserve the documented defects in control-work task 3.5 and individual assignment 6.3, and preserve the adopted modern probability and distribution-function notation.
-- Keep the current staged-publication decision: planning and content readiness do not automatically publish lectures 2-8, seminars, homework, or attachments.
+- Сохранить поэтапный выпуск содержимого: лекция 1 остаётся единственной записью с подключёнными полной и краткой версиями; лекции 2–8 сохраняют `published` + `inDevelopment` без текстовых действий. Добавить в `course.yaml` metadata-записи всех 17 семинаров со статусами `published` + `inDevelopment`, без путей `markdown`; обязательное схемой поле `summary` заполнить нейтральным сообщением об отсутствии описания.
 - **BREAKING**: lecture identities, titles, boundaries, summaries, seminar-to-lecture relationships, and later material filenames/slugs may change to match the newest topic plan. Compatibility redirects or explicit migration mapping are required wherever published identifiers change.
 
 ## Capabilities
@@ -68,4 +68,4 @@ The course's eight-lecture structure and its seminar sequence no longer match th
 - Affected content: all files in `lectures-teacher/`, `lectures/`, `lecture-notes/`, `seminars/`, teacher seminar materials, formal homework materials, related assets, and cross-links.
 - Affected source corpus: the supplied PDF is copied to `sources/` during apply and remains ignored/unpublished.
 - Affected validation: topic coverage, source traceability, exercise counts, teacher/public solution parity, answer-leak checks, mathematical checks, Markdown/assets, and publisher plan validation.
-- Non-goals: publishing currently dormant materials, reproducing source books verbatim, inventing the missing control-work graph, or assuming independence in IDZ 6.3.
+- Non-goals: открытие содержимого лекций 2–8, семинаров, ИДЗ и вложений; воспроизведение книг дословно; изобретение отсутствующего графика контрольной работы; молчаливое предположение независимости в ИДЗ 6.3.

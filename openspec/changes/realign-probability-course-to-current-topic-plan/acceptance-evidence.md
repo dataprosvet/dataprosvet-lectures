@@ -34,7 +34,7 @@
 - `validation/verify_calculations.py` — пройдено для вариантов `v=1..10`, контрольных работ 1–3, всех ИДЗ и хвоста распределения Пуассона из лекции 3.
 - `openspec validate realign-probability-course-to-current-topic-plan --strict` — пройдено.
 - `npm test` в `.github/publisher` — 54/54 теста пройдены; `npm run lint` — пройдено.
-- Production-equivalent publisher validation выполнена во временном Git-репозитории: в плане 8 лекционных metadata-записей, текстовые действия есть только у `random-experiments-events-combinatorics`, семинаров и ИДЗ в плане нет.
+- Production-equivalent publisher validation выполнена во временном Git-репозитории: в плане 25 материалов — 8 лекций и 17 семинаров, ИДЗ в плане нет. Все семинары имеют статусы `published` + `inDevelopment`, не содержат `markdown`/`briefMarkdown` и используют глобально уникальные `sortOrder` 101–117. Публичное чтение осталось только у лекции `random-experiments-events-combinatorics`.
 - `git diff --check` с отключённым только для чтения LFS clean-фильтром — пройдено.
 
 ## Отложенное расширение семинара 1
