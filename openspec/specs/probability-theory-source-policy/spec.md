@@ -7,18 +7,25 @@ Defines how normative, textbook, machine-learning, and methodological sources go
 ## Requirements
 
 ### Requirement: Source authority is explicit and role-based
-The 2026 RPD for Б1.О.09.01 SHALL govern mandatory course structure, required topics, learning outcomes, assessment materials, and workload. V. E. Gmurman's probability and mathematical statistics textbook SHALL be the primary substantive source for definitions, theorem statements, formulas, derivations, notation comparisons, and core examples. *Mathematics for Machine Learning* and *Deep Learning: Immersion into the World of Neural Networks* SHALL supplement Gmurman with applied interpretations, machine-learning and neural-network examples, and relevant extensions beyond the primary textbook. Other methodological and Monte Carlo sources MAY supply targeted exercises, computational approaches, and enrichment but MUST NOT silently override higher-priority sources.
+The supplied 2026-08-31 topic-plan PDF SHALL govern lecture boundaries, ordering, and the optional status of lecture 8 as the newest source for those decisions. The RPD and OMD SHALL continue to govern workload, learning outcomes, formal individual assignments, control works, cases, and assessment except where the newer topic plan explicitly changes topic placement. V. E. Gmurman's textbook SHALL remain the primary substantive source for definitions, theorems, formulas, derivations, notation comparisons, and core examples. The machine-learning books SHALL be actively used for applied interpretation and relevant ML/data examples. Other books and methodological sources MAY provide exercises, computation, simulation, and enrichment but MUST NOT silently override higher-priority sources.
 
 #### Scenario: A lecture topic is written or revised
 - **WHEN** a maintainer develops definitions, formulas, explanations, derivations, or examples for a lecture
-- **THEN** the mandatory scope is checked against the RPD, core mathematical treatment is grounded first in Gmurman, and the machine-learning books are actively considered for useful applications, examples, interpretation, or extension
+- **THEN** the topic boundary is checked against the supplied current plan, mandatory outcomes and assessment links are checked against the RPD/OMD, core mathematics is grounded first in Gmurman, and the machine-learning books are actively considered for useful applications and interpretation
 
 ### Requirement: The expected source inventory is documented
-The course OpenSpec context SHALL identify the normative RPD, Gmurman, *Mathematics for Machine Learning*, *Deep Learning: Immersion into the World of Neural Networks*, the probability-method guidance, the Monte Carlo materials, the course plan, and the lecture revision plan by stable filenames and assigned source roles. It SHALL identify the former lecture audit as a superseded historical record under the ignored source archive and SHALL identify the versioned review evidence from the completed editorial and publication change as the active record for the final decision. The source files MAY remain local under ignored `sources/`, but their absence SHALL be reported when a requested revision requires direct source verification.
+The course OpenSpec context SHALL identify `sources/лекции.pdf` by its stable filename and SHALL assign it the highest authority for lecture boundaries. It SHALL continue to identify the RPD, OMD, Gmurman, both machine-learning books, exercise and methodological PDFs, Monte Carlo guidance, curriculum plans, and active review evidence. The source files MAY remain local under ignored `sources/`, but their absence SHALL be reported when a requested revision requires direct source verification.
 
 #### Scenario: Agent begins source-grounded course work
 - **WHEN** an agent reads the course specification before editing educational content
-- **THEN** it can identify the authoritative curriculum and mathematical sources, distinguish the active review evidence from the superseded audit, and avoid treating an obsolete defect list as current state
+- **THEN** it can resolve the current topic-plan PDF, distinguish each source role, apply the conflict hierarchy, and avoid reconstructing absent sources from memory
+
+### Requirement: Source-derived exercises are transformative and traceable
+Teacher materials SHALL retain internal source provenance for selected definitions, examples, and exercises, while public materials MUST NOT expose local source paths or reproduce substantial copyrighted passages. Adapted exercises SHALL be independently solved and checked before use.
+
+#### Scenario: Exercise bank is reviewed
+- **WHEN** an exercise inspired by a local book is accepted
+- **THEN** internal evidence identifies its source role, the published wording is appropriately transformed, and an independently checked solution exists
 
 ### Requirement: Source conflicts and defects are handled explicitly
 A lecture MUST NOT invent missing normative data or conceal a conflict between sources. The course SHALL retain documented handling for the missing graph in control-work task 3.5, the absent independence condition in individual assignment 6.3, the general and special forms of Chebyshev's law of large numbers, and the distinction between the modern convention `F(x)=P(X\le x)` and conventions used in older sources.
