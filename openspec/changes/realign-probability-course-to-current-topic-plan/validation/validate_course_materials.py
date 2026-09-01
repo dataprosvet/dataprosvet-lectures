@@ -12,13 +12,15 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[4]
 FROZEN = {
-    "lectures/001_random-experiments-events-combinatorics.md": "72621a4c2c3c10de8d2326d7cefb7e6617bda98dfff1164506bc753c22736468",
-    "lecture-notes/001_random-experiments-events-combinatorics.md": "3bab50f0ccff5a7da951cab849125805ce6859dff59825d741f02d5a930ff028",
-    "lectures-teacher/001_random-experiments-events-combinatorics.md": "8bba5ad463c34dca085c140b19380c16a01400f356f4ed043083343f425fbb48",
-    "seminars/001_combinatorics.md": "12f7eb28690deaf61a16a2c8a6304646e8f6e9412e52fe7e8a51279bcd618f2e",
-    "lectures-teacher/seminars/001_combinatorics.md": "5174c5d4b03c0de8d60d5b4ea8b5c077d40e414d19e3734bebe95cfda51cfaa4",
+    "lectures-teacher/seminars/001_combinatorics-and-probabilit.md": "bc7512c12d06c524c94bdabcb8e533613ad7a455d3e60152c8801083beb4d5d0",
+}
+FORMAT_ONLY_BASELINES = {
+    "lectures/001_random-experiments-events-combinatorics.md": "preservation/post-pull/lectures/001_random-experiments-events-combinatorics.md",
+    "lecture-notes/001_random-experiments-events-combinatorics.md": "preservation/post-pull/lecture-notes/001_random-experiments-events-combinatorics.md",
+    "lectures-teacher/001_random-experiments-events-combinatorics.md": "preservation/post-pull/lectures-teacher/001_random-experiments-events-combinatorics.md",
 }
 LECTURE_BASES = {
+    1: "001_random-experiments-events-combinatorics.md",
     2: "002_probability-theorems-bayes.md",
     3: "003_bernoulli-laplace-poisson.md",
     4: "004_random-variables.md",
@@ -27,7 +29,7 @@ LECTURE_BASES = {
     7: "007_law-of-large-numbers-clt.md",
     8: "008_bivariate-random-variables.md",
 }
-PROBLEM_RE = re.compile(r"^##+ Задача (S\d{2}-P\d{2})(?: \[типовая\])?\s*$", re.M)
+PROBLEM_RE = re.compile(r"^##+ Задача (S\d{2}-P\d{2})(?: \[типовая\])?(?:\.[^\n]*)?\s*$", re.M)
 SOLUTION_RE = re.compile(r"^\*\*Решение\.\*\*", re.M)
 SOURCE_LEAK_RE = re.compile(r"(?:sources/|Gmurman_|Savyolova_|2_545|4816 методичка)", re.I)
 LINK_RE = re.compile(r"!?(?:\[[^\]]*\])\(([^)]+)\)")
@@ -39,6 +41,27 @@ def sha256(path: Path) -> str:
         for chunk in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def normalize_format_only(text: str) -> str:
+    """Игнорирует только разрешённые для лекции 1 изменения Markdown."""
+    normalized = []
+    for line in text.splitlines():
+        line = re.sub(r"^> ?", "", line)
+        line = re.sub(r"^- (?=\$\$)", "", line)
+        normalized.append(line.rstrip())
+    return "\n".join(normalized)
+
+
+def compact_math(text: str) -> str:
+    return re.sub(r"\s+", "", text)
+
+
+def blockquote_contains_formula(text: str) -> bool:
+    for block in re.findall(r"(?m)(?:^>.*(?:\n|$))+", text):
+        if "$" in block or r"\(" in block or r"\[" in block:
+            return True
+    return False
 
 
 def sections(text: str) -> list[tuple[str, str, bool]]:
@@ -58,19 +81,62 @@ def check_frozen(errors: list[str]) -> None:
             errors.append(f"защищённый файл отсутствует: {relative}")
         elif sha256(path) != expected:
             errors.append(f"защищённый файл изменён: {relative}")
+    change_root = ROOT / "openspec" / "changes" / "realign-probability-course-to-current-topic-plan"
+    for relative, baseline_relative in FORMAT_ONLY_BASELINES.items():
+        current = ROOT / relative
+        baseline = change_root / baseline_relative
+        if not current.exists() or not baseline.exists():
+            errors.append(f"нет текущего файла или post-pull baseline лекции 1: {relative}")
+        elif normalize_format_only(current.read_text(encoding="utf-8")) != normalize_format_only(
+            baseline.read_text(encoding="utf-8")
+        ):
+            errors.append(f"в лекции 1 изменено содержание, а не только форматирование: {relative}")
 
 
 def check_lectures(errors: list[str]) -> None:
+    required_markers = {
+        2: (r"P(B\midA)", r"P(A\capB)", r"P(H_i\midA)"),
+        3: (r"P_n(k)", r"\varphi", r"\Phi", r"\lambda"),
+        4: (r"F_X(x)=P(X\lex)", r"p_k", r"f_X"),
+        5: (r"E[X]", r"D(X)", r"\gamma_1", r"\gamma_2"),
+        6: (r"Bin(n,p)", r"Pois(\lambda)", r"N(\mu,\sigma^2)", r"1-e^{-(x/\lambda)^k}"),
+        7: (r"P(X\gea)", r"\xrightarrow{P}", r"\xrightarrow{d}"),
+        8: (r"p_{ij}", r"Cov(X,Y)", r"\rho_{XY}"),
+    }
     for number, basename in LECTURE_BASES.items():
-        texts = []
+        texts: list[tuple[Path, str]] = []
         for directory in ("lectures-teacher", "lectures", "lecture-notes"):
             path = ROOT / directory / basename
             if not path.exists():
                 errors.append(f"нет варианта лекции {number}: {path.relative_to(ROOT)}")
             else:
-                texts.append(path.read_text(encoding="utf-8"))
-        if len(texts) == 3 and not (len(texts[2]) < len(texts[1]) < len(texts[0])):
+                text = path.read_text(encoding="utf-8")
+                texts.append((path, text))
+                if blockquote_contains_formula(text):
+                    errors.append(f"формула осталась внутри Markdown-цитаты: {path.relative_to(ROOT)}")
+                if text.count("$$") % 2:
+                    errors.append(f"несбалансированы блоки $$: {path.relative_to(ROOT)}")
+                if "$$*" in text or "*$$" in text:
+                    errors.append(f"маркер курсива примыкает к блоку формулы: {path.relative_to(ROOT)}")
+                if re.search(r"(?<!\\)(?<!q)(?:qquad|quad)\b", text):
+                    errors.append(f"команда LaTeX записана без обратного слеша: {path.relative_to(ROOT)}")
+        if len(texts) == 3 and not (len(texts[2][1]) < len(texts[1][1]) < len(texts[0][1])):
             errors.append(f"нарушено соотношение объёмов вариантов лекции {number}")
+        for path, text in texts:
+            compact = compact_math(text)
+            for marker in required_markers.get(number, ()):
+                if marker not in compact:
+                    errors.append(f"лекция {number}: нет общего маркера {marker!r} в {path.relative_to(ROOT)}")
+        if number == 2:
+            for path, text in texts:
+                if re.search(r"P_A\(|P_\{H|A \\cdot B", text):
+                    errors.append(f"лекция 2: осталась устаревшая нотация в {path.relative_to(ROOT)}")
+                if re.search(r"слова считаются независимыми", text, re.I):
+                    errors.append(f"лекция 2: независимость признаков не обусловлена классом в {path.relative_to(ROOT)}")
+        if number == 3:
+            for path, text in texts:
+                if "0,012" in text or "0{,}012" in text:
+                    errors.append(f"лекция 3: осталось неверное значение хвоста Пуассона в {path.relative_to(ROOT)}")
 
 
 def check_links(path: Path, text: str, errors: list[str]) -> None:
@@ -93,6 +159,33 @@ def check_seminar(number: int, errors: list[str]) -> None:
     public_text = public_path.read_text(encoding="utf-8")
     teacher_text = teacher_path.read_text(encoding="utf-8")
     public_sections, teacher_sections = sections(public_text), sections(teacher_text)
+    if number == 1:
+        expected_public = ROOT / "seminars" / "001_combinatorics-and-probabilit.md"
+        expected_teacher = ROOT / "lectures-teacher" / "seminars" / "001_combinatorics-and-probabilit.md"
+        if public_path != expected_public or teacher_path != expected_teacher:
+            errors.append("семинар 1: используется неканонический post-pull файл")
+        public_ids = [item[0] for item in public_sections]
+        if public_ids != [f"S01-P{index:02d}" for index in range(1, 8)]:
+            errors.append("семинар 1: публичная версия должна сохранять семь исходных задач и их порядок")
+        for problem_id, body, typical in public_sections:
+            has_solution = bool(SOLUTION_RE.search(body))
+            if typical != has_solution:
+                errors.append(f"семинар 1: некорректная видимость решения {problem_id}")
+            condition = re.search(r"^\*\*Условие\.\*\*\s*(.+)$", body, re.M)
+            if not condition:
+                errors.append(f"семинар 1: не найдено условие {problem_id}")
+                continue
+            normalized_condition = re.sub(r"[\s*_`]", "", condition.group(1))
+            normalized_teacher = re.sub(r"[\s*_`]", "", teacher_text)
+            if normalized_condition not in normalized_teacher:
+                errors.append(f"семинар 1: условие {problem_id} не совпадает с подтянутой версией")
+        if sum(1 for _, _, typical in public_sections if typical) != 4:
+            errors.append("семинар 1: ожидаются четыре типовые задачи с решениями")
+        if SOURCE_LEAK_RE.search(public_text):
+            errors.append("семинар 1: публичный файл раскрывает локальный источник")
+        check_links(public_path, public_text, errors)
+        check_links(teacher_path, teacher_text, errors)
+        return
     public_ids = [item[0] for item in public_sections]
     teacher_ids = [item[0] for item in teacher_sections]
     if public_ids != teacher_ids:
@@ -139,7 +232,7 @@ def main() -> int:
     check_frozen(errors)
     if not args.frozen_only:
         check_lectures(errors)
-        for number in range(2, 18):
+        for number in range(1, 18):
             check_seminar(number, errors)
         check_homeworks(errors)
     if errors:

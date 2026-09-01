@@ -35,7 +35,7 @@ f_X(x)\ge0,\qquad \int_{-\infty}^{\infty}f_X(x)\,dx=1,
 $$
 
 $$
-F_X(x)=\int_{-\infty}^{x}f_X(t)\,dt,qquad
+F_X(x)=\int_{-\infty}^{x}f_X(t)\,dt,\qquad
 P(a<X\le b)=\int_a^bf_X(x)\,dx.
 $$
 

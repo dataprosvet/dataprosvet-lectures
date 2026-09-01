@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Независимые численные проверки репрезентативных формул КР и всех ИДЗ."""
 
-from math import comb, exp, isclose
+from math import comb, exp, factorial, isclose
 
 
 def close(left: float, right: float) -> None:
@@ -60,5 +60,9 @@ close(0.4 * 0.5, 0.2)
 close(0.8 * 0.1 + 0.2 * 0.5, 0.18)
 close(1 - 0.4**5, 0.98976)
 close(0.5**2, 0.25)  # интеграл 2x от 0 до 0,5
+
+# Лекция 3: для X~Pois(3) вероятность строго больше 8 равна примерно 0,0038.
+poisson_tail_over_eight = 1 - sum(exp(-3) * 3**k / factorial(k) for k in range(9))
+close(poisson_tail_over_eight, 0.003802992061675955)
 
 print("OK: независимый вычислительный аудит пройден")

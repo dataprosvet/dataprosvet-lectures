@@ -45,11 +45,11 @@ $$
 Если $X$ — номер первого успеха в независимых испытаниях,
 
 $$
-P(X=k)=(1-p)^{k-1}p,qquad k=1,2,\dots
+P(X=k)=(1-p)^{k-1}p,\qquad k=1,2,\dots
 $$
 
 $$
-E[X]=\frac1p,qquad D(X)=\frac{1-p}{p^2}.
+E[X]=\frac1p,\qquad D(X)=\frac{1-p}{p^2}.
 $$
 
 Ключевое свойство — отсутствие памяти.
@@ -89,7 +89,7 @@ f(x)=\lambda e^{-\lambda x},\quad x\ge0,
 $$
 
 $$
-F(x)=1-e^{-\lambda x},\quad E[X]=\frac1\lambda,quad D(X)=\frac1{\lambda^2}.
+F(x)=1-e^{-\lambda x}\quad (x\ge0),\qquad E[X]=\frac1\lambda,\qquad D(X)=\frac1{\lambda^2}.
 $$
 
 Экспоненциальный закон обладает отсутствием памяти.
