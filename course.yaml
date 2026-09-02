@@ -23,6 +23,8 @@ materials:
       lifecycleStatus: published
       availability: available
       sortOrder: 1
+      markdown: lectures/001_api-tech-introduction.md
+      briefMarkdown: lecture-notes/001_api-tech-introduction.md
       attachments:
         - key: slides-lecture-1
           title: "Презентация Лекции 1"

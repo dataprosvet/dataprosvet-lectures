@@ -1,0 +1,339 @@
+schema: spec-driven
+
+context: |
+  Course identity (DECIDED):
+    - Title: «API-технологии» (discipline code Б1.В.11).
+    - Audience: бакалавры направления 09.03.03 «Прикладная информатика»,
+      2 курс, 3 семестр, очная форма обучения, по двум направленностям:
+      «Программные решения для бизнеса» (ПРБ) и
+      «Системы искусственного интеллекта» (СИИ).
+    - Workload for each profile: 3 зачётные единицы, 108 часов;
+      9 лекций (18 часов), 36 часов практических занятий, включая 4 часа
+      практической подготовки, 53,75 часа самостоятельной работы и 0,25 часа
+      контактной работы на промежуточном контроле; итоговый контроль — зачёт.
+    - Calendar normalization: 36 practical hours are represented as 18
+      two-hour seminar meetings. This is a course-planning decision, not an
+      explicit count of seminars in either RPD.
+    - Purpose: научить проектировать, реализовывать, документировать,
+      тестировать и эксплуатировать API как контрактный интерфейсный слой
+      программных решений для бизнеса и систем искусственного интеллекта.
+
+  Profile model (DECIDED):
+    - The repository contains one shared API core and two normative profile
+      variants. Every proposal, specification, plan, lecture family, seminar,
+      homework, case, and acceptance record must identify its scope as
+      `COMMON`, `PRB`, or `SII` whenever the scope is not self-evident.
+    - Content may be marked `COMMON` only when its required meaning and
+      learning outcome are compatible with both RPDs. A shared explanation may
+      still use separate profile examples and assignments.
+    - For profile-specific content, the matching RPD is authoritative. Do not
+      merge PL-1 competencies and Python/data/ETL requirements from PRB with
+      PL-4 competencies and C++/inference requirements from SII as though they
+      were mandatory for one student cohort.
+    - The profiles share API contracts, HTTP/REST, OpenAPI, integration styles,
+      FastAPI foundations, security, testing, documentation, containerization,
+      monitoring, and architectural reasoning.
+    - PRB specializes in Python clients and services, data processing,
+      analytics, ML components, ETL, Airflow, PySpark, ERP/CRM/BI integrations,
+      forecasting, scoring, and business systems for the AПК.
+    - SII specializes in C++ API clients and service components, CMake,
+      concurrent request handling, OpenCV, ONNX Runtime, TensorRT/OpenVINO,
+      gRPC/WebSocket, streaming data, accelerated inference, computer vision,
+      and API architecture of applied AI systems.
+
+  Delivery scope by material type (DECIDED):
+    - Lectures are authored for both profiles. Their shared conceptual path is
+      marked `COMMON`; profile examples and profile-specific outcomes remain
+      visibly separated as `PRB` and `SII` and are governed by the matching
+      RPD.
+    - Course practical works, seminar meetings, homeworks, and their assessment
+      evidence are authored only for `PRB`. The PRB RPD and PRB curriculum map
+      are normative for those materials.
+    - An `SII` lecture example does not create or imply an `SII` practical or
+      homework variant. Reintroducing an SII practical track requires a later
+      reviewed OpenSpec change with its own numbered capabilities.
+
+  Capability granularity (DECIDED):
+    - Every numbered lecture, RPD practical work, and course homework has its
+      own capability.
+    - A lecture capability may cover the matching teacher script, complete
+      student lecture, concise note, presentation, and code snapshot, but MUST
+      NOT contain requirements for another lecture number.
+    - A practical work and its homework continuation remain separate
+      capabilities even when they implement one PRB RPD learning outcome and
+      share one `seminar/<number>-<slug>` code branch.
+    - Aggregate capabilities such as `teacher-lecture-scripts`,
+      `lecture-presentations`, `profiled-practicals`, or `profiled-homeworks`
+      MUST NOT receive new unit-specific requirements. Existing aggregate
+      requirements are split into numbered capabilities when next revised.
+
+  Lecture sequence (DECIDED):
+    1. API as an interface layer and its role in the lifecycle of a business
+       solution or AI/ML system.
+    2. HTTP, REST, data formats, OpenAPI, validation, and data contracts.
+    3. REST, RPC/gRPC, WebSocket, event-driven API, and selection of an
+       integration style for the profile context.
+    4. Python API services: FastAPI, Pydantic, Uvicorn, Swagger UI; PRB also
+       compares Flask and Django REST Framework.
+    5. PRB: Python data, visualization, and ML stack inside API services.
+       SII: C++ API clients and service components, CMake, JSON, and concurrency.
+    6. PRB: APIs for ETL, big data, Airflow, PySpark, and business pipelines.
+       SII: API integration of ML inference, OpenCV, ONNX Runtime,
+       TensorRT/OpenVINO, gRPC, and streaming data.
+    7. API security: authentication, authorization, tokens, CORS, rate limiting,
+       uniform errors, logging, and protection of profile-relevant data.
+    8. Testing, documentation, monitoring, and containerization; PRB also
+       includes Python profiling and data-quality monitoring where required.
+    9. PRB: API architecture of a business system with AI elements for the AПК.
+       SII: API architecture of an applied AI system for the AПК.
+
+  Practical and homework model (DECIDED):
+    - Each RPD defines 12 numbered individual practical works. Four-hour works
+      may span two seminar meetings but retain one normative work number and
+      one learning outcome.
+    - `homeworks/` presents the same 12 practical outcomes as take-home or
+      completion assignments. It does not create a new official assessment
+      bank and must preserve the corresponding RPD work number and meaning.
+    - The profile curriculum plans define the approved mapping among 9
+      lectures, 18 seminar meetings, 12 homeworks, and profile cases.
+    - Each RPD describes four cases: three course cases plus an industrial
+      RAISA case. Only case 1 has an explicit place in table 4; placement and
+      minimum scope of other cases must be recorded as course design decisions.
+    - Each RPD declares three control works and final testing but does not give
+      three explicit calendar positions or distinct official banks. Do not
+      invent RPD authority for author-created control-work schedules or tasks.
+
+  Source hierarchy (DECIDED):
+    - `sources/Б1.В.11 API-технологии_ПРБ_РПД.pdf` is the normative source for
+      the PRB profile: workload, required topics, PL-1.1/PL-1.2/PL-1.3 and
+      LC-3.1 outcomes, practical works, cases, control model, and assessment.
+    - `sources/Б1.В.11 API-технологии_СИИ_РПД.pdf` is the normative source for
+      the SII profile: workload, required topics, PL-4.1/PL-4.2/PL-4.3 and
+      LC-3.1 outcomes, practical works, cases, control model, and assessment.
+    - `sources/ПЛАН_КУРСА_API-ТЕХНОЛОГИИ_ПО_РПД_ПРБ.md` and
+      `sources/ПЛАН_КУРСА_API-ТЕХНОЛОГИИ_ПО_РПД_СИИ.md` are the derived
+      curriculum maps. They preserve RPD structure and label course-level
+      normalization and editorial decisions explicitly.
+    - `sources/dokumen_pub_the_design_of_web_apis_1nbsped_1617295108_978_1617295102.pdf`
+      is the primary substantive source for consumer-oriented API design,
+      HTTP/REST, OpenAPI and JSON Schema, usability, error feedback, pagination,
+      security, evolution, versioning, documentation, and API governance.
+    - `sources/dokumen_pub_building_microservices_designing_fine_grained_systems.pdf`
+      is the primary architecture source for service boundaries, synchronous
+      and asynchronous communication, REST, GraphQL, brokers, API gateways,
+      compatibility, contract testing, observability, security, resilience,
+      deployment, and evolutionary architecture.
+    - `sources/dokumen_pub_designing_machine_learning_systems_an_iterative_process.pdf`
+      is the applied ML-systems source for data formats and flows, batch and
+      online prediction, deployment, monitoring, MLOps, and responsible AI.
+      It extends examples but does not replace an RPD or the API-design source.
+    - Normative requirements are traced first to the matching RPD. Books supply
+      explanations, trade-offs, and extra examples; they cannot replace a
+      required RPD topic or assignment.
+    - `sources/` is a local ignored corpus and is never published. If direct
+      verification requires a missing source, stop and report it rather than
+      reconstructing it from memory.
+
+  Repository structure and publication contract (DECIDED):
+    - `course.yaml` is the single publication manifest and allowlist. A tracked
+      file is not public unless explicitly declared and successfully validated.
+    - `lectures-teacher/` contains complete teacher scripts; it is tracked,
+      never declared in `course.yaml`, and never published.
+    - `lectures/` contains complete student-facing lectures.
+    - `lecture-notes/` contains distinct concise revision notes and must not be
+      a duplicate or replacement for a complete lecture.
+    - `seminars/` contains student-facing practical/seminar materials.
+    - `homeworks/` contains the 12 profile-grounded assignments and any
+      explicitly approved control materials.
+    - `assets/` contains publication-safe PNG, JPEG, or WebP images referenced
+      by declared Markdown.
+    - `attachments/` contains tracked support files such as code, notebooks,
+      presentations, documents, and data templates. They remain dormant unless
+      explicitly declared in `course.yaml`.
+    - `openspec/` contains versioned context, specifications, change artifacts,
+      and acceptance evidence; it is never educational publication content.
+    - `sources/` contains ignored local RPDs, books, and source maps; it remains
+      unpublished and untracked.
+    - Published Markdown filenames follow
+      `<three-digit sortOrder>_<lowercase-kebab-case-slug>.md` in the directory
+      matching the material type.
+    - Unknown root paths are not added without a reviewed publisher-contract
+      change on the protected shared baseline.
+
+  Course code repository model (DECIDED):
+    - Course Markdown, OpenSpec, RPD traceability, and teacher scripts remain in
+      this course repository. Executable teaching code is not stored under
+      `attachments/`; that directory is reserved for genuine attachments to a
+      lecture or seminar.
+    - `https://github.com/TheTonyPub/api-technologies-code` is the canonical
+      private student code repository. Student-facing Markdown links only to
+      this repository and access is granted separately through GitHub.
+    - `https://github.com/TheTonyPub/api-technologies-code-teacher` is the
+      canonical private instructor repository for solutions, closed checks,
+      grading fixtures, and validation evidence. Students are never granted
+      access and student-facing files never mention or link to it.
+    - `main` is a catalog. A coded lecture is an autonomous snapshot named
+      `lecture/<two-digit-number>-<lowercase-kebab-case-slug>`. A practical
+      work and its take-home continuation share one autonomous snapshot named
+      `seminar/<two-digit-work-number>-<lowercase-kebab-case-slug>`.
+    - Instructor branches exactly mirror student branch names in the separate
+      teacher repository. Do not create `homework/*` branches when homework is
+      a continuation of a practical work; students continue the same working
+      branch in their private fork or repository.
+    - Every code branch has a root README with scope (`COMMON`, `PRB`, `SII`),
+      environment and dependency versions, install and run commands, expected
+      behavior, public validation, and, for practical work, distinct
+      “seminar” and “at home” checkpoints.
+    - Student snapshots contain only starters, public checks, required
+      contracts, local/synthetic fixtures, and runnable examples. Instructor
+      solutions, instructor checks, grading fixtures, secrets, real endpoints,
+      personal data, and teacher repository references must never enter any
+      reachable object in the student Git repository.
+    - A Markdown material with code is not ready until its student branch,
+      autonomous README, checks, explicit profile scope, mirrored teacher
+      branch, and authorized GitHub branch URL have all been verified.
+
+  Publication profile decision (UNRESOLVED):
+    - The publisher supports one `course.yaml` and one course slug in this
+      branch. Before the first release, decide whether PRB and SII use one
+      shared public course, separate course branches and slugs, or one declared
+      profile while the other remains authoring-only.
+    - Until that decision is recorded in OpenSpec, do not publish a
+      profile-specific material as though it applied to both cohorts.
+
+  Content products and writing rules (DECIDED):
+    - Course language is Russian. Introduce an English technical term or
+      abbreviation at first use when it improves precision, then use one stable
+      term consistently.
+    - A teacher script contains: title and profile scope; place in the course;
+      learning outcomes and prerequisites; timed plan; ordered explanation;
+      contract, code, or architecture demonstrations; interaction or self-check;
+      typical errors; summary; related seminars; RPD coverage; and source map.
+    - A complete student lecture contains: title and profile scope; purpose;
+      prerequisites; ordered theory; protocol and contract semantics; worked
+      examples; trade-offs and applicability conditions; typical errors;
+      summary; self-check; and related-seminar links.
+    - A concise note contains: title and purpose; key definitions; central HTTP,
+      contract, architecture, or code patterns with conditions; a compact
+      example when needed; warnings; summary; and related-seminar links. It is
+      meaningfully shorter than the complete lecture.
+    - A seminar contains: scope and RPD practical-work mapping; goal;
+      prerequisites; environment and safe test data; incremental tasks;
+      expected artifacts; verification; acceptance criteria; common failures;
+      reflection questions; and prerequisite-lecture links.
+    - A homework contains: scope; RPD practical-work number; learning outcome;
+      task; input constraints; required artifact; reproducibility and security
+      requirements; acceptance criteria; and submission checklist.
+    - Student materials exclude instructor timing, lecturer prompts, teaching
+      advice, planned-error scripts, internal source maps, coverage matrices,
+      and hidden teacher answers.
+    - Do not reproduce copyrighted passages. Paraphrase, identify source role
+      and relevant chapter or page, and create original examples.
+
+  API and code conventions (DECIDED):
+    - Design from consumer goals and observable contracts before choosing an
+      implementation. Do not expose database tables, internal classes, or team
+      structure as API design without an explicit trade-off.
+    - State protocol and architecture assumptions before recommending REST,
+      gRPC, WebSocket, events, batch, streaming, gateways, caches, retries, or
+      concurrency patterns.
+    - HTTP examples use methods, status codes, headers, idempotency, caching,
+      and error behavior consistently; deliberate deviations are explained.
+    - OpenAPI, prose, and executable examples agree on paths, methods,
+      parameters, schemas, required fields, responses, errors, authentication,
+      and versioning.
+    - Use one coherent example domain within a material. Profile examples use
+      forecasting, scoring, ERP/CRM/BI, ETL, computer vision, inference, or AПК
+      only when they clarify the current API concept.
+    - Code examples declare language, relevant dependency versions, run command,
+      expected request/response, and verification. Prefer a minimal reproducible
+      path before optional production extensions.
+    - Never embed credentials, tokens, connection strings, personal data,
+      confidential bank data, or production endpoints. Use placeholders,
+      environment variables, synthetic data, and local services.
+    - Distinguish authentication from authorization; do not present CORS, JWT,
+      OAuth2, rate limiting, hashing, encryption, or TLS as interchangeable.
+    - ML inference examples identify input schema, preprocessing, model/version,
+      output schema, error cases, latency measurement, and resource assumptions.
+    - C++ concurrency examples identify shared state, race risks, ownership,
+      synchronization, error handling, and shutdown behavior. Do not claim a
+      performance benefit without a measurement and workload.
+    - Label normative RPD requirements, course design decisions, simplified
+      educational examples, and optional production extensions distinctly.
+
+  Known source defects and decisions (DECIDED):
+    - In the PRB RPD, the compact table names section 1 as an AI-system layer,
+      while the profile narrative covers business solutions and AI. Preserve
+      the detailed PRB meaning and hours and record the wording mismatch.
+    - Both RPDs declare 12 practical works, four cases, three control works, and
+      final testing, but table 4 schedules only case 1 and does not locate three
+      distinct control works. Further placement is a course design decision.
+    - Neither RPD defines a separate official homework category. The 12 course
+      homeworks represent the 12 practical outcomes and are not an extra bank.
+    - The 18-seminar count is derived from 36 practical hours. A four-hour work
+      may span two meetings without receiving a new normative number.
+    - Assessment rubrics mention statistical methods where the discipline
+      assesses API design, programming, architecture, testing, and operation.
+      Treat this as a template defect and write observable profile-relevant
+      criteria without claiming they are verbatim RPD text.
+    - Several works have only a title in table 4, while works 1, 2, 5, 6, 7,
+      and 10 receive fuller descriptions. Mark added details as course-authored
+      methodological content.
+    - The industrial RAISA cases exceed one ordinary practical work. Define a
+      minimum API-relevant deliverable and label database, MLOps, vector-store,
+      analytics, or governance extensions.
+    - The PRB PDF contains profile-inconsistent wording in its review appendix.
+      Use its title page, annotation, and sections 1–6 as the normative PRB
+      basis; do not import SII requirements from the review wording.
+    - Both RPD bibliographies identify *Microservice API Evolution in Practice*
+      with DOI `10.1016/j.jss.2024.112081`. The verified publication is
+      Lercher, Glock, Macho, and Pinzger, *Journal of Systems and Software*,
+      volume 215 (2024), article 112110, DOI
+      `10.1016/j.jss.2024.112110`. Preserve the RPD entry when documenting the
+      defect, but use the verified DOI for explanatory links and citations.
+    - The RPD internet list links to the moving OpenAPI `latest` page. Teaching
+      materials MUST pin the explicit OpenAPI 3.1 patch version they teach;
+      a moving latest version is discovery metadata, not a stable contract.
+
+rules:
+  proposal:
+    - Keep proposals focused on profile-scoped course outcomes, RPD-grounded content, or publication-safe structure.
+    - State the target scope as COMMON, PRB, or SII and list explicit non-goals.
+    - Identify unresolved publication-profile decisions and normative source defects that affect scope.
+  design:
+    - Preserve separation among teacher scripts, complete lectures, concise notes, seminars, homeworks, ignored sources, and published assets.
+    - Explain how common and profile-specific content remain distinguishable and how the matching RPD takes priority.
+    - Explain how contract accuracy, source priority, reproducibility, security, and profile assumptions will be checked.
+  specs:
+    - Express educational, technical, profile, and publication requirements as observable, verifiable behavior.
+    - Trace required coverage to the matching RPD and do not present course-authored detail as normative text.
+    - Do not reproduce copyrighted passages; capture requirements, source roles, and verification behavior instead.
+    - Create one capability directory for each numbered lecture, practical work, or homework changed by a proposal.
+    - Name each numbered capability with its material type, two-digit number, profile when the material is profile-only, and a stable topic slug.
+    - Each numbered capability must identify exact affected material paths, profile scope, matching RPD topic or work number, source-map expectations, and acceptance checks.
+    - Do not combine multiple lecture, practical-work, or homework numbers in one capability merely because they are implemented by the same change.
+  tasks:
+    - Keep tasks small, profile-scoped, source-grounded, and independently verifiable.
+    - Separate authoring, technical verification, cross-variant review, and publication decisions.
+    - Require preservation checks before replacing, shortening, or sharing content across profiles.
+    - For every coded lecture or practical work, include creation and clean-clone validation of the student branch and its identically named teacher mirror.
+    - Require one seminar branch for a practical work and its homework continuation; do not add a separate homework branch.
+    - Require root README, profile scope, synthetic-data safety, public checks, instructor checks, and a student-facing branch link as independently verifiable tasks.
+
+operations:
+  apply:
+    guidance:
+      - Preserve user edits and unrelated untracked files.
+      - Verify the target profile and matching curriculum plan before changing educational content.
+      - Validate teacher-file preservation before deriving complete or concise student variants.
+      - Check Markdown links, code reproducibility, OpenAPI consistency, secret safety, and source coverage.
+      - Before code cutover, verify both GitHub repositories are PRIVATE, owned by `TheTonyPub`, use `main` as default, and have exact matching local/remote branch head SHAs.
+      - Validate every student branch from a clean single-branch snapshot and run the matching public plus instructor checks on its teacher mirror.
+      - Compare shared contracts, API paths and methods, schemas, required fields, statuses, errors, versions, checkpoints, and profile fixtures with the pre-change baseline.
+      - Scan every reachable student Git object for instructor artifacts, grading fixtures, secrets, real endpoints, personal data, and teacher-repository references.
+      - Resolve each course Markdown code link with an authorized GitHub account before removing the old executable location; preserve the complete instructor pack throughout cutover.
+      - Run strict OpenSpec and publisher validation before completion when the corresponding files exist.
+  archive:
+    guidance:
+      - Confirm archived main specs retain both RPD roles, the COMMON/PRB/SII model, curriculum mappings, source hierarchy, repository structure, and material-format requirements.
+      - Do not treat an unresolved publication-profile decision as resolved merely because implementation artifacts were archived.
