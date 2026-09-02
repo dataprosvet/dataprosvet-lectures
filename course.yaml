@@ -19,7 +19,7 @@ materials:
   lectures:
     - slug: api-tech-introduction
       title: Введение в API Технологии
-      summary:
+      summary: "Введение в роль API в бизнес-приложениях и системах искусственного интеллекта."
       lifecycleStatus: published
       availability: available
       sortOrder: 1

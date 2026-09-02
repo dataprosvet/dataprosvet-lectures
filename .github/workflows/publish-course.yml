@@ -1,34 +1,50 @@
 name: Publish course
 on:
   pull_request:
-    branches: ["courses/**"]
+    branches: ["courses/*"]
   push:
-    branches: ["courses/**"]
+    branches: ["courses/*"]
 permissions:
   contents: read
 jobs:
   validate:
+    name: validate
     runs-on: ubuntu-24.04
+    outputs:
+      course_branch: ${{ steps.branch-policy.outputs.course_branch }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with: { persist-credentials: false, fetch-depth: 0, lfs: true }
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with: { node-version: 20.20.2, cache: npm, cache-dependency-path: .github/publisher/package-lock.json }
-      - run: npm ci && npm run lint && npm test
+      - run: npm ci
+        working-directory: .github/publisher
+      - id: branch-policy
+        run: npm run branch-policy
+        working-directory: .github/publisher
+        env:
+          COURSE_EVENT_NAME: ${{ github.event_name }}
+          COURSE_REF_NAME: ${{ github.ref_name }}
+          COURSE_HEAD_REF: ${{ github.head_ref }}
+          COURSE_BASE_REF: ${{ github.base_ref }}
+          COURSE_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          COURSE_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          COURSE_ROOT: ${{ github.workspace }}
+      - run: npm run lint && npm test
         working-directory: .github/publisher
       - run: git diff --exit-code origin/master -- .github README.md course.yaml.example
       - run: npm run validate
         working-directory: .github/publisher
         env:
-          GITHUB_REF_NAME: "${{ github.head_ref || github.ref_name }}"
+          COURSE_BRANCH: ${{ steps.branch-policy.outputs.course_branch }}
           COURSE_ROOT: "${{ github.workspace }}"
   deploy:
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && needs.validate.outputs.course_branch == github.ref_name
     needs: validate
     runs-on: ubuntu-24.04
     environment: appwrite
     concurrency:
-      group: course-${{ github.ref_name }}
+      group: course-${{ needs.validate.outputs.course_branch }}
       cancel-in-progress: false
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -38,7 +54,7 @@ jobs:
       - run: npm ci && npm run publish
         working-directory: .github/publisher
         env:
-          GITHUB_REF_NAME: ${{ github.ref_name }}
+          COURSE_BRANCH: ${{ needs.validate.outputs.course_branch }}
           COURSE_ROOT: ${{ github.workspace }}
           APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
           APPWRITE_ENDPOINT: ${{ vars.APPWRITE_ENDPOINT }}

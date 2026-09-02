@@ -4,6 +4,7 @@ import { mkdtemp, mkdir, readFile, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { Query } from 'node-appwrite';
 import { loadConfig } from '../src/config.js';
 import { canonicalJson, checksum, effectivePublic, stableId } from '../src/models.js';
 import { inspectImage } from '../src/image.js';
@@ -11,7 +12,7 @@ import { inspectAttachment } from '../src/attachment.js';
 import { PublisherError } from '../src/errors.js';
 import { containsForbiddenSecret } from '../src/validator.js';
 import { publishCourse } from '../src/publisher.js';
-import { assertContentAddressedFileCompatible } from '../src/appwrite.js';
+import { assertContentAddressedFileCompatible, collectRows } from '../src/appwrite.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 
@@ -34,6 +35,34 @@ test('content-addressed files survive a path rename when bytes are unchanged', (
   const bytes = Buffer.from('same-image-bytes');
   assert.doesNotThrow(() => assertContentAddressedFileCompatible({ name: 'assets/old.png', sizeOriginal: bytes.length }, bytes));
   assert.throws(() => assertContentAddressedFileCompatible({ name: 'assets/old.png', sizeOriginal: bytes.length + 1 }, bytes), /metadata differs/);
+});
+
+test('Appwrite pagination includes course materials beyond the first 25 rows', async () => {
+  const previousRows = [
+    'random-experiments-events-combinatorics',
+    ...Array.from({ length: 7 }, (_, index) => `archived-lecture-${index + 2}`),
+  ];
+  const addedRows = [
+    ...Array.from({ length: 7 }, (_, index) => `renamed-lecture-${index + 2}`),
+    ...Array.from({ length: 10 }, (_, index) => `seminar-${index + 1}`),
+    'mathematical-expectation',
+    ...Array.from({ length: 6 }, (_, index) => `seminar-${index + 12}`),
+  ];
+  const providerRows = [...previousRows, ...addedRows].map((slug, index) => ({ $id: `row-${index + 1}`, slug }));
+  const calls = [];
+  const rows = await collectRows(async (queries) => {
+    calls.push(queries);
+    const cursorQuery = queries.map((query) => JSON.parse(query)).find((query) => query.method === 'cursorAfter');
+    const cursorIndex = cursorQuery ? providerRows.findIndex((row) => row.$id === cursorQuery.values[0]) : -1;
+    return { rows: providerRows.slice(cursorIndex + 1, cursorIndex + 26) };
+  }, [Query.equal('courseId', 'course-1')], 25);
+
+  assert.equal(providerRows.length, 32);
+  assert.equal(calls.length, 2);
+  assert.equal(JSON.parse(calls[0].at(-1)).method, 'limit');
+  assert.equal(JSON.parse(calls[1].at(-1)).method, 'cursorAfter');
+  assert.equal(JSON.parse(calls[1].at(-1)).values[0], 'row-25');
+  assert.equal(rows.find((row) => row.slug === 'mathematical-expectation').$id, 'row-26');
 });
 
 test('image signature must match extension and dimensions', () => {
@@ -75,8 +104,14 @@ test('workflow has the required branch and credential boundaries', async () => {
   const workflow = await readFile(path.join(root, '.github/workflows/publish-course.yml'), 'utf8');
   const deploy = workflow.slice(workflow.indexOf('  deploy:'));
   const validate = workflow.slice(workflow.indexOf('  validate:'), workflow.indexOf('  deploy:'));
-  assert.match(workflow, /branches: \["courses\/\*\*"\]/);
-  assert.match(workflow, /if: github\.event_name == 'push'/);
+  assert.equal([...workflow.matchAll(/branches: \["courses\/\*"\]/g)].length, 2);
+  assert.doesNotMatch(workflow, /courses\/\*\*/);
+  assert.match(workflow, /id: branch-policy/);
+  assert.match(workflow, /COURSE_HEAD_SHA: \$\{\{ github\.event\.pull_request\.head\.sha \}\}/);
+  assert.match(workflow, /COURSE_BASE_SHA: \$\{\{ github\.event\.pull_request\.base\.sha \}\}/);
+  assert.match(workflow, /COURSE_BRANCH: \$\{\{ steps\.branch-policy\.outputs\.course_branch \}\}/);
+  assert.match(workflow, /name: validate/);
+  assert.match(workflow, /if: github\.event_name == 'push' && needs\.validate\.outputs\.course_branch == github\.ref_name/);
   assert.match(workflow, /environment: appwrite/);
   assert.match(workflow, /APPWRITE_API_KEY: \$\{\{ secrets\.APPWRITE_API_KEY \}\}/);
   assert.equal([...workflow.matchAll(/uses: actions\/(?:checkout|setup-node)@([a-f0-9]+)/g)].every((match) => match[1].length === 40), true);
@@ -84,6 +119,7 @@ test('workflow has the required branch and credential boundaries', async () => {
   assert.match(workflow, /cancel-in-progress: false/);
   assert.match(workflow, /^permissions:\n  contents: read$/m);
   assert.doesNotMatch(validate, /secrets\.|APPWRITE_API_KEY/);
+  assert.doesNotMatch(validate, /github\.head_ref \|\| github\.ref_name/);
   assert.doesNotMatch(deploy, /cache:|actions\/(?:cache|upload-artifact|download-artifact)@/);
   assert.doesNotMatch(workflow, /actions\/(?:upload-artifact|download-artifact)@/);
   assert.doesNotMatch(deploy, /run:.*\$\{\{ github\.(?:ref_name|head_ref) \}\}/);
