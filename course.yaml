@@ -1,0 +1,32 @@
+# Copy this file to course.yaml only in a courses/<slug> branch.
+# This template is deliberately a non-deployable draft with no learning content.
+schemaVersion: 1
+slug: api-technologies
+title: API Технологии
+description: >-
+    Курс «API-технологии» учит проектировать, реализовывать, документировать и тестировать API для бизнес-приложений и систем искусственного интеллекта. Рассматриваются HTTP/REST, OpenAPI, FastAPI, безопасность, тестирование и мониторинг, а также профильные технологии: Python, ETL и ML-интеграции для бизнес-решений; gRPC, потоковую обработку и интеграцию ИИ-моделей — для систем искусственного интеллекта.
+lifecycleStatus: published
+availability: available
+sortOrder: 1
+materials:
+  # Image attachments are derived from Obsidian/Markdown embeds during CI.
+  # Authors do not need to add per-material assets entries.
+  # Lectures may independently declare markdown under lectures/ and concise
+  # briefMarkdown under lecture-notes/. Omitted paths stay dormant and are not
+  # published; declaring a path enables strict validation and publication.
+  # Any material may declare ordered files:
+  # attachments: [{ key: slides, title: Slides, file: attachments/slides.pptx, sortOrder: 10 }]
+  lectures:
+    - slug: api-tech-introduction
+      title: Введение в API Технологии
+      summary:
+      lifecycleStatus: published
+      availability: available
+      sortOrder: 1
+#      attachments:
+#        - key: slides
+#          title: "Презентация Лекции 1"
+#          file: attachments/lecture_1.pptx
+#          sortOrder: 10
+  seminars: []
+  homeworks: []
