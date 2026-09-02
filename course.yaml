@@ -23,10 +23,10 @@ materials:
       lifecycleStatus: published
       availability: available
       sortOrder: 1
-#      attachments:
-#        - key: slides
-#          title: "Презентация Лекции 1"
-#          file: attachments/lecture_1.pptx
-#          sortOrder: 10
+      attachments:
+        - key: slides-lecture-1
+          title: "Презентация Лекции 1"
+          file: attachments/lecture_1.pdf
+          sortOrder: 10
   seminars: []
   homeworks: []
