@@ -8,6 +8,10 @@ import { fileURLToPath } from 'node:url';
 import YAML from 'yaml';
 import { generatedAssetKey } from '../src/markdown.js';
 import { validateCourse } from '../src/validator.js';
+import { archiveFixtures, officeFixture, zipFixture } from './archive-fixtures.js';
+import { DEFAULT_MAX_ATTACHMENT_BYTES } from '../src/constants.js';
+import { checksum } from '../src/models.js';
+import { publishCourse } from '../src/publisher.js';
 
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const schema = JSON.parse(await readFile(path.resolve(packageRoot, '../schemas/course.schema.json'), 'utf8'));
@@ -98,12 +102,12 @@ test('declared download attachment records deterministic inert metadata', async 
   lecture.attachments = [{ key: 'slides', title: 'Slides', file: 'attachments/slides.pptx', sortOrder: 10 }];
   course.materials.lectures.push(lecture);
   const plan = await validateCourse({
-    root: await fixture(course, { 'attachments/slides.pptx': Buffer.from([0x50, 0x4b, 0x03, 0x04]) }),
+    root: await fixture(course, { 'attachments/slides.pptx': officeFixture('pptx') }),
     branch: 'courses/fixture-course',
     schema,
   });
   const attachment = plan.materials[0].attachments[0];
-  assert.deepEqual({ key: attachment.key, fileName: attachment.fileName, extension: attachment.extension, sizeBytes: attachment.sizeBytes }, { key: 'slides', fileName: 'slides.pptx', extension: 'pptx', sizeBytes: 4 });
+  assert.deepEqual({ key: attachment.key, fileName: attachment.fileName, extension: attachment.extension, sizeBytes: attachment.sizeBytes }, { key: 'slides', fileName: 'slides.pptx', extension: 'pptx', sizeBytes: officeFixture('pptx').length });
   assert.match(attachment.fileId, /^att/);
 });
 
@@ -293,4 +297,88 @@ test('unmaterialized Git LFS publication input is rejected explicitly', async ()
   lecture.assets.push({ key: 'diagram', file: 'assets/diagram.png', alt: 'Diagram' }); course.materials.lectures.push(lecture);
   const pointer = 'version https://git-lfs.github.com/spec/v1\noid sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\nsize 12345\n';
   await reject(course, { 'lectures/001_lecture-1.md': '![Diagram](attachment:diagram)', 'assets/diagram.png': pointer }, 'LFS_POINTER_UNRESOLVED');
+});
+
+function attachmentCourse(files) {
+  const course = emptyCourse(); const lecture = material('lecture', 1); delete lecture.markdown;
+  lecture.attachments = Object.keys(files).map((file, index) => ({ key: `file-${index + 1}`, title: `File ${index + 1}`, file, sortOrder: index + 1 }));
+  course.materials.lectures.push(lecture); return course;
+}
+
+test('all archive formats retain filename, bytes and content address through publication', async () => {
+  const files = Object.fromEntries(Object.entries(archiveFixtures()).map(([extension, bytes]) => [`attachments/Материалы.${extension.toUpperCase()}`, bytes]));
+  const root = await fixture(attachmentCourse(files), files);
+  const plan = await validateCourse({ root, branch: 'courses/fixture-course', schema });
+  const uploads = []; const rows = new Map();
+  const adapter = {
+    config: { APPWRITE_COURSES_TABLE_ID: 'courses', APPWRITE_MATERIALS_TABLE_ID: 'materials', APPWRITE_ATTACHMENTS_TABLE_ID: 'attachments', APPWRITE_ATTACHMENTS_BUCKET_ID: 'files' },
+    async findCourse() { return null; }, async listMaterials() { return []; },
+    async putFile(bucket, id, bytes, name) { uploads.push({ bucket, id, bytes, name }); },
+    async upsertRow(table, rowId, data) { const row = { $id: rowId ?? `${table}-${data.key ?? data.slug}`, ...data }; rows.set(`${table}:${data.key ?? data.slug}`, row); return row; },
+    async findAttachment(materialId, key) { return rows.get(`attachments:${key}`); },
+    async verifyFinal() {},
+  };
+  await publishCourse(plan, { root, adapter });
+  assert.equal(uploads.length, 5);
+  for (const attachment of plan.materials[0].attachments) {
+    const uploaded = uploads.find(({ id }) => id === attachment.fileId);
+    assert.equal(attachment.fileName, path.basename(attachment.file));
+    assert.equal(attachment.checksum, checksum(files[attachment.file]));
+    assert.equal(attachment.sizeBytes, files[attachment.file].length);
+    assert.equal(uploaded.name, path.basename(attachment.file));
+    assert.deepEqual(uploaded.bytes, files[attachment.file]);
+    assert.deepEqual(await readFile(path.join(root, attachment.file)), files[attachment.file]);
+  }
+  await writeFile(path.join(root, plan.materials[0].attachments[0].file), 'changed after validation');
+  let providerCalls = 0;
+  await assert.rejects(() => publishCourse(plan, { root, adapter: { config: {}, async preflight() { providerCalls += 1; } } }), (error) => error.code === 'ATTACHMENT_INTEGRITY_MISMATCH');
+  assert.equal(providerCalls, 0);
+});
+
+test('a valid ZIP at exactly 15 MiB is accepted and limit plus one cannot reach Appwrite', async () => {
+  const overhead = zipFixture({ 'payload.txt': Buffer.alloc(0) }).length;
+  const file = 'attachments/boundary.zip';
+  const bytes = zipFixture({ 'payload.txt': Buffer.alloc(DEFAULT_MAX_ATTACHMENT_BYTES - overhead) });
+  const root = await fixture(attachmentCourse({ [file]: bytes }), { [file]: bytes });
+  const plan = await validateCourse({ root, branch: 'courses/fixture-course', schema });
+  assert.equal(plan.materials[0].attachments[0].sizeBytes, DEFAULT_MAX_ATTACHMENT_BYTES);
+  const oversized = zipFixture({ 'payload.txt': Buffer.alloc(DEFAULT_MAX_ATTACHMENT_BYTES - overhead + 1) });
+  await writeFile(path.join(root, file), oversized);
+  let providerCalls = 0;
+  await assert.rejects(async () => {
+    const invalidPlan = await validateCourse({ root, branch: 'courses/fixture-course', schema });
+    await publishCourse(invalidPlan, { root, adapter: { config: {}, async preflight() { providerCalls += 1; } } });
+  }, (error) => error.code === 'FILE_TOO_LARGE');
+  assert.equal(providerCalls, 0);
+});
+
+test('a smaller effective limit is inclusive and malformed configuration fails before tree inspection', async () => {
+  const files = { 'attachments/code.py': Buffer.from('print(1)\n') }; const limit = files['attachments/code.py'].length;
+  const root = await fixture(attachmentCourse(files), files);
+  assert.equal((await validateCourse({ root, branch: 'courses/fixture-course', schema, maxAttachmentBytes: String(limit) })).materials[0].attachments[0].sizeBytes, limit);
+  await assert.rejects(() => validateCourse({ root, branch: 'courses/fixture-course', schema, maxAttachmentBytes: limit - 1 }), (error) => error.code === 'FILE_TOO_LARGE');
+  for (const maxAttachmentBytes of [' ', '15MiB', 15728641, '1e3', 0, -1, 1.5]) await assert.rejects(() => validateCourse({ root: '/does-not-exist', maxAttachmentBytes }), (error) => error.code === 'CONFIG_INVALID');
+});
+
+test('bad archives, standalone gzip and LFS pointers fail before remote mutation', async () => {
+  const pointer = 'version https://git-lfs.github.com/spec/v1\noid sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\nsize 12345\n';
+  for (const [file, bytes, code] of [
+    ['attachments/fake.zip', Buffer.from('504b0304', 'hex'), 'ATTACHMENT_STRUCTURE_INVALID'],
+    ['attachments/data.gz', archiveFixtures()['tar.gz'], 'ATTACHMENT_TYPE_UNSUPPORTED'],
+    ['attachments/lfs.rar', pointer, 'LFS_POINTER_UNRESOLVED'],
+  ]) {
+    const root = await fixture(attachmentCourse({ [file]: bytes }), { [file]: bytes }); let providerCalls = 0;
+    await assert.rejects(async () => {
+      const plan = await validateCourse({ root, branch: 'courses/fixture-course', schema });
+      await publishCourse(plan, { root, adapter: { config: {}, async preflight() { providerCalls += 1; } } });
+    }, (error) => error.code === code);
+    assert.equal(providerCalls, 0);
+  }
+});
+
+test('undeclared archives remain dormant even when corrupt or larger than the attachment ceiling', async () => {
+  const diagnostics = []; const files = { 'attachments/corrupt.tar': 'broken', 'attachments/large.zip': Buffer.alloc(DEFAULT_MAX_ATTACHMENT_BYTES + 1) };
+  const plan = await validateCourse({ root: await fixture(emptyCourse(), files), branch: 'courses/fixture-course', schema, onDiagnostic: (value) => diagnostics.push(value) });
+  assert.equal(plan.materials.length, 0);
+  assert.deepEqual(diagnostics.map(({ kind, path: file }) => [kind, file]), Object.keys(files).map((file) => ['attachment', file]));
 });
