@@ -5,11 +5,12 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import Ajv2020 from 'ajv/dist/2020.js';
 import YAML from 'yaml';
-import { AVAILABILITY_STATUSES, DEFAULT_MAX_ATTACHMENT_BYTES, LIFECYCLE_STATUSES, LIMITS, MATERIAL_KINDS } from './constants.js';
+import { AVAILABILITY_STATUSES, LIFECYCLE_STATUSES, LIMITS, MATERIAL_KINDS } from './constants.js';
 import { fail, PublisherError } from './errors.js';
 import { canonicalJson, checksum, effectivePublic, stableId } from './models.js';
 import { inspectImage } from './image.js';
 import { inspectAttachment } from './attachment.js';
+import { parseAttachmentLimit } from './config.js';
 import { buildAssetIndex, normalizedAssetPath, transformMarkdown } from './markdown.js';
 
 const exec = promisify(execFile);
@@ -109,8 +110,8 @@ function normalizeMaterial(course, kind, material, markdown, assets) {
   const publicRead = effectivePublic(course, material);
   return Object.freeze({ ...material, kind, publicRead, content: markdown, assets, resourceKey: `${course.slug}/${kind}/${material.slug}` });
 }
-export async function validateCourse({ root = process.cwd(), branch, schema, allowUntracked = false, maxAttachmentBytes = Number(process.env.COURSE_ATTACHMENT_MAX_BYTES ?? DEFAULT_MAX_ATTACHMENT_BYTES), onDiagnostic = () => {} } = {}) {
-  if (!Number.isSafeInteger(maxAttachmentBytes) || maxAttachmentBytes <= 0) fail('CONFIG_INVALID', 'Invalid COURSE_ATTACHMENT_MAX_BYTES');
+export async function validateCourse({ root = process.cwd(), branch, schema, allowUntracked = false, maxAttachmentBytes = process.env.COURSE_ATTACHMENT_MAX_BYTES, onDiagnostic = () => {} } = {}) {
+  maxAttachmentBytes = parseAttachmentLimit(maxAttachmentBytes);
   const tree = await inspectTree(root);
   await scanTrackedSecrets(root, tree);
   if (!allowUntracked && !tree.has('course.yaml')) fail('MANIFEST_MISSING', 'Exactly one tracked course.yaml is required');
@@ -186,7 +187,7 @@ export async function validateCourse({ root = process.cwd(), branch, schema, all
       if (attachmentOwners.has(identity)) fail('ATTACHMENT_OWNERSHIP_AMBIGUOUS', 'Attachment file is declared by more than one material', { path: item.file });
       attachmentOwners.set(identity, material.slug);
       const attachmentBytes = await readFile(root, item.file, maxAttachmentBytes);
-      const info = inspectAttachment(attachmentBytes, item.file);
+      const info = await inspectAttachment(attachmentBytes, item.file);
       const digest = fileHash(attachmentBytes);
       declaredAttachments.add(item.file);
       downloadable.push(Object.freeze({ ...item, fileName: path.basename(item.file), ...info, sizeBytes: attachmentBytes.length, checksum: digest, fileId: stableId('att', digest), publicRead: effectivePublic(manifest, material) }));
