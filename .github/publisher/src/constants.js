@@ -21,6 +21,11 @@ export const ATTACHMENT_TYPES = Object.freeze({
   '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   '.ipynb': 'application/x-ipynb+json',
   '.py': 'text/x-python',
+  '.zip': 'application/zip',
+  '.7z': 'application/x-7z-compressed',
+  '.tar.gz': 'application/gzip',
+  '.tar': 'application/x-tar',
+  '.rar': 'application/vnd.rar',
 });
 
 export const LIFECYCLE_STATUSES = Object.freeze(['draft', 'published', 'archived']);
