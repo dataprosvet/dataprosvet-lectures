@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Query } from 'node-appwrite';
-import { loadConfig } from '../src/config.js';
+import { loadConfig, parseAttachmentLimit } from '../src/config.js';
 import { canonicalJson, checksum, effectivePublic, stableId } from '../src/models.js';
 import { inspectImage } from '../src/image.js';
 import { inspectAttachment } from '../src/attachment.js';
@@ -13,6 +13,8 @@ import { PublisherError } from '../src/errors.js';
 import { containsForbiddenSecret } from '../src/validator.js';
 import { publishCourse } from '../src/publisher.js';
 import { assertContentAddressedFileCompatible, collectRows } from '../src/appwrite.js';
+import { officeFixture } from './archive-fixtures.js';
+import { DEFAULT_MAX_ATTACHMENT_BYTES } from '../src/constants.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 
@@ -76,9 +78,8 @@ test('image signature must match extension and dimensions', () => {
 });
 
 test('download attachment formats are structurally inspected without execution', () => {
-  const zip = Buffer.from([0x50, 0x4b, 0x03, 0x04]);
   for (const extension of ['pptx', 'xlsx', 'docx']) {
-    assert.equal(inspectAttachment(zip, `attachments/file.${extension}`).extension, extension);
+    assert.equal(inspectAttachment(officeFixture(extension), `attachments/file.${extension}`).extension, extension);
   }
   assert.equal(inspectAttachment(Buffer.from('%PDF-1.7\n'), 'attachments/file.PDF').extension, 'pdf');
   assert.equal(inspectAttachment(Buffer.from('{"cells":[],"metadata":{},"nbformat":4}'), 'attachments/file.ipynb').extension, 'ipynb');
@@ -111,6 +112,8 @@ test('workflow has the required branch and credential boundaries', async () => {
   assert.match(workflow, /COURSE_BASE_SHA: \$\{\{ github\.event\.pull_request\.base\.sha \}\}/);
   assert.match(workflow, /COURSE_BRANCH: \$\{\{ steps\.branch-policy\.outputs\.course_branch \}\}/);
   assert.match(workflow, /name: validate/);
+  assert.match(workflow, /^env:\n  COURSE_ATTACHMENT_MAX_BYTES: \$\{\{ vars\.COURSE_ATTACHMENT_MAX_BYTES \}\}$/m);
+  assert.equal([...workflow.matchAll(/COURSE_ATTACHMENT_MAX_BYTES:/g)].length, 1);
   assert.match(workflow, /if: github\.event_name == 'push' && needs\.validate\.outputs\.course_branch == github\.ref_name/);
   assert.match(workflow, /environment: appwrite/);
   assert.match(workflow, /APPWRITE_API_KEY: \$\{\{ secrets\.APPWRITE_API_KEY \}\}/);
@@ -195,4 +198,17 @@ test('publisher rejects transformed checksum drift before contacting Appwrite', 
   const plan = { course: { slug: 'fixture-course' }, materials: [{ content: { path: 'lectures/001_intro.md', sourceChecksum: checksum(Buffer.from(source)), checksum: wrong, fileId: stableId('md', wrong), rewrites: [{ start: 0, end: source.trimEnd().length, key: 'asset-0123456789abcdef01234567', alt: 'Image' }] }, assets: [] }] };
   await assert.rejects(() => publishCourse(plan, { adapter, root: courseRoot }), (error) => error.code === 'MARKDOWN_INTEGRITY_MISMATCH');
   assert.equal(providerCalls, 0);
+});
+
+
+test('attachment limit parser shares strict default and hard ceiling semantics', () => {
+  for (const value of [undefined, null, '']) assert.equal(parseAttachmentLimit(value), DEFAULT_MAX_ATTACHMENT_BYTES);
+  for (const value of [1, '1', 15728640, '15728640', '000123']) assert.equal(parseAttachmentLimit(value), Number(value));
+  for (const value of [0, -1, 15728641, NaN, Infinity, 1.5, '0', '-1', '+1', '1.0', '1e3', '0x20', ' ', ' 1', '1 ', '15728641', false, {}, []]) {
+    assert.throws(() => parseAttachmentLimit(value), (error) => error.code === 'CONFIG_INVALID');
+  }
+  const env = Object.fromEntries(['APPWRITE_ENDPOINT', 'APPWRITE_PROJECT_ID', 'APPWRITE_DATABASE_ID', 'APPWRITE_COURSES_TABLE_ID', 'APPWRITE_MATERIALS_TABLE_ID', 'APPWRITE_ASSETS_TABLE_ID', 'APPWRITE_MARKDOWN_BUCKET_ID', 'APPWRITE_MEDIA_BUCKET_ID', 'APPWRITE_ATTACHMENTS_TABLE_ID', 'APPWRITE_ATTACHMENTS_BUCKET_ID'].map((name) => [name, 'value']));
+  assert.equal(loadConfig({ env: { ...env, COURSE_ATTACHMENT_MAX_BYTES: '' } }).COURSE_ATTACHMENT_MAX_BYTES, DEFAULT_MAX_ATTACHMENT_BYTES);
+  assert.equal(loadConfig({ env: { ...env, COURSE_ATTACHMENT_MAX_BYTES: '4096' } }).COURSE_ATTACHMENT_MAX_BYTES, 4096);
+  assert.throws(() => loadConfig({ env: { ...env, COURSE_ATTACHMENT_MAX_BYTES: '15728641' } }), (error) => error.code === 'CONFIG_INVALID');
 });
