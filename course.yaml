@@ -1,0 +1,21 @@
+# Copy this file to course.yaml only in a courses/<slug> branch.
+# This template is deliberately a non-deployable draft with no learning content.
+schemaVersion: 1
+slug: operating-system
+title: Операционные системы
+description: >-
+    Курс «Операционные системы» учит понимать, как ядро управляет процессами, памятью, файлами и устройствами, и как прикладные программы взаимодействуют с ОС через системные вызовы. Рассматриваются процессы и потоки, планирование, виртуальная память, файловые системы, синхронизация и взаимные блокировки, а также практика на Linux: командная строка, процессы, права доступа и диагностика типичных сбоев.
+lifecycleStatus: draft
+availability: inDevelopment
+sortOrder: 1
+materials:
+  # Image attachments are derived from Obsidian/Markdown embeds during CI.
+  # Authors do not need to add per-material assets entries.
+  # Lectures may independently declare markdown under lectures/ and concise
+  # briefMarkdown under lecture-notes/. Omitted paths stay dormant and are not
+  # published; declaring a path enables strict validation and publication.
+  # Any material may declare ordered files:
+  # attachments: [{ key: slides, title: Slides, file: attachments/slides.pptx, sortOrder: 10 }]
+  lectures: []
+  seminars: []
+  homeworks: []
