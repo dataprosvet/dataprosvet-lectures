@@ -42,7 +42,7 @@
         "markdown": { "type": "string", "pattern": "^(?:lectures|seminars|homeworks)/[0-9]{3}_[a-z0-9]+(?:-[a-z0-9]+)*\\.md$", "maxLength": 240 },
         "briefMarkdown": { "type": "string", "pattern": "^lecture-notes/[0-9]{3}_[a-z0-9]+(?:-[a-z0-9]+)*\\.md$", "maxLength": 240 },
         "assets": { "type": "array", "maxItems": 50, "items": { "$ref": "#/$defs/asset" } },
-        "attachments": { "type": "array", "maxItems": 100, "items": { "$ref": "#/$defs/attachment" } }
+        "attachments": { "type": "array", "maxItems": 10, "items": { "$ref": "#/$defs/attachment" } }
       }
     },
     "asset": {

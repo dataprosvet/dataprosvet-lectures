@@ -1,206 +1,131 @@
 import { Client, ID, Permission, Query, Role, Storage, TablesDB } from 'node-appwrite';
 import { InputFile } from 'node-appwrite/file';
 import { loadConfig } from './config.js';
-import { fail } from './errors.js';
+import { fail, PublisherError } from './errors.js';
+import { checksum } from './models.js';
+import { LIMITS } from './constants.js';
+import { verifyResourceContract } from './resource-contract.js';
+import { assertFields, assertPermissions } from './revision-publisher.js';
 
 const privatePermissions = Object.freeze([]);
 const publicRead = Object.freeze([Permission.read(Role.any())]);
 const rowPageSize = 100;
-
-export function permissions(publiclyReadable) { return publiclyReadable ? publicRead : privatePermissions; }
+const validId = (value) => typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9._-]{0,35}$/.test(value);
+export function permissions(readable) { return readable ? publicRead : privatePermissions; }
 
 export function assertContentAddressedFileCompatible(existing, bytes) {
-  // The Storage ID is derived from the bytes, while the uploaded name is only
-  // descriptive metadata. A path rename must therefore be allowed to reuse the
-  // same immutable object.
   if (existing.sizeOriginal !== bytes.length) fail('FILE_ID_COLLISION', 'Existing content-addressed file metadata differs');
 }
 
 export async function collectRows(fetchPage, queries = [], pageSize = rowPageSize) {
-  const rows = [];
-  let cursor = null;
+  if (!Number.isSafeInteger(pageSize) || pageSize < 1 || pageSize > 100) fail('APPWRITE_PAGINATION_INVALID', 'Invalid row page budget');
+  const rows = []; const seen = new Set(); let cursor;
   while (true) {
-    const pageQueries = [...queries, Query.limit(pageSize)];
-    if (cursor) pageQueries.push(Query.cursorAfter(cursor));
-    const page = (await fetchPage(pageQueries))?.rows ?? [];
-    rows.push(...page);
+    const pageQueries = [...queries, Query.limit(pageSize), ...(cursor ? [Query.cursorAfter(cursor)] : [])];
+    const result = await fetchPage(pageQueries); const page = result?.rows;
+    if (!Array.isArray(page) || page.length > pageSize || rows.length + page.length > 100000 || page.some((row) => !validId(row?.$id) || seen.has(row.$id)) || new Set(page.map((row) => row.$id)).size !== page.length) fail('APPWRITE_PAGINATION_INVALID', 'Incomplete or ambiguous Appwrite row inventory');
+    for (const row of page) { rows.push(row); seen.add(row.$id); }
     if (page.length < pageSize) return rows;
-    const nextCursor = page.at(-1)?.$id;
-    if (!nextCursor || nextCursor === cursor) fail('APPWRITE_PAGINATION_INVALID', 'Appwrite row pagination did not advance');
-    cursor = nextCursor;
+    cursor = page.at(-1).$id;
   }
 }
 
+function bytesOf(body) {
+  if (body instanceof ArrayBuffer) return Buffer.from(body);
+  if (ArrayBuffer.isView(body)) return Buffer.from(body.buffer, body.byteOffset, body.byteLength);
+  fail('PUBLICATION_STATE_MISMATCH', 'File response is not binary');
+}
+function verifyBytes(bytes, expected) {
+  if (!Number.isSafeInteger(expected?.sizeBytes) || expected.sizeBytes < 1 || expected.sizeBytes > LIMITS.maxAttachmentBundleBytes || !/^[a-f0-9]{64}$/.test(expected.sha256) || bytes.length !== expected.sizeBytes || checksum(bytes) !== expected.sha256) fail('PUBLICATION_STATE_MISMATCH', 'File bytes differ from the complete validated plan');
+}
+
+// Construction does not contact Appwrite. The dispatcher validates default-deny
+// readiness and the current source fence before constructing this adapter.
 export function createAdapter({ env = process.env } = {}) {
-  const config = loadConfig({ env, requireKey: true });
+  const config = loadConfig({ env, requireKey: true, requireBundles: true });
   const client = new Client().setEndpoint(config.APPWRITE_ENDPOINT).setProject(config.APPWRITE_PROJECT_ID).setKey(config.APPWRITE_API_KEY);
-  const tables = new TablesDB(client); const storage = new Storage(client);
-  const anonymousClient = new Client().setEndpoint(config.APPWRITE_ENDPOINT).setProject(config.APPWRITE_PROJECT_ID);
-  const anonymousTables = new TablesDB(anonymousClient); const anonymousStorage = new Storage(anonymousClient);
-  const listOneWith = async (service, tableId, queries, label) => {
-    const result = await service.listRows({ databaseId: config.APPWRITE_DATABASE_ID, tableId, queries: [...queries, Query.limit(2)], total: false, ttl: 0 });
-    if (result.rows.length > 1) fail('APPWRITE_AMBIGUOUS', `Multiple ${label} rows match a stable key`);
-    return result.rows[0] ?? null;
+  const anonymous = new Client().setEndpoint(config.APPWRITE_ENDPOINT).setProject(config.APPWRITE_PROJECT_ID);
+  return createAdapterFromServices({ config, tables: new TablesDB(client), storage: new Storage(client), anonymousTables: new TablesDB(anonymous), anonymousStorage: new Storage(anonymous) });
+}
+
+// Tests supply every SDK service, including both anonymous readers, explicitly.
+// This seam never substitutes real services when a fake is absent.
+export function createAdapterFromServices({ config, tables, storage, anonymousTables, anonymousStorage }) {
+  if (!config || !tables || !storage || !anonymousTables || !anonymousStorage) fail('CONFIG_INVALID', 'All publication SDK services are required');
+  const listAll = (tableId, queries = []) => collectRows((pageQueries) => tables.listRows({ databaseId: config.APPWRITE_DATABASE_ID, tableId, queries: pageQueries, total: false, ttl: 0 }), queries);
+  const listOne = async (tableId, queries) => {
+    const rows = await listAll(tableId, queries);
+    if (rows.length > 1) fail('APPWRITE_AMBIGUOUS', 'Multiple rows match a stable publication key');
+    return rows[0] ?? null;
   };
-  const listOne = (tableId, queries, label) => listOneWith(tables, tableId, queries, label);
-  const listAllWith = (service, tableId, queries) => collectRows(
-    (pageQueries) => service.listRows({ databaseId: config.APPWRITE_DATABASE_ID, tableId, queries: pageQueries, total: false, ttl: 0 }),
-    queries,
-  );
-  const assertPermission = (resource, readable, label) => {
-    const actual = resource.$permissions ?? [];
-    const expected = permissions(readable);
-    if (actual.length !== expected.length || expected.some((item) => !actual.includes(item))) fail('FINAL_STATE_MISMATCH', `${label} permissions differ from the publication plan`);
+  const getRow = async (service, tableId, rowId) => {
+    const row = await service.getRow({ databaseId: config.APPWRITE_DATABASE_ID, tableId, rowId });
+    if (row?.$id !== rowId) fail('PUBLICATION_STATE_MISMATCH', 'Row identity differs');
+    return row;
   };
-  const assertFields = (row, expected, label) => {
-    for (const [key, value] of Object.entries(expected)) if ((row?.[key] ?? null) !== (value ?? null)) fail('FINAL_STATE_MISMATCH', `${label} field ${key} differs from the publication plan`);
-  };
-  const expectAnonymousFile = async (bucketId, fileId, readable, label) => {
+  const getFile = async (bucketId, fileId) => {
     try {
-      const body = await anonymousStorage.getFileView({ bucketId, fileId });
-      if (!readable || body.byteLength === 0) fail('ANONYMOUS_ACCESS_MISMATCH', `${label} anonymous file access differs from the publication plan`);
-    } catch (error) {
-      if (error instanceof Error && error.name === 'PublisherError') throw error;
-      if (readable) fail('ANONYMOUS_ACCESS_MISMATCH', `${label} must be anonymously readable`);
-    }
+      const file = await storage.getFile({ bucketId, fileId });
+      if (file?.$id !== fileId || file.bucketId !== bucketId) fail('PUBLICATION_STATE_MISMATCH', 'File identity differs');
+      return file;
+    } catch (error) { if (error?.code === 404) return null; throw error; }
   };
-  const expectDenied = async (action, cleanup, label) => {
-    try {
-      const resource = await action();
-      if (cleanup) await cleanup(resource).catch(() => undefined);
-      fail('ANONYMOUS_WRITE_ALLOWED', `${label} unexpectedly allowed an anonymous write`);
-    } catch (error) {
-      if (error instanceof Error && error.name === 'PublisherError') throw error;
-      if (![401, 403].includes(Number(error?.code))) fail('PREFLIGHT_INCONCLUSIVE', `${label} did not prove anonymous write denial`);
+  const verifyFile = async (bucketId, fileId, expected, readable) => {
+    const file = await getFile(bucketId, fileId);
+    if (!file || file.sizeOriginal !== expected.sizeBytes) fail('PUBLICATION_STATE_MISMATCH', 'File metadata differs');
+    if (readable !== undefined) assertPermissions(file, readable, 'file');
+    verifyBytes(bytesOf(await storage.getFileDownload({ bucketId, fileId })), expected);
+  };
+  const expectAnonymousFile = async (bucketId, fileId, readable, expected) => {
+    let body;
+    try { body = await anonymousStorage.getFileDownload({ bucketId, fileId }); }
+    catch (error) {
+      if (!readable && [401, 403, 404].includes(error?.code)) return;
+      fail('ANONYMOUS_ACCESS_MISMATCH', 'Anonymous file read did not prove the expected access');
     }
+    if (!readable) fail('ANONYMOUS_ACCESS_MISMATCH', 'Retired or private file is anonymously readable');
+    verifyBytes(bytesOf(body), expected);
   };
   return Object.freeze({
     config,
-    async preflight(plan) {
-      await listOne(config.APPWRITE_COURSES_TABLE_ID, [Query.equal('slug', plan.course.slug)], 'course');
-      await listOneWith(anonymousTables, config.APPWRITE_COURSES_TABLE_ID, [Query.equal('slug', plan.course.slug)], 'anonymous course');
-      const probeId = `preflight-${Date.now().toString(36)}`;
-      await expectDenied(
-        () => anonymousTables.createRow({ databaseId: config.APPWRITE_DATABASE_ID, tableId: config.APPWRITE_COURSES_TABLE_ID, rowId: probeId, data: { slug: probeId, title: 'Preflight', description: 'Anonymous write denial probe', lifecycleStatus: 'draft', availability: 'inDevelopment', sortOrder: 999999, publishedAt: null } }),
-        (row) => tables.deleteRow({ databaseId: config.APPWRITE_DATABASE_ID, tableId: config.APPWRITE_COURSES_TABLE_ID, rowId: row.$id }),
-        'Course table',
-      );
-      await expectDenied(
-        () => anonymousStorage.createFile({ bucketId: config.APPWRITE_MARKDOWN_BUCKET_ID, fileId: probeId, file: InputFile.fromPlainText('preflight', 'preflight.txt') }),
-        (file) => storage.deleteFile({ bucketId: config.APPWRITE_MARKDOWN_BUCKET_ID, fileId: file.$id }),
-        'Markdown bucket',
-      );
+    async preflight() {
+      try { await verifyResourceContract({ config, tables, storage }); }
+      catch (error) { if (error instanceof PublisherError) throw error; fail('PREFLIGHT_INCONCLUSIVE', 'Resource read scopes or responses did not prove the reviewed contract'); }
     },
-    async findCourse(slug) { return listOne(config.APPWRITE_COURSES_TABLE_ID, [Query.equal('slug', slug)], 'course'); },
-    async findMaterial(courseId, kind, slug) { return listOne(config.APPWRITE_MATERIALS_TABLE_ID, [Query.equal('courseId', courseId), Query.equal('kind', kind), Query.equal('slug', slug)], 'material'); },
-    async listMaterials(courseId) { return listAllWith(tables, config.APPWRITE_MATERIALS_TABLE_ID, [Query.equal('courseId', courseId)]); },
-    async findAsset(materialId, key) { return listOne(config.APPWRITE_ASSETS_TABLE_ID, [Query.equal('materialId', materialId), Query.equal('key', key)], 'asset'); },
-    async listAssets(materialId) { return listAllWith(tables, config.APPWRITE_ASSETS_TABLE_ID, [Query.equal('materialId', materialId)]); },
-    async findAttachment(materialId, key) { return listOne(config.APPWRITE_ATTACHMENTS_TABLE_ID, [Query.equal('materialId', materialId), Query.equal('key', key)], 'download attachment'); },
-    async listAttachments(materialId) { return listAllWith(tables, config.APPWRITE_ATTACHMENTS_TABLE_ID, [Query.equal('materialId', materialId), Query.orderAsc('sortOrder')]); },
-    async getFile(bucketId, fileId) { try { return await storage.getFile({ bucketId, fileId }); } catch { return null; } },
+    async inventory() {
+      const [materials, assets, attachments, bundles] = await Promise.all(['MATERIALS', 'ASSETS', 'ATTACHMENTS', 'ATTACHMENT_BUNDLES'].map((key) => listAll(config[`APPWRITE_${key}_TABLE_ID`])));
+      return { materials, assets, attachments, bundles };
+    },
+    async findCourse(slug) { return listOne(config.APPWRITE_COURSES_TABLE_ID, [Query.equal('slug', slug)]); },
+    async getRow(tableId, rowId) { return getRow(tables, tableId, rowId); },
+    async listAssets(materialId) { return listAll(config.APPWRITE_ASSETS_TABLE_ID, [Query.equal('materialId', materialId)]); },
+    async listAttachments(materialId) { return listAll(config.APPWRITE_ATTACHMENTS_TABLE_ID, [Query.equal('materialId', materialId)]); },
+    async listBundles(materialId) { return listAll(config.APPWRITE_ATTACHMENT_BUNDLES_TABLE_ID, [Query.equal('materialId', materialId)]); },
+    getFile, verifyFile, expectAnonymousFile,
     async putFile(bucketId, fileId, bytes, name, readable) {
-      const existing = await this.getFile(bucketId, fileId);
-      if (existing) {
-        assertContentAddressedFileCompatible(existing, bytes);
-        return existing;
-      }
-      return storage.createFile({ bucketId, fileId: fileId || ID.unique(), file: InputFile.fromBuffer(bytes, name), permissions: permissions(readable) });
+      if (readable !== false) fail('PUBLICATION_PLAN_INVALID', 'Files must be prepared privately');
+      const expected = { sizeBytes: bytes.length, sha256: checksum(bytes) };
+      if (await getFile(bucketId, fileId)) { await verifyFile(bucketId, fileId, expected); return; }
+      await storage.createFile({ bucketId, fileId, file: InputFile.fromBuffer(bytes, name), permissions: privatePermissions });
+      await verifyFile(bucketId, fileId, expected, false);
     },
     async setFilePermissions(bucketId, fileId, readable) { return storage.updateFile({ bucketId, fileId, permissions: permissions(readable) }); },
+    async setRowPermissions(tableId, rowId, readable) { return tables.updateRow({ databaseId: config.APPWRITE_DATABASE_ID, tableId, rowId, data: {}, permissions: permissions(readable) }); },
     async upsertRow(tableId, rowId, data, readable) {
       const args = { databaseId: config.APPWRITE_DATABASE_ID, tableId, rowId, data, permissions: permissions(readable) };
       return rowId ? tables.updateRow(args) : tables.createRow({ ...args, rowId: ID.unique() });
     },
     async archiveRow(tableId, row) { return tables.updateRow({ databaseId: config.APPWRITE_DATABASE_ID, tableId, rowId: row.$id, data: { lifecycleStatus: 'archived', availability: 'inDevelopment' }, permissions: privatePermissions }); },
-    async removeRow(tableId, rowId) { return tables.deleteRow({ databaseId: config.APPWRITE_DATABASE_ID, tableId, rowId }); },
-    async verifyFinal(plan) {
-      const course = await this.findCourse(plan.course.slug);
-      if (!course) fail('FINAL_STATE_MISMATCH', 'Course row is missing after publication');
-      const courseFields = { slug: plan.course.slug, title: plan.course.title, description: plan.course.description, lifecycleStatus: plan.course.lifecycleStatus, availability: plan.course.availability, sortOrder: plan.course.sortOrder };
-      assertFields(course, courseFields, 'Course');
-      const courseReadable = plan.course.lifecycleStatus === 'published';
-      assertPermission(course, courseReadable, 'Course');
-      const anonymousCourse = await listOneWith(anonymousTables, config.APPWRITE_COURSES_TABLE_ID, [Query.equal('slug', plan.course.slug)], 'anonymous course');
-      if (Boolean(anonymousCourse) !== courseReadable) fail('ANONYMOUS_ACCESS_MISMATCH', 'Course anonymous visibility differs from the publication plan');
-      const rows = await this.listMaterials(course.$id);
-      const desiredKeys = new Set(plan.materials.map((material) => `${material.kind}/${material.slug}`));
-      for (const material of plan.materials) {
-        const row = rows.find((item) => item.kind === material.kind && item.slug === material.slug);
-        if (!row) fail('FINAL_STATE_MISMATCH', `Material ${material.resourceKey} is missing after publication`);
-        const rowFields = { courseId: course.$id, kind: material.kind, slug: material.slug, title: material.title, summary: material.summary, contentFileId: material.content?.fileId ?? null, briefContentFileId: material.briefContent?.fileId ?? null, lifecycleStatus: material.lifecycleStatus, availability: material.availability, sortOrder: material.sortOrder };
-        assertFields(row, rowFields, `Material ${material.resourceKey}`);
-        const metadataReadable = courseReadable && material.lifecycleStatus === 'published';
-        assertPermission(row, metadataReadable, `Material ${material.resourceKey}`);
-        const anonymousMaterial = await listOneWith(anonymousTables, config.APPWRITE_MATERIALS_TABLE_ID, [Query.equal('courseId', course.$id), Query.equal('kind', material.kind), Query.equal('slug', material.slug)], `anonymous material ${material.resourceKey}`);
-        if (Boolean(anonymousMaterial) !== metadataReadable) fail('ANONYMOUS_ACCESS_MISMATCH', `Material ${material.resourceKey} anonymous visibility differs from the publication plan`);
-        if (material.content) {
-          const file = await this.getFile(config.APPWRITE_MARKDOWN_BUCKET_ID, material.content.fileId);
-          if (!file) fail('FINAL_STATE_MISMATCH', `Markdown for ${material.resourceKey} is missing after publication`);
-          assertPermission(file, material.publicRead, `Markdown for ${material.resourceKey}`);
-          await expectAnonymousFile(config.APPWRITE_MARKDOWN_BUCKET_ID, material.content.fileId, material.publicRead, `Markdown for ${material.resourceKey}`);
-        }
-        if (material.briefContent) {
-          const file = await this.getFile(config.APPWRITE_MARKDOWN_BUCKET_ID, material.briefContent.fileId);
-          if (!file) fail('FINAL_STATE_MISMATCH', `Concise Markdown for ${material.resourceKey} is missing after publication`);
-          assertPermission(file, material.publicRead, `Concise Markdown for ${material.resourceKey}`);
-          await expectAnonymousFile(config.APPWRITE_MARKDOWN_BUCKET_ID, material.briefContent.fileId, material.publicRead, `Concise Markdown for ${material.resourceKey}`);
-        }
-        const assets = await this.listAssets(row.$id);
-        if (assets.length !== material.assets.length) fail('FINAL_STATE_MISMATCH', `Attachment mappings for ${material.resourceKey} differ from the publication plan`);
-        for (const asset of material.assets) {
-          const assetRow = assets.find((item) => item.key === asset.key);
-          if (!assetRow) fail('FINAL_STATE_MISMATCH', `Attachment ${material.resourceKey}/${asset.key} is missing after publication`);
-          assertFields(assetRow, { materialId: row.$id, key: asset.key, fileId: asset.fileId, alt: asset.alt, mimeType: asset.mimeType, width: asset.width, height: asset.height }, `Attachment ${material.resourceKey}/${asset.key}`);
-          assertPermission(assetRow, metadataReadable, `Attachment ${material.resourceKey}/${asset.key}`);
-          const anonymousAsset = await listOneWith(anonymousTables, config.APPWRITE_ASSETS_TABLE_ID, [Query.equal('materialId', row.$id), Query.equal('key', asset.key)], `anonymous attachment ${material.resourceKey}/${asset.key}`);
-          if (Boolean(anonymousAsset) !== metadataReadable) fail('ANONYMOUS_ACCESS_MISMATCH', `Attachment ${material.resourceKey}/${asset.key} anonymous visibility differs from the publication plan`);
-          const file = await this.getFile(config.APPWRITE_MEDIA_BUCKET_ID, asset.fileId);
-          if (!file) fail('FINAL_STATE_MISMATCH', `Attachment file ${material.resourceKey}/${asset.key} is missing after publication`);
-          assertPermission(file, material.publicRead, `Attachment file ${material.resourceKey}/${asset.key}`);
-          await expectAnonymousFile(config.APPWRITE_MEDIA_BUCKET_ID, asset.fileId, material.publicRead, `Attachment file ${material.resourceKey}/${asset.key}`);
-        }
-        const attachments = await this.listAttachments(row.$id);
-        if (attachments.length !== material.attachments.length) fail('FINAL_STATE_MISMATCH', `Download attachment mappings for ${material.resourceKey} differ from the publication plan`);
-        for (const attachment of material.attachments) {
-          const attachmentRow = attachments.find((item) => item.key === attachment.key);
-          if (!attachmentRow) fail('FINAL_STATE_MISMATCH', `Download attachment ${material.resourceKey}/${attachment.key} is missing`);
-          assertFields(attachmentRow, { materialId: row.$id, key: attachment.key, title: attachment.title, fileId: attachment.fileId, fileName: attachment.fileName, mimeType: attachment.mimeType, sizeBytes: attachment.sizeBytes, sortOrder: attachment.sortOrder }, `Download attachment ${material.resourceKey}/${attachment.key}`);
-          assertPermission(attachmentRow, metadataReadable, `Download attachment ${material.resourceKey}/${attachment.key}`);
-          const file = await this.getFile(config.APPWRITE_ATTACHMENTS_BUCKET_ID, attachment.fileId);
-          if (!file || file.sizeOriginal !== attachment.sizeBytes) fail('FINAL_STATE_MISMATCH', `Download attachment file ${material.resourceKey}/${attachment.key} is missing or has wrong size`);
-          assertPermission(file, material.publicRead, `Download attachment file ${material.resourceKey}/${attachment.key}`);
-          await expectAnonymousFile(config.APPWRITE_ATTACHMENTS_BUCKET_ID, attachment.fileId, material.publicRead, `Download attachment file ${material.resourceKey}/${attachment.key}`);
-        }
+    async expectAnonymousRow(tableId, rowId, readable, expected = {}) {
+      let row;
+      try { row = await getRow(anonymousTables, tableId, rowId); }
+      catch (error) {
+        if (!readable && [401, 403, 404].includes(error?.code)) return;
+        if (error instanceof PublisherError) throw error;
+        fail('ANONYMOUS_ACCESS_MISMATCH', 'Anonymous row read did not prove the expected access');
       }
-      for (const omitted of rows.filter((row) => !desiredKeys.has(`${row.kind}/${row.slug}`))) {
-        if (omitted.lifecycleStatus !== 'archived') fail('FINAL_STATE_MISMATCH', `Omitted material ${omitted.kind}/${omitted.slug} is not archived`);
-        assertPermission(omitted, false, `Omitted material ${omitted.kind}/${omitted.slug}`);
-        const anonymousMaterial = await listOneWith(anonymousTables, config.APPWRITE_MATERIALS_TABLE_ID, [Query.equal('courseId', course.$id), Query.equal('kind', omitted.kind), Query.equal('slug', omitted.slug)], `anonymous omitted material ${omitted.kind}/${omitted.slug}`);
-        if (anonymousMaterial) fail('ANONYMOUS_ACCESS_MISMATCH', `Omitted material ${omitted.kind}/${omitted.slug} remains anonymously visible`);
-        if (omitted.contentFileId) {
-          const file = await this.getFile(config.APPWRITE_MARKDOWN_BUCKET_ID, omitted.contentFileId);
-          if (!file) fail('FINAL_STATE_MISMATCH', `Omitted Markdown ${omitted.kind}/${omitted.slug} is missing`);
-          assertPermission(file, false, `Omitted Markdown ${omitted.kind}/${omitted.slug}`);
-          await expectAnonymousFile(config.APPWRITE_MARKDOWN_BUCKET_ID, omitted.contentFileId, false, `Omitted Markdown ${omitted.kind}/${omitted.slug}`);
-        }
-        if (omitted.briefContentFileId) {
-          const file = await this.getFile(config.APPWRITE_MARKDOWN_BUCKET_ID, omitted.briefContentFileId);
-          if (file) { assertPermission(file, false, `Omitted concise Markdown ${omitted.kind}/${omitted.slug}`); await expectAnonymousFile(config.APPWRITE_MARKDOWN_BUCKET_ID, omitted.briefContentFileId, false, `Omitted concise Markdown ${omitted.kind}/${omitted.slug}`); }
-        }
-        for (const asset of await this.listAssets(omitted.$id)) {
-          assertPermission(asset, false, `Omitted attachment ${omitted.kind}/${omitted.slug}/${asset.key}`);
-          const file = await this.getFile(config.APPWRITE_MEDIA_BUCKET_ID, asset.fileId);
-          if (!file) fail('FINAL_STATE_MISMATCH', `Omitted attachment file ${omitted.kind}/${omitted.slug}/${asset.key} is missing`);
-          assertPermission(file, false, `Omitted attachment file ${omitted.kind}/${omitted.slug}/${asset.key}`);
-          await expectAnonymousFile(config.APPWRITE_MEDIA_BUCKET_ID, asset.fileId, false, `Omitted attachment file ${omitted.kind}/${omitted.slug}/${asset.key}`);
-        }
-        for (const attachment of await this.listAttachments(omitted.$id)) {
-          assertPermission(attachment, false, `Omitted download attachment ${omitted.kind}/${omitted.slug}/${attachment.key}`);
-          const file = await this.getFile(config.APPWRITE_ATTACHMENTS_BUCKET_ID, attachment.fileId);
-          if (file) { assertPermission(file, false, `Omitted download attachment file ${omitted.kind}/${omitted.slug}/${attachment.key}`); await expectAnonymousFile(config.APPWRITE_ATTACHMENTS_BUCKET_ID, attachment.fileId, false, `Omitted download attachment file ${omitted.kind}/${omitted.slug}/${attachment.key}`); }
-        }
-      }
+      if (!readable) fail('ANONYMOUS_ACCESS_MISMATCH', 'Private metadata is anonymously readable');
+      assertFields(row, expected, 'anonymous row'); assertPermissions(row, true, 'anonymous row');
     },
   });
 }

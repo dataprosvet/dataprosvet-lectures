@@ -11,7 +11,8 @@ import { validateCourse } from '../src/validator.js';
 import { archiveFixtures, officeFixture, zipFixture } from './archive-fixtures.js';
 import { DEFAULT_MAX_ATTACHMENT_BYTES } from '../src/constants.js';
 import { checksum } from '../src/models.js';
-import { publishCourse } from '../src/publisher.js';
+import { materialContentFileId } from '../src/content-identity.js';
+import { preparePublicationFiles, publishCourse } from '../src/publisher.js';
 
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const schema = JSON.parse(await readFile(path.resolve(packageRoot, '../schemas/course.schema.json'), 'utf8'));
@@ -63,6 +64,34 @@ test('empty draft plan is deterministic and contains no materials', async () => 
   assert.deepEqual(first, second);
   assert.equal(first.materials.length, 0);
   assert.match(first.digest, /^[a-f0-9]{64}$/);
+});
+
+test('equal Markdown, brief and image bytes have material/course/role-scoped identities without source changes', async () => {
+  const course = emptyCourse();
+  const left = material('lecture', 1); left.briefMarkdown = 'lecture-notes/001_lecture-1.md';
+  const right = material('lecture', 2); right.briefMarkdown = 'lecture-notes/002_lecture-2.md';
+  course.materials.lectures = [left, right];
+  const files = Object.fromEntries([left.markdown, left.briefMarkdown, right.markdown, right.briefMarkdown].map((name) => [name, '# Identical bytes\n']));
+  const assetMaterial = material('seminar', 3);
+  const otherAssetMaterial = material('homework', 4);
+  course.materials.seminars = [assetMaterial]; course.materials.homeworks = [otherAssetMaterial];
+  files[assetMaterial.markdown] = '![image](../assets/same.png)\n';
+  files[otherAssetMaterial.markdown] = files[assetMaterial.markdown]; files['assets/same.png'] = png();
+  const roots = []; const plans = [];
+  for (const slug of ['fixture-course', 'other-course']) {
+    const root = await fixture({ ...course, slug }, files); roots.push(root);
+    const plan = await validateCourse({ root, branch: `courses/${slug}`, schema }); plans.push(plan);
+    const prepared = await preparePublicationFiles(plan, root);
+    for (const item of plan.materials) {
+      for (const [content, role] of [[item.content, 'markdown'], [item.briefContent, 'brief-markdown']]) if (content) assert.equal(content.fileId, materialContentFileId(item.resourceKey, role, content.checksum));
+      for (const asset of item.assets) assert.deepEqual(prepared.get(`asset:${asset.file}`), files[asset.file]);
+    }
+    for (const [file, bytes] of Object.entries(files)) assert.deepEqual(await readFile(path.join(root, file)), Buffer.from(bytes));
+  }
+  const allIds = plans.flatMap((plan) => plan.materials.flatMap((item) => [item.content.fileId, item.briefContent?.fileId, ...item.assets.map((asset) => asset.fileId)].filter(Boolean)));
+  assert.equal(new Set(allIds).size, allIds.length);
+  assert.equal(plans[0].materials[2].assets[0].key, plans[1].materials[2].assets[0].key);
+  assert.deepEqual(await validateCourse({ root: roots[0], branch: 'courses/fixture-course', schema }), plans[0]);
 });
 
 test('tracked support paths are accepted and excluded from the publication plan', async () => {
@@ -305,37 +334,44 @@ function attachmentCourse(files) {
   course.materials.lectures.push(lecture); return course;
 }
 
-test('all archive formats retain filename, bytes and content address through publication', async () => {
+test('all archive formats retain filename, bytes and content address in prepared publication files', async () => {
   const files = Object.fromEntries(Object.entries(archiveFixtures()).map(([extension, bytes]) => [`attachments/Материалы.${extension.toUpperCase()}`, bytes]));
   const root = await fixture(attachmentCourse(files), files);
   const plan = await validateCourse({ root, branch: 'courses/fixture-course', schema });
-  const uploads = []; const rows = new Map();
-  const adapter = {
-    config: { APPWRITE_COURSES_TABLE_ID: 'courses', APPWRITE_MATERIALS_TABLE_ID: 'materials', APPWRITE_ATTACHMENTS_TABLE_ID: 'attachments', APPWRITE_ATTACHMENTS_BUCKET_ID: 'files' },
-    async findCourse() { return null; }, async listMaterials() { return []; },
-    async putFile(bucket, id, bytes, name) { uploads.push({ bucket, id, bytes, name }); },
-    async upsertRow(table, rowId, data) { const row = { $id: rowId ?? `${table}-${data.key ?? data.slug}`, ...data }; rows.set(`${table}:${data.key ?? data.slug}`, row); return row; },
-    async findAttachment(materialId, key) { return rows.get(`attachments:${key}`); },
-    async verifyFinal() {},
-  };
-  await publishCourse(plan, { root, adapter });
-  assert.equal(uploads.length, 5);
+  const prepared = await preparePublicationFiles(plan, root);
+  assert.equal(prepared.size, 6); // Five sources and one complete bundle.
   for (const attachment of plan.materials[0].attachments) {
-    const uploaded = uploads.find(({ id }) => id === attachment.fileId);
     assert.equal(attachment.fileName, path.basename(attachment.file));
     assert.equal(attachment.checksum, checksum(files[attachment.file]));
     assert.equal(attachment.sizeBytes, files[attachment.file].length);
-    assert.equal(uploaded.name, path.basename(attachment.file));
-    assert.deepEqual(uploaded.bytes, files[attachment.file]);
+    assert.deepEqual(prepared.get(`attachment:${attachment.file}`), files[attachment.file]);
     assert.deepEqual(await readFile(path.join(root, attachment.file)), files[attachment.file]);
   }
   await writeFile(path.join(root, plan.materials[0].attachments[0].file), 'changed after validation');
   let providerCalls = 0;
-  await assert.rejects(() => publishCourse(plan, { root, adapter: { config: {}, async preflight() { providerCalls += 1; } } }), (error) => error.code === 'ATTACHMENT_INTEGRITY_MISMATCH');
+  await assert.rejects(async () => { await preparePublicationFiles(plan, root); providerCalls += 1; }, (error) => error.code === 'ATTACHMENT_INTEGRITY_MISMATCH');
   assert.equal(providerCalls, 0);
 });
 
-test('a valid ZIP at exactly 15 MiB is accepted and limit plus one cannot reach Appwrite', async () => {
+test('revision-aware publication is default-denied before adapter construction; legacy plans are unsupported', async () => {
+  const source = Buffer.from('print(1)\n'); const files = { 'attachments/code.py': source };
+  const root = await fixture(attachmentCourse(files), files);
+  const plan = await validateCourse({ root, branch: 'courses/fixture-course', schema });
+  let calls = 0; let factoryCalls = 0;
+  const adapter = new Proxy({}, { get() { calls += 1; throw Error('No provider interaction is allowed'); } });
+  const adapterFactory = () => { factoryCalls += 1; throw Error('No provider construction is allowed'); };
+  for (const pending of [plan, { ...plan, version: undefined }]) {
+    const expected = pending.version === 2 ? 'PUBLICATION_READINESS_REQUIRED' : 'PUBLICATION_PLAN_INVALID';
+    await assert.rejects(() => publishCourse(pending, { root, adapter, env: {} }), (error) => error.code === expected);
+    await assert.rejects(() => publishCourse(pending, { root, env: {} }), (error) => error.code === expected);
+    await assert.rejects(() => publishCourse(pending, { root, adapterFactory, env: {} }), (error) => error.code === expected);
+  }
+  assert.equal(calls, 0);
+  assert.equal(factoryCalls, 0);
+  assert.deepEqual(await readFile(path.join(root, 'attachments/code.py')), source);
+});
+
+test('a valid ZIP at exactly 10 MiB is accepted and limit plus one cannot reach Appwrite', async () => {
   const overhead = zipFixture({ 'payload.txt': Buffer.alloc(0) }).length;
   const file = 'attachments/boundary.zip';
   const bytes = zipFixture({ 'payload.txt': Buffer.alloc(DEFAULT_MAX_ATTACHMENT_BYTES - overhead) });
@@ -357,7 +393,7 @@ test('a smaller effective limit is inclusive and malformed configuration fails b
   const root = await fixture(attachmentCourse(files), files);
   assert.equal((await validateCourse({ root, branch: 'courses/fixture-course', schema, maxAttachmentBytes: String(limit) })).materials[0].attachments[0].sizeBytes, limit);
   await assert.rejects(() => validateCourse({ root, branch: 'courses/fixture-course', schema, maxAttachmentBytes: limit - 1 }), (error) => error.code === 'FILE_TOO_LARGE');
-  for (const maxAttachmentBytes of [' ', '15MiB', 15728641, '1e3', 0, -1, 1.5]) await assert.rejects(() => validateCourse({ root: '/does-not-exist', maxAttachmentBytes }), (error) => error.code === 'CONFIG_INVALID');
+  for (const maxAttachmentBytes of [' ', '10MiB', 10485761, '1e3', 0, -1, 1.5]) await assert.rejects(() => validateCourse({ root: '/does-not-exist', maxAttachmentBytes }), (error) => error.code === 'CONFIG_INVALID');
 });
 
 test('bad archives, standalone gzip and LFS pointers fail before remote mutation', async () => {
@@ -381,4 +417,81 @@ test('undeclared archives remain dormant even when corrupt or larger than the at
   const plan = await validateCourse({ root: await fixture(emptyCourse(), files), branch: 'courses/fixture-course', schema, onDiagnostic: (value) => diagnostics.push(value) });
   assert.equal(plan.materials.length, 0);
   assert.deepEqual(diagnostics.map(({ kind, path: file }) => [kind, file]), Object.keys(files).map((file) => ['attachment', file]));
+});
+
+test('manifest count 0/1/10 succeeds with consistent revision; count 11 fails the schema', async () => {
+  for (const count of [0, 1, 10, 11]) {
+    const files = Object.fromEntries(Array.from({ length: count }, (_, index) => [`attachments/file-${index}.py`, Buffer.from(`print(${index})\n`)]));
+    const root = await fixture(attachmentCourse(files), files);
+    if (count === 11) {
+      await assert.rejects(() => validateCourse({ root, branch: 'courses/fixture-course', schema }), (error) => error.code === 'MANIFEST_SCHEMA_INVALID');
+      continue;
+    }
+    const plan = await validateCourse({ root, branch: 'courses/fixture-course', schema });
+    const material = plan.materials[0];
+    assert.equal(plan.version, 2);
+    assert.equal(plan.maxAttachmentBytes, DEFAULT_MAX_ATTACHMENT_BYTES);
+    assert.equal(material.attachments.length, count);
+    assert.match(material.attachmentsRevision, /^[a-f0-9]{64}$/);
+    assert.equal(material.bundle?.attachmentCount ?? 0, count);
+    if (count === 0) assert.equal(material.bundle, null);
+    else assert.equal(material.bundle.attachmentsRevision, material.attachmentsRevision);
+    assert.doesNotMatch(JSON.stringify(plan), /\"type\":\"Buffer\"|print\(|publisher-validator-/);
+  }
+});
+
+test('whole plan fails before remote calls for 10 x 10 MiB and ZIP overhead overflow', async () => {
+  for (const sizes of [Array(10).fill(DEFAULT_MAX_ATTACHMENT_BYTES), Array(3).fill(10_000_000)]) {
+    const files = Object.fromEntries(sizes.map((size, index) => [`attachments/file-${index}.py`, Buffer.alloc(size, 0x61)]));
+    const root = await fixture(attachmentCourse(files), files);
+    const priorPublication = Object.freeze({ revision: 'previous', permissions: Object.freeze(['read("any")']) });
+    const before = JSON.stringify(priorPublication);
+    let calls = 0;
+    const adapter = new Proxy({}, { get() { calls += 1; throw Error('Existing publication must not be touched'); } });
+    await assert.rejects(async () => {
+      const plan = await validateCourse({ root, branch: 'courses/fixture-course', schema });
+      await publishCourse(plan, { root, adapter });
+    }, (error) => error.code === 'ATTACHMENT_BUNDLE_TOO_LARGE' && error.details.actualBytes > 30_000_000 && error.details.limitBytes === 30_000_000);
+    assert.equal(calls, 0);
+    assert.equal(JSON.stringify(priorPublication), before);
+    for (const [file, bytes] of Object.entries(files)) assert.equal(checksum(await readFile(path.join(root, file))), checksum(bytes));
+  }
+});
+
+test('preparation rejects changed source size/hash and changed ZIP metadata without remote calls', async () => {
+  const file = 'attachments/code.py'; const source = Buffer.from('print(1)\n');
+  const root = await fixture(attachmentCourse({ [file]: source }), { [file]: source });
+  const plan = await validateCourse({ root, branch: 'courses/fixture-course', schema });
+  for (const sourceBytes of [Buffer.from('print(2)\n'), Buffer.from('print(12345)\n')]) {
+    await writeFile(path.join(root, file), sourceBytes);
+    await assert.rejects(() => preparePublicationFiles(plan, root), (error) => error.code === 'ATTACHMENT_INTEGRITY_MISMATCH');
+  }
+  await writeFile(path.join(root, file), source);
+  for (const bundleChange of [{ sha256: 'a'.repeat(64) }, { sizeBytes: plan.materials[0].bundle.sizeBytes + 1 }, { attachmentsRevision: 'b'.repeat(64) }, { fileId: 'zip-wrong' }]) {
+    const changed = structuredClone(plan); Object.assign(changed.materials[0].bundle, bundleChange);
+    await assert.rejects(() => preparePublicationFiles(changed, root), (error) => error.code === 'ATTACHMENT_BUNDLE_INTEGRITY_MISMATCH');
+  }
+  const wrongRevision = structuredClone(plan); wrongRevision.materials[0].attachmentsRevision = 'c'.repeat(64);
+  await assert.rejects(() => preparePublicationFiles(wrongRevision, root), (error) => error.code === 'ATTACHMENT_BUNDLE_INTEGRITY_MISMATCH');
+  let calls = 0;
+  await assert.rejects(async () => {
+    await preparePublicationFiles(plan, root, { createZipFile: () => { throw Error('simulated writer failure'); } });
+    calls += 1; // Any future remote step remains unreachable.
+  }, (error) => error.code === 'ATTACHMENT_BUNDLE_BUILD_FAILED');
+  assert.equal(calls, 0);
+  assert.deepEqual(await readFile(path.join(root, file)), source);
+});
+
+test('unsafe attachment traversal and post-validation symlink escape cannot be prepared', async () => {
+  const file = 'attachments/code.py'; const source = Buffer.from('print(1)\n');
+  const root = await fixture(attachmentCourse({ [file]: source }), { [file]: source });
+  const plan = await validateCourse({ root, branch: 'courses/fixture-course', schema });
+  for (const unsafe of ['attachments/../code.py', 'attachments//code.py', 'attachments/./code.py', 'attachments/dir\\code.py', '/attachments/code.py']) {
+    const changed = structuredClone(plan); changed.materials[0].attachments[0].file = unsafe;
+    await assert.rejects(() => preparePublicationFiles(changed, root), (error) => error.code === 'ATTACHMENT_PATH_INVALID');
+  }
+  const external = await fixture(emptyCourse(), { 'attachments/outside.py': source });
+  await symlink(path.join(external, 'attachments'), path.join(root, 'attachments/escape'));
+  const changed = structuredClone(plan); changed.materials[0].attachments[0].file = 'attachments/escape/outside.py';
+  await assert.rejects(() => preparePublicationFiles(changed, root), (error) => error.code === 'ATTACHMENT_PATH_INVALID');
 });
