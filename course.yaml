@@ -5,8 +5,8 @@ slug: operating-system
 title: Операционные системы
 description: >-
     Курс «Операционные системы» учит понимать, как ядро управляет процессами, памятью, файлами и устройствами, и как прикладные программы взаимодействуют с ОС через системные вызовы. Рассматриваются процессы и потоки, планирование, виртуальная память, файловые системы, синхронизация и взаимные блокировки, а также практика на Linux: командная строка, процессы, права доступа и диагностика типичных сбоев.
-lifecycleStatus: draft
-availability: inDevelopment
+lifecycleStatus: published
+availability: available
 sortOrder: 1
 materials:
   # Image attachments are derived from Obsidian/Markdown embeds during CI.
@@ -16,6 +16,19 @@ materials:
   # published; declaring a path enables strict validation and publication.
   # Any material may declare ordered files:
   # attachments: [{ key: slides, title: Slides, file: attachments/slides.pptx, sortOrder: 10 }]
-  lectures: []
+  lectures:
+    - slug: what-is-os
+      title: Что такое ОС
+      summary: >-
+        Роль операционной системы как абстракции и менеджера ресурсов,
+        user mode и kernel mode, системные вызовы, поколения ОС и взаимодействие
+        с CPU, памятью, дисками и устройствами ввода-вывода.
+      lifecycleStatus: published
+      availability: available
+      sortOrder: 1
+      markdown: lectures/001_what-is-os.md
+      briefMarkdown: lecture-notes/001_what-is-os.md
+      attachments:
+        - { key: slides, title: Слайды, file: attachments/001_what-is-os.pptx, sortOrder: 1 }
   seminars: []
   homeworks: []
