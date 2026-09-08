@@ -17,4 +17,3 @@ The material SHALL NOT present SII competencies, C++ requirements, computer-visi
 #### Scenario: Profile scope is checked
 - **WHEN** headings, examples, acceptance criteria, and source mapping are scanned
 - **THEN** they consistently identify `PRB` and contain no normative `SII` variant
-

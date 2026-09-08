@@ -17,4 +17,3 @@ The required service, fixtures, and acceptance criteria SHALL NOT introduce an S
 #### Scenario: Required cases are enumerated
 - **WHEN** a reviewer lists all mandatory diagnostic cases
 - **THEN** each belongs to the PRB business API and no SII case is normative
-

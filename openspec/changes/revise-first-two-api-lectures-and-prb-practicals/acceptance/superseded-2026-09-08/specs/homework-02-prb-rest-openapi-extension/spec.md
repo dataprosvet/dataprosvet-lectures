@@ -17,4 +17,3 @@ The assignment SHALL NOT require or offer an SII inference-contract variant.
 #### Scenario: Profile ambiguity is checked
 - **WHEN** the task and checklist are read without the seminar document
 - **THEN** the required PRB domain and artifact are unambiguous
-

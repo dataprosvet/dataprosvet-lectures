@@ -17,4 +17,3 @@ The material SHALL NOT offer image-inference routes, SII competencies, or the SI
 #### Scenario: Assignment scope is reviewed
 - **WHEN** all profile labels and required routes are inspected
 - **THEN** only the PRB forecast-service outcome is required
-

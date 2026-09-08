@@ -30,5 +30,19 @@ materials:
           title: "Презентация Лекции 1"
           file: attachments/lecture_1.pdf
           sortOrder: 10
-  seminars: []
-  homeworks: []
+  seminars:
+    - slug: service-interaction-architecture
+      title: Проектирование взаимодействия сервисов
+      summary: >-
+        Совместно разберём архитектуру взаимодействия сервисов, разделимся на команды и случайно распределим три семестровых кейса. Начнём проектирование назначенного кейса на занятии.
+      lifecycleStatus: published
+      availability: temporarilyUnavailable
+      sortOrder: 2
+  homeworks:
+    - slug: team-case-architecture
+      title: ДЗ 1. Архитектура командного проекта
+      summary: >-
+        Завершите проектирование архитектуры назначенного команде кейса: внешние потребители, диаграммы C4 уровней 1 и 2, выбор протоколов и баз данных. Реализация проекта продолжится в течение семестра.
+      lifecycleStatus: published
+      availability: temporarilyUnavailable
+      sortOrder: 3

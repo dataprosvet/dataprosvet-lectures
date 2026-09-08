@@ -74,4 +74,3 @@ Starters, solutions, tests и данные SHALL использовать localh
 #### Scenario: Practical pack passes safety and publication review
 - **WHEN** change реализован
 - **THEN** заявленные команды воспроизводятся в чистой среде, secret/data scan не находит запрещённых значений, а student и instructor материалы не добавлены в publication allowlist
-

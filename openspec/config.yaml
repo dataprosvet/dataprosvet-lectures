@@ -20,8 +20,8 @@ context: |
 
   Profile model (DECIDED):
     - The repository contains one shared API core and two normative profile
-      variants. Every proposal, specification, plan, lecture family, seminar,
-      homework, case, and acceptance record must identify its scope as
+      variants. Every lecture proposal, specification and lecture family
+      must identify its scope as
       `COMMON`, `PRB`, or `SII` whenever the scope is not self-evident.
     - Content may be marked `COMMON` only when its required meaning and
       learning outcome are compatible with both RPDs. A shared explanation may
@@ -42,16 +42,17 @@ context: |
       and API architecture of applied AI systems.
 
   Delivery scope by material type (DECIDED):
-    - Lectures are authored for both profiles. Their shared conceptual path is
-      marked `COMMON`; profile examples and profile-specific outcomes remain
-      visibly separated as `PRB` and `SII` and are governed by the matching
-      RPD.
-    - Course practical works, seminar meetings, homeworks, and their assessment
-      evidence are authored only for `PRB`. The PRB RPD and PRB curriculum map
-      are normative for those materials.
-    - An `SII` lecture example does not create or imply an `SII` practical or
-      homework variant. Reintroducing an SII practical track requires a later
-      reviewed OpenSpec change with its own numbered capabilities.
+    - Lectures retain COMMON explanations and distinct PRB/SII examples under
+      the matching RPD. Their content is unchanged by the practical reset.
+    - Seminar 1 and homework 1 use one team assignment without profile paths.
+      COMMON in their internal planning denotes shared organization, not
+      equivalence of the two normative programs.
+    - The instructor's four-page DOCX is the immediate source: page 4 is the
+      seminar case, pages 1-3 are randomly assigned semester case variants.
+    - Homework 1 assesses architecture only: consumers, C4 levels 1 and 2,
+      protocols and databases. Implementation continues during the semester.
+    - A star marks a point requiring an independently discovered non-obvious
+      solution; it does not make that point optional.
 
   Capability granularity (DECIDED):
     - Every numbered lecture, RPD practical work, and course homework has its
@@ -88,20 +89,16 @@ context: |
        SII: API architecture of an applied AI system for the AПК.
 
   Practical and homework model (DECIDED):
-    - Each RPD defines 12 numbered individual practical works. Four-hour works
-      may span two seminar meetings but retain one normative work number and
-      one learning outcome.
-    - `homeworks/` presents the same 12 practical outcomes as take-home or
-      completion assignments. It does not create a new official assessment
-      bank and must preserve the corresponding RPD work number and meaning.
-    - The profile curriculum plans define the approved mapping among 9
-      lectures, 18 seminar meetings, 12 homeworks, and profile cases.
-    - Each RPD describes four cases: three course cases plus an industrial
-      RAISA case. Only case 1 has an explicit place in table 4; placement and
-      minimum scope of other cases must be recorded as course design decisions.
-    - Each RPD declares three control works and final testing but does not give
-      three explicit calendar positions or distinct official banks. Do not
-      invent RPD authority for author-created control-work schedules or tasks.
+    - The 2026 practical reset supersedes former seminar/homework plans.
+      Only seminar 1 and homework 1 are currently authored. Future units
+      require separate numbered capabilities and are not implied by history.
+    - Each team receives one random case and starts its architecture in class.
+      One homework Markdown contains three variants separated by horizontal
+      rules; each team completes only its assigned variant.
+    - Source RPDs remain normative documents. Do not assert an unverified
+      mapping of this instructor-authored homework to an RPD work number.
+    - Former curriculum maps and old acceptance reports are historical for
+      practical scheduling; preserve them without reinstating old tasks.
 
   Source hierarchy (DECIDED):
     - `sources/Б1.В.11 API-технологии_ПРБ_РПД.pdf` is the normative source for
@@ -143,8 +140,7 @@ context: |
     - `lecture-notes/` contains distinct concise revision notes and must not be
       a duplicate or replacement for a complete lecture.
     - `seminars/` contains student-facing practical/seminar materials.
-    - `homeworks/` contains the 12 profile-grounded assignments and any
-      explicitly approved control materials.
+    - `homeworks/` contains the current instructor-authored assignments.
     - `assets/` contains publication-safe PNG, JPEG, or WebP images referenced
       by declared Markdown.
     - `attachments/` contains tracked support files such as code, notebooks,
@@ -161,37 +157,31 @@ context: |
       change on the protected shared baseline.
 
   Course code repository model (DECIDED):
-    - Course Markdown, OpenSpec, RPD traceability, and teacher scripts remain in
-      this course repository. Executable teaching code is not stored under
-      `attachments/`; that directory is reserved for genuine attachments to a
-      lecture or seminar.
-    - `https://github.com/TheTonyPub/api-technologies-code` is the canonical
-      private student code repository. Student-facing Markdown links only to
-      this repository and access is granted separately through GitHub.
-    - `https://github.com/TheTonyPub/api-technologies-code-teacher` is the
-      canonical private instructor repository for solutions, closed checks,
-      grading fixtures, and validation evidence. Students are never granted
-      access and student-facing files never mention or link to it.
-    - `main` is a catalog. A coded lecture is an autonomous snapshot named
-      `lecture/<two-digit-number>-<lowercase-kebab-case-slug>`. A practical
-      work and its take-home continuation share one autonomous snapshot named
-      `seminar/<two-digit-work-number>-<lowercase-kebab-case-slug>`.
-    - Instructor branches exactly mirror student branch names in the separate
-      teacher repository. Do not create `homework/*` branches when homework is
-      a continuation of a practical work; students continue the same working
-      branch in their private fork or repository.
-    - Every code branch has a root README with scope (`COMMON`, `PRB`, `SII`),
-      environment and dependency versions, install and run commands, expected
-      behavior, public validation, and, for practical work, distinct
-      “seminar” and “at home” checkpoints.
-    - Student snapshots contain only starters, public checks, required
-      contracts, local/synthetic fixtures, and runnable examples. Instructor
-      solutions, instructor checks, grading fixtures, secrets, real endpoints,
-      personal data, and teacher repository references must never enter any
-      reachable object in the student Git repository.
-    - A Markdown material with code is not ready until its student branch,
-      autonomous README, checks, explicit profile scope, mirrored teacher
-      branch, and authorized GitHub branch URL have all been verified.
+    - The private student repository is
+      https://github.com/TheTonyPub/api-technologies-2026.
+      Its local checkout remains /Users/ripper/projects/api-technologies-code.
+    - Keep only main (default, short catalog) and seminar/01-api-scenarios.
+      One team work line covers the seminar and its homework continuation.
+      There are no profile directories or separate homework branches.
+    - README contains concise instructions and expected architecture results;
+      full assignment texts are local and never committed to either repository.
+    - The private instructor repository api-technologies-code-teacher is
+      unchanged. Do not link it from student-facing files or grant access.
+    - This architecture-only task has no executable starter, public tests,
+      instructor solution or mirror requirement. New executable materials
+      need an explicitly scoped future change and suitable verification.
+    - Preserve history, privacy and access on repository rename; use the new
+      URL directly in current links and origin. Back up refs before deletion.
+
+  Closed material publication (DECIDED):
+    - Seminar service-interaction-architecture and homework
+      team-case-architecture have published/temporarilyUnavailable cards,
+      sortOrder 2 and 3 respectively, and no markdown, briefMarkdown or assignment attachments.
+    - Their full texts are ignored local files:
+      seminars/001_service-interaction-architecture.md and
+      homeworks/001_team-case-architecture.md.
+    - Publish metadata through the existing CI. Check ignore rules, the exact
+      commit tree, workflow success and unavailable cards before completion.
 
   Publication profile decision (UNRESOLVED):
     - The publisher supports one `course.yaml` and one course slug in this
@@ -217,11 +207,11 @@ context: |
       contract, architecture, or code patterns with conditions; a compact
       example when needed; warnings; summary; and related-seminar links. It is
       meaningfully shorter than the complete lecture.
-    - A seminar contains: scope and RPD practical-work mapping; goal;
+    - A seminar contains: goal, source provenance, verified RPD mapping if applicable;
       prerequisites; environment and safe test data; incremental tasks;
       expected artifacts; verification; acceptance criteria; common failures;
       reflection questions; and prerequisite-lecture links.
-    - A homework contains: scope; RPD practical-work number; learning outcome;
+    - A homework contains: source provenance, verified RPD mapping if applicable; learning outcome;
       task; input constraints; required artifact; reproducibility and security
       requirements; acceptance criteria; and submission checklist.
     - Student materials exclude instructor timing, lecturer prompts, teaching
@@ -268,8 +258,8 @@ context: |
     - Both RPDs declare 12 practical works, four cases, three control works, and
       final testing, but table 4 schedules only case 1 and does not locate three
       distinct control works. Further placement is a course design decision.
-    - Neither RPD defines a separate official homework category. The 12 course
-      homeworks represent the 12 practical outcomes and are not an extra bank.
+    - Neither RPD defines a separate official homework category. The former 12-homework mapping is historical; the current first
+      homework is an instructor-authored architecture stage, not an extra RPD bank.
     - The 18-seminar count is derived from 36 practical hours. A four-hour work
       may span two meetings without receiving a new normative number.
     - Assessment rubrics mention statistical methods where the discipline
@@ -316,22 +306,22 @@ rules:
     - Keep tasks small, profile-scoped, source-grounded, and independently verifiable.
     - Separate authoring, technical verification, cross-variant review, and publication decisions.
     - Require preservation checks before replacing, shortening, or sharing content across profiles.
-    - For every coded lecture or practical work, include creation and clean-clone validation of the student branch and its identically named teacher mirror.
+    - For a future executable material, specify its branch and appropriate clean-checkout tests; architecture-only work does not require executable tests or a teacher mirror.
     - Require one seminar branch for a practical work and its homework continuation; do not add a separate homework branch.
-    - Require root README, profile scope, synthetic-data safety, public checks, instructor checks, and a student-facing branch link as independently verifiable tasks.
+    - Require a concise root README, correct student branch link and observable deliverables; apply profile or executable checks only when that material requires them.
 
 operations:
   apply:
     guidance:
       - Preserve user edits and unrelated untracked files.
-      - Verify the target profile and matching curriculum plan before changing educational content.
+      - Verify the current material scope and immediate source; preserve normative lecture profile distinctions without restoring historical practical tracks.
       - Validate teacher-file preservation before deriving complete or concise student variants.
       - Check Markdown links, code reproducibility, OpenAPI consistency, secret safety, and source coverage.
-      - Before code cutover, verify both GitHub repositories are PRIVATE, owned by `TheTonyPub`, use `main` as default, and have exact matching local/remote branch head SHAs.
-      - Validate every student branch from a clean single-branch snapshot and run the matching public plus instructor checks on its teacher mirror.
-      - Compare shared contracts, API paths and methods, schemas, required fields, statuses, errors, versions, checkpoints, and profile fixtures with the pre-change baseline.
+      - Before student repository cutover, verify its owner, private visibility, default main, allowed branches and local/remote head SHAs; preserve the untouched instructor repository.
+      - Validate the student branch from a clean snapshot with checks appropriate to its deliverables; executable and instructor tests are not applicable to architecture-only work.
+      - Preserve lecture hashes and publication entries; compare new assignment requirements and numeric constraints with the instructor source.
       - Scan every reachable student Git object for instructor artifacts, grading fixtures, secrets, real endpoints, personal data, and teacher-repository references.
-      - Resolve each course Markdown code link with an authorized GitHub account before removing the old executable location; preserve the complete instructor pack throughout cutover.
+      - Verify current student links at the renamed repository; preserve the instructor pack without modifying it.
       - Run strict OpenSpec and publisher validation before completion when the corresponding files exist.
   archive:
     guidance:

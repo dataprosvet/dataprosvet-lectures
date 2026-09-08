@@ -6,3 +6,7 @@ plans/
 .pytest_cache/
 __pycache__/
 *.pyc
+
+/seminars/001_service-interaction-architecture.md
+
+/homeworks/001_team-case-architecture.md

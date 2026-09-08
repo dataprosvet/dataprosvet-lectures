@@ -77,4 +77,3 @@ Templates, solutions, tests и данные SHALL использовать си�
 #### Scenario: Homework pack passes clean validation
 - **WHEN** change реализован
 - **THEN** templates запускаются в ожидаемом начальном состоянии, instructor solutions проходят все проверки, forbidden-data scan чист, а новые пути отсутствуют в publication allowlist
-

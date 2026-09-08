@@ -17,4 +17,3 @@ The task and checklist SHALL define only the PRB continuation and SHALL NOT requ
 #### Scenario: Student follows the homework independently
 - **WHEN** the homework is opened after practical work 3
 - **THEN** one PRB continuation path is present and no profile selection is required
-

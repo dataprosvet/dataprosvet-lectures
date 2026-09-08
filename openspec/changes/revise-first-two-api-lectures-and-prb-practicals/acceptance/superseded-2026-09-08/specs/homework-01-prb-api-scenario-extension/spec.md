@@ -17,4 +17,3 @@ The task, examples, acceptance criteria, and submission checklist SHALL contain 
 #### Scenario: Student selects the assignment
 - **WHEN** a student opens homework 1
 - **THEN** there is exactly one required PRB assignment path and no profile-choice ambiguity
-
