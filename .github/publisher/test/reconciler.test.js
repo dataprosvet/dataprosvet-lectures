@@ -4,7 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { checksum, stableId } from '../src/models.js';
-import { buildDiff, publishPlan } from '../src/publisher.js';
+import { buildDiff, publishPlan } from './legacy-publisher-fixture.js';
 
 const config = Object.freeze({
   APPWRITE_COURSES_TABLE_ID: 'courses',

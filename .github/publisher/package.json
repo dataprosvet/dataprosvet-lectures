@@ -9,12 +9,13 @@
     "validate": "node src/cli.js validate",
     "publish": "node src/cli.js publish",
     "test": "node --test test/*.test.js",
-    "lint": "node --check src/*.js && node --check test/*.js"
+    "lint": "for file in src/*.js test/*.js; do node --check \"$file\" || exit; done"
   },
   "dependencies": {
     "ajv": "8.20.0",
     "node-appwrite": "27.1.0",
     "saxes": "6.0.0",
-    "yaml": "2.9.0"
+    "yaml": "2.9.0",
+    "yazl": "3.3.1"
   }
 }

@@ -7,11 +7,13 @@ import Ajv2020 from 'ajv/dist/2020.js';
 import YAML from 'yaml';
 import { AVAILABILITY_STATUSES, LIFECYCLE_STATUSES, LIMITS, MATERIAL_KINDS } from './constants.js';
 import { fail, PublisherError } from './errors.js';
-import { canonicalJson, checksum, effectivePublic, stableId } from './models.js';
+import { canonicalJson, checksum, effectivePublic } from './models.js';
+import { materialContentFileId } from './content-identity.js';
 import { inspectImage } from './image.js';
 import { inspectAttachment } from './attachment.js';
 import { parseAttachmentLimit } from './config.js';
 import { buildAssetIndex, normalizedAssetPath, transformMarkdown } from './markdown.js';
+import { attachmentSourceFileId, buildAttachmentBundle, readAttachmentSource } from './attachment-bundle.js';
 
 const exec = promisify(execFile);
 const githubSecretPattern = /gh[opsu]_[A-Za-z0-9_]{20,}/i;
@@ -133,6 +135,7 @@ export async function validateCourse({ root = process.cwd(), branch, schema, all
   const attachmentOwners = new Map();
   const normalized = [];
   for (const { kind, material } of materials) {
+    const materialKey = `${manifest.slug}/${kind}/${material.slug}`;
     if (!LIFECYCLE_STATUSES.includes(material.lifecycleStatus) || !AVAILABILITY_STATUSES.includes(material.availability)) fail('STATUS_INVALID', 'Unsupported status');
     if (kind !== 'lecture' && material.briefMarkdown) fail('BRIEF_KIND_INVALID', 'Only lectures may declare briefMarkdown');
     let content = null; let briefContent = null; let effectiveAssetInputs = [];
@@ -153,7 +156,7 @@ export async function validateCourse({ root = process.cwd(), branch, schema, all
       if (transformedBytes.length > LIMITS.maxMarkdownBytes) fail('FILE_TOO_LARGE', `Transformed Markdown exceeds ${LIMITS.maxMarkdownBytes} bytes`, { path: relative });
       const sourceChecksum = fileHash(markdownBytes); const transformedChecksum = fileHash(transformedBytes);
       undeclaredContent.delete(relative);
-      return { content: Object.freeze({ path: relative, sourceChecksum, checksum: transformedChecksum, fileId: stableId('md', transformedChecksum), rewrites: transformed.rewrites }), assets: transformed.assets };
+      return { content: Object.freeze({ path: relative, sourceChecksum, checksum: transformedChecksum, fileId: materialContentFileId(materialKey, expectedRoot === 'lecture-notes' ? 'brief-markdown' : 'markdown', transformedChecksum), rewrites: transformed.rewrites }), assets: transformed.assets };
     };
     if (material.markdown) {
       const result = await processMarkdown(material.markdown, `${kind}s`, explicitAssets);
@@ -174,9 +177,9 @@ export async function validateCourse({ root = process.cwd(), branch, schema, all
       if (!validRelative(asset.file, 'assets') || !tree.has(asset.file)) fail('ASSET_PATH_INVALID', 'Asset must be a tracked file under assets/', { path: asset.file });
       const bytes = await readFile(root, asset.file, LIMITS.maxImageBytes); const info = inspectImage(bytes, asset.file);
       declaredAssets.add(asset.file);
-      assets.push(Object.freeze({ ...asset, ...info, checksum: fileHash(bytes), fileId: stableId('asset', fileHash(bytes)), publicRead: effectivePublic(manifest, material) }));
+      assets.push(Object.freeze({ ...asset, ...info, checksum: fileHash(bytes), fileId: materialContentFileId(materialKey, 'asset', fileHash(bytes)), publicRead: effectivePublic(manifest, material) }));
     }
-    const downloadable = [];
+    const downloadable = []; const attachmentSources = new Map();
     const attachmentDeclarations = material.attachments ?? [];
     if (attachmentDeclarations.length > LIMITS.maxAttachmentsPerMaterial) fail('MANIFEST_LIMIT', `Material exceeds ${LIMITS.maxAttachmentsPerMaterial} downloadable attachments`);
     unique(attachmentDeclarations.map((item) => item.key), `attachment key in ${material.slug}`);
@@ -186,13 +189,16 @@ export async function validateCourse({ root = process.cwd(), branch, schema, all
       const identity = item.file.normalize('NFC').toLowerCase();
       if (attachmentOwners.has(identity)) fail('ATTACHMENT_OWNERSHIP_AMBIGUOUS', 'Attachment file is declared by more than one material', { path: item.file });
       attachmentOwners.set(identity, material.slug);
-      const attachmentBytes = await readFile(root, item.file, maxAttachmentBytes);
+      const attachmentBytes = await readAttachmentSource(root, item.file, maxAttachmentBytes);
       const info = await inspectAttachment(attachmentBytes, item.file);
       const digest = fileHash(attachmentBytes);
       declaredAttachments.add(item.file);
-      downloadable.push(Object.freeze({ ...item, fileName: path.basename(item.file), ...info, sizeBytes: attachmentBytes.length, checksum: digest, fileId: stableId('att', digest), publicRead: effectivePublic(manifest, material) }));
+      const attachment = { ...item, fileName: path.basename(item.file), ...info, sizeBytes: attachmentBytes.length, checksum: digest, publicRead: effectivePublic(manifest, material) };
+      downloadable.push(Object.freeze({ ...attachment, fileId: attachmentSourceFileId(materialKey, attachment) }));
+      attachmentSources.set(item.file, attachmentBytes);
     }
-    normalized.push(Object.freeze({ ...normalizeMaterial(manifest, kind, { ...material, assets: undefined, attachments: undefined, briefMarkdown: undefined }, content, assets), briefContent, attachments: downloadable.sort((a, b) => a.sortOrder - b.sortOrder || a.key.localeCompare(b.key)) }));
+    const bundle = await buildAttachmentBundle(materialKey, downloadable, (attachment) => attachmentSources.get(attachment.file));
+    normalized.push(Object.freeze({ ...normalizeMaterial(manifest, kind, { ...material, assets: undefined, attachments: undefined, briefMarkdown: undefined }, content, assets), briefContent, attachments: Object.freeze(downloadable.sort((a, b) => a.sortOrder - b.sortOrder)), attachmentsRevision: bundle.attachmentsRevision, bundle: bundle.descriptor }));
   }
   const dormantResources = [
     ...[...undeclaredContent].map((resourcePath) => ({ kind: 'content', path: resourcePath })),
@@ -204,7 +210,8 @@ export async function validateCourse({ root = process.cwd(), branch, schema, all
   }
   const sorted = normalized.sort((a, b) => a.sortOrder - b.sortOrder || a.resourceKey.localeCompare(b.resourceKey));
   const plan = {
-    version: 1,
+    version: 2,
+    maxAttachmentBytes,
     course: { ...manifest, publicRead: manifest.lifecycleStatus === 'published', materials: undefined },
     materials: sorted,
     summary: {
