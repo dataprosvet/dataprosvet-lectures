@@ -65,11 +65,11 @@ export async function preparePublicationFiles(plan, root, bundleOptions) {
   }
   return prepared;
 }
-export async function publishPlan(plan, { adapter, root = process.cwd(), bundleOptions, adapterFactory = createAdapter, readiness, sourceGuard, env = process.env } = {}) {
+export async function publishPlan(plan, { adapter, root = process.cwd(), bundleOptions, adapterFactory = createAdapter, readiness, sourceGuard, env = process.env, previewRevision } = {}) {
   if (plan?.version !== 2) fail('PUBLICATION_PLAN_INVALID', 'Only a fresh validated revision plan is supported');
   const approved = assertPublicationReadiness(readiness ?? readPublicationReadiness(env), plan.course?.slug);
   return withCourseLock(plan.course.slug, () => publishRevisionPlan(plan, {
-    adapter, adapterFactory, root, bundleOptions, readiness: approved, sourceGuard, env,
+    adapter, adapterFactory, root, bundleOptions, readiness: approved, sourceGuard, env, previewRevision,
     prepareFiles: preparePublicationFiles,
   }));
 }

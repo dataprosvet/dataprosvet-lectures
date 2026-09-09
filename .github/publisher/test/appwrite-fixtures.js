@@ -5,6 +5,7 @@ const column = (key, type, required, size) => ({ key, type, required, ...(size =
 const index = (key, type, columns) => ({ key, type, columns, orders: columns.map(() => 'ASC'), lengths: columns.map(() => 0), status: 'available' });
 export function resourceFixture() {
   const tables = Object.fromEntries(['courses', 'materials', 'assets', 'attachments', 'bundles'].map((id) => [id, { $id: id, databaseId: 'database', enabled: true, rowSecurity: true, $permissions: [], columns: [], indexes: [] }]));
+  tables.courses.columns.push(column('previewState', 'enum', true), column('previewRevision', 'varchar', true, 64));
   tables.materials.columns.push(column('briefContentFileId', 'varchar', false, 64), column('attachmentsRevision', 'varchar', false, 64));
   tables.attachments.columns.push(...[['materialId', 64], ['key', 128], ['title', 512], ['fileId', 64], ['fileName', 255], ['mimeType', 128]].map(([key, size]) => column(key, 'varchar', true, size)), column('sizeBytes', 'bigint', true), column('sortOrder', 'integer', true), column('attachmentsRevision', 'varchar', false, 64), column('sha256', 'varchar', false, 64));
   tables.attachments.indexes.push(index('attachments_material_key_unique', 'unique', ['materialId', 'key']), index('attachments_material_list', 'key', ['materialId', 'sortOrder']));

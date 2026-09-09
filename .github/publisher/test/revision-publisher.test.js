@@ -91,6 +91,7 @@ function options(adapter, fixture, onFence = () => {}) {
     readiness: { enabled: true, protocol: 'attachments-v1', singleWriterConfirmed: true, auditDigest: 'c'.repeat(64), resourceDigest: publicationResourceDigest(config), publisherTreeSha: 'b'.repeat(40), courseBranches: [`courses/${fixture.plan.course.slug}`] },
     prepareFiles: async () => fixture.prepared,
     sourceGuard: { sourceCommit: sha, courseSlug: fixture.plan.course.slug, async assertCurrent(stage) { adapter.state.stage = stage; adapter.state.events.push({ type: 'fence', stage }); await onFence(stage); } },
+    previewRevision: 'd'.repeat(64),
   };
 }
 const publish = (adapter, fixture, onFence) => publishRevisionPlan(fixture.plan, options(adapter, fixture, onFence));
@@ -102,7 +103,7 @@ test('fake publication verifies private complete set, grants files, activates ma
   const events = adapter.state.events;
   const firstGrant = events.findIndex((event) => event.stage === 'grant-current-files' && event.type === 'file-permission');
   const activation = events.findIndex((event) => event.stage === 'activate-material-revision' && event.type === 'row-upsert');
-  const courseExposure = events.findIndex((event) => event.stage === 'expose-course-last' && event.type === 'row-permission');
+  const courseExposure = events.findIndex((event) => event.stage === 'mark-course-ready' && event.type === 'row-upsert');
   const lastStagingWrite = events.findLastIndex((event) => event.stage === 'stage-resource-row' && event.type === 'row-upsert');
   assert.ok(lastStagingWrite >= 0 && firstGrant > lastStagingWrite);
   assert.equal(events.slice(lastStagingWrite + 1, firstGrant).filter((event) => event.type === 'verify-file').length, 3);
@@ -110,7 +111,9 @@ test('fake publication verifies private complete set, grants files, activates ma
   assert.equal(adapter.state.tables.materials.values().next().value.attachmentsRevision, fixture.plan.materials[0].attachmentsRevision);
   assert.equal(adapter.state.tables.bundles.size, 1);
   assert.equal(adapter.state.files.size, 3);
-  assert.equal(mutateEvents(events).at(-1).stage, 'expose-course-last');
+  assert.equal(mutateEvents(events).at(-1).stage, 'mark-course-ready');
+  assert.equal(adapter.state.tables.courses.values().next().value.previewState, 'ready');
+  assert.equal(adapter.state.tables.courses.values().next().value.previewRevision, 'd'.repeat(64));
 });
 
 test('retry is idempotent and never deletes old files or retired metadata', async () => {
@@ -239,7 +242,7 @@ test('private readback mismatch prevents granting files and switching active rev
 });
 
 test('unknown acknowledgements after actual mutations retain files and next fresh plan revokes public candidates', async () => {
-  for (const stop of ['upload-private-files', 'stage-resource-row', 'grant-current-files', 'grant-current-rows', 'activate-material-revision', 'expose-course-last']) {
+  for (const stop of ['mark-course-updating', 'upload-private-files', 'stage-resource-row', 'grant-current-files', 'grant-current-rows', 'activate-material-revision', 'mark-course-ready']) {
     const adapter = memoryAdapter(); const original = await fixturePlan(); await publish(adapter, original);
     const originalFiles = [...adapter.state.files.keys()];
     const replacement = await fixturePlan([{ slug: 'intro', files: { replacement: 'replacement' } }]);

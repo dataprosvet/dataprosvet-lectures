@@ -3,6 +3,7 @@ import { fail, PublisherError } from './errors.js';
 import { assertPublicationReadiness, assertResourceApproval } from './publication-readiness.js';
 import { createSourceGuard } from './source-guard.js';
 import { MATERIAL_KINDS } from './constants.js';
+import { derivePreviewRevision } from './preview-revision.js';
 
 export function assertFields(actual, expected, label) {
   for (const [key, value] of Object.entries(expected)) if ((actual?.[key] ?? null) !== (value ?? null)) fail('PUBLICATION_STATE_MISMATCH', `${label}: field ${key} differs`);
@@ -12,7 +13,7 @@ export function assertPermissions(row, readable, label) {
   if (!Array.isArray(row?.$permissions) || canonicalJson([...row.$permissions].sort()) !== canonicalJson(expected)) fail('PUBLICATION_STATE_MISMATCH', `${label}: permissions differ`);
 }
 const publishedAt = (value, previous) => value.lifecycleStatus === 'published' ? previous?.publishedAt ?? new Date().toISOString() : null;
-const courseFields = (value, previous) => ({ slug: value.slug, title: value.title, description: value.description, lifecycleStatus: value.lifecycleStatus, availability: value.availability, sortOrder: value.sortOrder, publishedAt: publishedAt(value, previous) });
+const courseFields = (value, previous, previewState, previewRevision) => ({ slug: value.slug, title: value.title, description: value.description, lifecycleStatus: value.lifecycleStatus, availability: value.availability, sortOrder: value.sortOrder, publishedAt: publishedAt(value, previous), previewState, previewRevision });
 const materialFields = (courseId, value, previous, revision) => ({ courseId, kind: value.kind, slug: value.slug, title: value.title, summary: value.summary, contentFileId: value.content?.fileId ?? null, briefContentFileId: value.briefContent?.fileId ?? null, lifecycleStatus: value.lifecycleStatus, availability: value.availability, sortOrder: value.sortOrder, publishedAt: publishedAt(value, previous), attachmentsRevision: revision });
 const assetFields = (materialId, value) => ({ materialId, key: value.key, fileId: value.fileId, alt: value.alt, mimeType: value.mimeType, width: value.width, height: value.height });
 const attachmentFields = (materialId, value, revision) => ({ materialId, key: value.key, title: value.title, fileId: value.fileId, fileName: value.fileName, mimeType: value.mimeType, sizeBytes: value.sizeBytes, sortOrder: value.sortOrder, sha256: value.checksum, attachmentsRevision: revision });
@@ -51,7 +52,7 @@ function currentFileRefs(inventory, config) {
   return files;
 }
 
-export async function publishRevisionPlan(input, { adapter, adapterFactory, readiness, sourceGuard, env, root, prepareFiles, bundleOptions }) {
+export async function publishRevisionPlan(input, { adapter, adapterFactory, readiness, sourceGuard, env = process.env, root, prepareFiles, bundleOptions, previewRevision }) {
   readiness = assertPublicationReadiness(readiness, input?.course?.slug);
   const plan = immutable(structuredClone(input));
   const { digest, ...unsigned } = plan;
@@ -91,6 +92,9 @@ export async function publishRevisionPlan(input, { adapter, adapterFactory, read
     const revoked = new Map([...oldRefs.filter((file) => affectedOwners.has(file.owner)), ...files].map((file) => [identity(file), file]));
     for (const file of revoked.values()) if (owners.get(identity(file))?.size !== 1) fail('PUBLICATION_OWNERSHIP_AMBIGUOUS', 'A file has multiple material owners; reviewed migration is required before any writes');
     const mutate = async (nextStage, action) => { stage = nextStage; await guard.assertCurrent(stage); return action(); };
+    previewRevision ??= derivePreviewRevision({ sourceCommit: guard.sourceCommit, planDigest: plan.digest, runId: env.GITHUB_RUN_ID, runAttempt: env.GITHUB_RUN_ATTEMPT });
+    if (!/^[a-f0-9]{64}$/.test(previewRevision)) fail('PREVIEW_REVISION_INVALID', 'Preview revision must be a SHA-256 digest');
+    const course = await mutate('mark-course-updating', () => adapter.upsertRow(config.APPWRITE_COURSES_TABLE_ID, previousCourse?.$id, courseFields(plan.course, previousCourse, 'updating', previewRevision), false));
     stage = 'upload-private-files';
     for (const file of files) {
       await mutate('upload-private-files', () => adapter.putFile(file.bucket, file.id, file.bytes, file.name, false));
@@ -105,7 +109,6 @@ export async function publishRevisionPlan(input, { adapter, adapterFactory, read
     if (previousCourse) await mutate('hide-course', () => adapter.setRowPermissions(config.APPWRITE_COURSES_TABLE_ID, previousCourse.$id, false));
     for (const previous of previousMaterials) await mutate('hide-materials', () => adapter.setRowPermissions(config.APPWRITE_MATERIALS_TABLE_ID, previous.$id, false));
     for (const [rows, table] of [[inventory.assets, config.APPWRITE_ASSETS_TABLE_ID], [inventory.attachments, config.APPWRITE_ATTACHMENTS_TABLE_ID], [inventory.bundles, config.APPWRITE_ATTACHMENT_BUNDLES_TABLE_ID]]) for (const row of rows.filter((item) => affectedOwners.has(item.materialId))) await mutate('hide-resource-rows', () => adapter.setRowPermissions(table, row.$id, false));
-    const course = await mutate('stage-course', () => adapter.upsertRow(config.APPWRITE_COURSES_TABLE_ID, previousCourse?.$id, courseFields(plan.course, previousCourse), false));
     const staged = [];
     for (const material of plan.materials) {
       const previous = one(previousMaterials, (row) => row.kind === material.kind && row.slug === material.slug, material.resourceKey);
@@ -157,10 +160,7 @@ export async function publishRevisionPlan(input, { adapter, adapterFactory, read
       const metadataReadable = plan.course.lifecycleStatus === 'published' && item.material.lifecycleStatus === 'published';
       await mutate('activate-material-revision', () => adapter.upsertRow(config.APPWRITE_MATERIALS_TABLE_ID, item.row.$id, materialFields(course.$id, item.material, item.row, item.material.attachmentsRevision), metadataReadable));
     }
-    await mutate('expose-course-last', () => adapter.setRowPermissions(config.APPWRITE_COURSES_TABLE_ID, course.$id, plan.course.lifecycleStatus === 'published'));
     stage = 'verify-final-revision';
-    assertFields(await adapter.findCourse(plan.course.slug), courseFields(plan.course, course), 'course');
-    await adapter.expectAnonymousRow(config.APPWRITE_COURSES_TABLE_ID, course.$id, plan.course.lifecycleStatus === 'published');
     for (const item of staged) await verifyRows(item, true);
     const activeFiles = new Set(files.filter((file) => file.readable).map(identity));
     for (const file of revoked.values()) if (!activeFiles.has(identity(file))) await adapter.expectAnonymousFile(file.bucket, file.id, false);
@@ -174,8 +174,12 @@ export async function publishRevisionPlan(input, { adapter, adapterFactory, read
           await adapter.expectAnonymousRow(table, resource.$id, false);
         }
       }
+      for (const file of oldRefs.filter((item) => item.owner === row.$id)) if (!await adapter.getFile(file.bucket, file.id)) fail('PUBLICATION_STATE_MISMATCH', 'omitted material: retained file is missing');
     }
-    return { course, materials: staged.map((item) => item.row.$id), sourceCommit: guard.sourceCommit, digest: plan.digest };
+    const readyCourse = await mutate('mark-course-ready', () => adapter.upsertRow(config.APPWRITE_COURSES_TABLE_ID, course.$id, courseFields(plan.course, course, 'ready', previewRevision), plan.course.lifecycleStatus === 'published'));
+    assertFields(await adapter.findCourse(plan.course.slug), courseFields(plan.course, readyCourse, 'ready', previewRevision), 'course');
+    await adapter.expectAnonymousRow(config.APPWRITE_COURSES_TABLE_ID, course.$id, plan.course.lifecycleStatus === 'published', { previewState: 'ready', previewRevision });
+    return { course: readyCourse, materials: staged.map((item) => item.row.$id), sourceCommit: guard.sourceCommit, digest: plan.digest, previewRevision };
   } catch (error) {
     if (error instanceof PublisherError) throw error;
     fail('PUBLISH_FAILED', `Publication failed during ${stage}; preserve private objects and retry only the current approved course revision`);
