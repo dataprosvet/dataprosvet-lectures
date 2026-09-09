@@ -1,0 +1,113 @@
+name: Reusable course publication
+on:
+  workflow_call:
+permissions:
+  contents: read
+env:
+  COURSE_ATTACHMENT_MAX_BYTES: ${{ vars.COURSE_ATTACHMENT_MAX_BYTES }}
+jobs:
+  validate:
+    name: validate
+    runs-on: ubuntu-24.04
+    outputs:
+      course_branch: ${{ steps.branch-policy.outputs.course_branch }}
+    steps:
+      - name: Checkout course source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          lfs: true
+          persist-credentials: false
+          path: course-source
+      - name: Checkout pinned publisher
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: dataprosvet/dataprosvet-lectures
+          ref: 0f334e52bdbf42548f2c611c0610ce1b75aba669
+          sparse-checkout: .github/publisher
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+          path: publisher-baseline
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 20.20.2
+          cache: npm
+          cache-dependency-path: publisher-baseline/.github/publisher/package-lock.json
+      - run: npm ci
+        working-directory: publisher-baseline/.github/publisher
+      - name: Resolve authorized course branch
+        id: branch-policy
+        run: npm run branch-policy
+        working-directory: publisher-baseline/.github/publisher
+        env:
+          COURSE_ROOT: ${{ github.workspace }}/course-source
+          COURSE_EVENT_NAME: ${{ github.event_name }}
+          COURSE_REF_NAME: ${{ github.ref_name }}
+          COURSE_HEAD_REF: ${{ github.head_ref }}
+          COURSE_BASE_REF: ${{ github.base_ref }}
+          COURSE_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          COURSE_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+      - name: Validate complete course source
+        run: npm run validate
+        working-directory: publisher-baseline/.github/publisher
+        env:
+          COURSE_ROOT: ${{ github.workspace }}/course-source
+          COURSE_BRANCH: ${{ steps.branch-policy.outputs.course_branch }}
+
+  deploy:
+    name: deploy
+    needs: validate
+    if: github.event_name == 'push' && needs.validate.outputs.course_branch == github.ref_name && vars.COURSE_PUBLICATION_ROLLOUT == 'attachments-v1'
+    runs-on: ubuntu-24.04
+    environment: appwrite
+    concurrency:
+      group: course-${{ needs.validate.outputs.course_branch }}
+      cancel-in-progress: false
+    steps:
+      - name: Checkout course source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          lfs: true
+          persist-credentials: false
+          path: course-source
+      - name: Checkout pinned publisher
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: dataprosvet/dataprosvet-lectures
+          ref: 0f334e52bdbf42548f2c611c0610ce1b75aba669
+          sparse-checkout: .github/publisher
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+          path: publisher-baseline
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 20.20.2
+          cache: npm
+          cache-dependency-path: publisher-baseline/.github/publisher/package-lock.json
+      - run: npm ci
+        working-directory: publisher-baseline/.github/publisher
+      - name: Publish complete preview revision
+        run: npm run publish
+        working-directory: publisher-baseline/.github/publisher
+        env:
+          COURSE_ROOT: ${{ github.workspace }}/course-source
+          COURSE_BRANCH: ${{ needs.validate.outputs.course_branch }}
+          COURSE_PUBLISHER_SHA: 0f334e52bdbf42548f2c611c0610ce1b75aba669
+          COURSE_PUBLICATION_ROLLOUT: ${{ vars.COURSE_PUBLICATION_ROLLOUT }}
+          COURSE_PUBLICATION_READINESS: ${{ vars.COURSE_PUBLICATION_READINESS }}
+          APPWRITE_ENDPOINT: ${{ vars.APPWRITE_ENDPOINT }}
+          APPWRITE_PROJECT_ID: ${{ vars.APPWRITE_PROJECT_ID }}
+          APPWRITE_DATABASE_ID: ${{ vars.APPWRITE_DATABASE_ID }}
+          APPWRITE_COURSES_TABLE_ID: ${{ vars.APPWRITE_COURSES_TABLE_ID }}
+          APPWRITE_MATERIALS_TABLE_ID: ${{ vars.APPWRITE_MATERIALS_TABLE_ID }}
+          APPWRITE_ASSETS_TABLE_ID: ${{ vars.APPWRITE_ASSETS_TABLE_ID }}
+          APPWRITE_ATTACHMENTS_TABLE_ID: ${{ vars.APPWRITE_ATTACHMENTS_TABLE_ID }}
+          APPWRITE_ATTACHMENT_BUNDLES_TABLE_ID: ${{ vars.APPWRITE_ATTACHMENT_BUNDLES_TABLE_ID }}
+          APPWRITE_MARKDOWN_BUCKET_ID: ${{ vars.APPWRITE_MARKDOWN_BUCKET_ID }}
+          APPWRITE_MEDIA_BUCKET_ID: ${{ vars.APPWRITE_MEDIA_BUCKET_ID }}
+          APPWRITE_ATTACHMENTS_BUCKET_ID: ${{ vars.APPWRITE_ATTACHMENTS_BUCKET_ID }}
+          APPWRITE_ATTACHMENT_BUNDLES_BUCKET_ID: ${{ vars.APPWRITE_ATTACHMENT_BUNDLES_BUCKET_ID }}
+          APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
