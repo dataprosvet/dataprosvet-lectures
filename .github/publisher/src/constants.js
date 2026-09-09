@@ -5,7 +5,7 @@ export const LIMITS = Object.freeze({
   maxMaterialsPerKind: 200,
   maxAssetsPerMaterial: 50,
   maxMarkdownBytes: 256 * 1024,
-  maxImageBytes: 5 * 1024 * 1024,
+  maxImageBytes: 5_000_000,
   maxImageWidth: 4096,
   maxImageHeight: 4096,
   maxImagePixels: 16_000_000,
@@ -37,7 +37,6 @@ export const IMAGE_TYPES = Object.freeze({
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg',
-  '.webp': 'image/webp',
 });
 export const UNREFERENCED_ASSET_POLICY = 'error';
 export const SLUG_PATTERN = '^[a-z0-9]+(?:-[a-z0-9]+)*$';
