@@ -11,7 +11,7 @@ export function resourceFixture() {
   tables.bundles.columns.push(...['materialId', 'attachmentsRevision', 'fileId', 'sha256'].map((key) => column(key, 'varchar', true, 64)), column('fileName', 'varchar', true, 255), column('mimeType', 'varchar', true, 128), column('sourceCommit', 'varchar', false, 40), ...['sizeBytes', 'sourceTotalBytes', 'attachmentCount'].map((key) => ({ ...column(key, 'integer', true), min: 1, max: key === 'attachmentCount' ? 10 : 30000000 })));
   tables.bundles.indexes.push(index('bundles_material_unique', 'unique', ['materialId']));
   const buckets = Object.fromEntries([
-    ['markdown-files', 262144, ['md']], ['media-files', 5000000, ['png', 'jpg', 'jpeg']],
+    ['markdown-files', 262144, ['md']], ['media-files', 5242880, ['png', 'jpg', 'jpeg']],
     ['source-files', 10485760, ['pdf', 'pptx', 'xlsx', 'docx', 'ipynb', 'py', 'zip', '7z', 'gz', 'tar', 'rar']],
     ['zip-files', 30000000, ['zip']],
   ].map(([id, maximumFileSize, allowedFileExtensions]) => [id, { $id: id, enabled: true, fileSecurity: true, $permissions: [], maximumFileSize, allowedFileExtensions, compression: 'none', encryption: true, antivirus: true, transformations: false }]));

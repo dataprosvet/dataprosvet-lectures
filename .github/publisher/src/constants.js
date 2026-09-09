@@ -5,7 +5,7 @@ export const LIMITS = Object.freeze({
   maxMaterialsPerKind: 200,
   maxAssetsPerMaterial: 50,
   maxMarkdownBytes: 256 * 1024,
-  maxImageBytes: 5_000_000,
+  maxImageBytes: 5 * 1024 * 1024,
   maxImageWidth: 4096,
   maxImageHeight: 4096,
   maxImagePixels: 16_000_000,

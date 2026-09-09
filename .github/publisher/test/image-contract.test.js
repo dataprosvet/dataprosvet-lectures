@@ -9,10 +9,10 @@ function png(size) {
   bytes.writeUInt32BE(1, 16); bytes.writeUInt32BE(1, 20);
   return bytes;
 }
-test('media contract accepts exactly 5000000 bytes and rejects one more', () => {
-  assert.equal(LIMITS.maxImageBytes, 5_000_000);
-  assert.equal(inspectImage(png(5_000_000), 'assets/image.png').mimeType, 'image/png');
-  assert.throws(() => inspectImage(png(5_000_001), 'assets/image.png'), { code: 'IMAGE_TOO_LARGE' });
+test('media contract accepts exactly 5 MiB and rejects one byte more', () => {
+  assert.equal(LIMITS.maxImageBytes, 5 * 1024 * 1024);
+  assert.equal(inspectImage(png(5 * 1024 * 1024), 'assets/image.png').mimeType, 'image/png');
+  assert.throws(() => inspectImage(png(5 * 1024 * 1024 + 1), 'assets/image.png'), { code: 'IMAGE_TOO_LARGE' });
 });
 test('WebP is rejected by extension and by signature, including renamed files', () => {
   assert.deepEqual(Object.keys(IMAGE_TYPES).sort(), ['.jpeg', '.jpg', '.png']);
