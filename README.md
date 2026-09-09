@@ -1,6 +1,6 @@
 # dataprosvet-lectures
 
-`master` — шаблон; `courses/<slug>` — курс. Команды ниже выполняются из корня клона. Нужны Git LFS, Node.js версии из workflow, npm и GitHub CLI (`gh`).
+`master` — центральный publisher и шаблон; `courses/<slug>` — курс и короткий workflow-caller. Нужны Git LFS и GitHub CLI (`gh`).
 
 > Новый протокол публикации выключен по умолчанию до review общего baseline, аудита, проверки ресурсов и отдельного разрешения rollout. Локальные тесты не разрешают deployment/backfill. [Условия включения и восстановления](.github/publisher/README.md).
 > Публикация принимает только новый план из полной CLI-валидации; старый reconciler существует исключительно в fake regression tests.
@@ -14,7 +14,7 @@
 | `lecture-notes/` | Краткие конспекты лекций |
 | `lectures-teacher/`, его `seminars/` и `homeworks/` | Материалы преподавателя; не публикуются |
 | `assets/`, `attachments/` | Изображения; скачиваемые файлы |
-| `.github/` | Схема YAML, проверки, деплой |
+| `.github/workflows/publish-course.yml` | Caller центральной проверки и публикации |
 | `.gitattributes`, `.gitignore`, `.gitkeep` | Правила LFS; исключения Git; сохранение пустых папок |
 | `sources/` | Локальные источники; не добавлять в Git |
 
@@ -38,8 +38,6 @@ git switch -c courses/data-engineering origin/master
 cp course.yaml.example course.yaml
 # Заполните поля курса: slug — data-engineering; пока оставьте draft и пустые списки.
 git add course.yaml
-npm --prefix .github/publisher ci
-(cd .github/publisher && COURSE_ROOT=../.. COURSE_BRANCH=courses/data-engineering npm run validate)
 git commit -m "Create data engineering course"
 git push -u origin courses/data-engineering
 ```
@@ -114,27 +112,25 @@ git switch -c course/data-engineering/update-materials origin/courses/data-engin
 ```sh
 git add course.yaml lectures/001_intro.md seminars/002_practice.md homeworks/003_homework.md \
   attachments/intro.pdf attachments/practice.zip attachments/homework.py
-npm --prefix .github/publisher ci
-(cd .github/publisher && COURSE_ROOT=../.. COURSE_BRANCH=courses/data-engineering npm run validate)
 git commit -m "Update course materials"
 git push -u origin course/data-engineering/update-materials
 gh pr create --base courses/data-engineering --title "Update course materials"
 ```
 
-Дождитесь `validate`, выполните merge, проверьте `deploy` в GitHub Actions. PR только проверяет; merge публикует только после разрешённого rollout. Для доступа к файлам курс и материал должны иметь `published` и `available`.
+Дождитесь `validate`, выполните merge, проверьте `deploy` в GitHub Actions. PR не получает Appwrite key; merge публикует только после разрешённого rollout. Для доступа к файлам курс и материал должны иметь `published` и `available`.
 
 Если ветка курса обновилась: `git fetch origin`, `git merge origin/courses/data-engineering`, повторная проверка и `git push`.
 
 ## 5. Обновление из master
 
-Общие `.github/`, `README.md`, `course.yaml.example` изменяет maintainer в `master`. Подтяните обновление в каждый курс через PR:
+Центральные `.github/publisher`, schema и reusable workflow изменяет maintainer только в `master`. В курс переносится только `.github/workflows/publish-course.yml` через PR:
 
 ```sh
 git fetch origin
 git switch -c course/data-engineering/sync-master origin/courses/data-engineering
-git merge origin/master
+git checkout origin/master -- .github/workflows/publish-course.yml
 git push -u origin course/data-engineering/sync-master
 gh pr create --base courses/data-engineering --title "Sync master"
 ```
 
-При конфликтах сохраните контент курса и актуальные общие файлы из `master`. Перед merge дождитесь `validate`, после merge проверьте `deploy`.
+Не копируйте `.github/publisher` в курс. Перед merge дождитесь `validate`, после merge проверьте `deploy`.

@@ -103,28 +103,31 @@ test('secret scanner allows references but rejects literal credentials', () => {
 
 test('workflow has the required branch and credential boundaries', async () => {
   const workflow = await readFile(path.join(root, '.github/workflows/publish-course.yml'), 'utf8');
-  const deploy = workflow.slice(workflow.indexOf('  deploy:'));
-  const validate = workflow.slice(workflow.indexOf('  validate:'), workflow.indexOf('  deploy:'));
+  const reusable = await readFile(path.join(root, '.github/workflows/reusable-publish-course.yml'), 'utf8');
+  const deploy = reusable.slice(reusable.indexOf('  deploy:'));
+  const validate = reusable.slice(reusable.indexOf('  validate:'), reusable.indexOf('  deploy:'));
   assert.equal([...workflow.matchAll(/branches: \["courses\/\*"\]/g)].length, 2);
   assert.doesNotMatch(workflow, /courses\/\*\*/);
-  assert.match(workflow, /id: branch-policy/);
-  assert.match(workflow, /COURSE_HEAD_SHA: \$\{\{ github\.event\.pull_request\.head\.sha \}\}/);
-  assert.match(workflow, /COURSE_BASE_SHA: \$\{\{ github\.event\.pull_request\.base\.sha \}\}/);
-  assert.match(workflow, /COURSE_BRANCH: \$\{\{ steps\.branch-policy\.outputs\.course_branch \}\}/);
-  assert.match(workflow, /name: validate/);
-  assert.match(workflow, /^env:\n  COURSE_ATTACHMENT_MAX_BYTES: \$\{\{ vars\.COURSE_ATTACHMENT_MAX_BYTES \}\}$/m);
-  assert.equal([...workflow.matchAll(/COURSE_ATTACHMENT_MAX_BYTES:/g)].length, 1);
-  assert.match(workflow, /if: github\.event_name == 'push' && needs\.validate\.outputs\.course_branch == github\.ref_name/);
-  assert.match(workflow, /environment: appwrite/);
-  assert.match(workflow, /APPWRITE_API_KEY: \$\{\{ secrets\.APPWRITE_API_KEY \}\}/);
-  assert.equal([...workflow.matchAll(/uses: actions\/(?:checkout|setup-node)@([a-f0-9]+)/g)].every((match) => match[1].length === 40), true);
-  assert.equal([...workflow.matchAll(/with: \{[^}\n]*lfs: true[^}\n]*\}/g)].length, 2);
-  assert.match(workflow, /cancel-in-progress: false/);
+  assert.match(workflow, /uses: dataprosvet\/dataprosvet-lectures\/\.github\/workflows\/reusable-publish-course\.yml@c5c1a5b8d69182c0e2ab9c49dcf9ba0ffed57adc/);
   assert.match(workflow, /^permissions:\n  contents: read$/m);
+  assert.doesNotMatch(workflow, /secrets:|with:|runs-on:|environment:/);
+  assert.match(reusable, /id: branch-policy/);
+  assert.match(reusable, /COURSE_HEAD_SHA: \$\{\{ github\.event\.pull_request\.head\.sha \}\}/);
+  assert.match(reusable, /COURSE_BASE_SHA: \$\{\{ github\.event\.pull_request\.base\.sha \}\}/);
+  assert.match(reusable, /COURSE_BRANCH: \$\{\{ steps\.branch-policy\.outputs\.course_branch \}\}/);
+  assert.match(reusable, /name: validate/);
+  assert.match(reusable, /^env:\n  COURSE_ATTACHMENT_MAX_BYTES: \$\{\{ vars\.COURSE_ATTACHMENT_MAX_BYTES \}\}$/m);
+  assert.equal([...reusable.matchAll(/COURSE_ATTACHMENT_MAX_BYTES:/g)].length, 1);
+  assert.match(reusable, /if: github\.event_name == 'push' && needs\.validate\.outputs\.course_branch == github\.ref_name/);
+  assert.match(reusable, /environment: appwrite/);
+  assert.match(reusable, /APPWRITE_API_KEY: \$\{\{ secrets\.APPWRITE_API_KEY \}\}/);
+  assert.equal([...reusable.matchAll(/uses: actions\/(?:checkout|setup-node)@([a-f0-9]+)/g)].every((match) => match[1].length === 40), true);
+  assert.equal([...reusable.matchAll(/^\s+lfs: true$/gm)].length, 2);
+  assert.match(reusable, /cancel-in-progress: false/);
   assert.doesNotMatch(validate, /secrets\.|APPWRITE_API_KEY/);
   assert.doesNotMatch(validate, /github\.head_ref \|\| github\.ref_name/);
   assert.doesNotMatch(deploy, /cache:|actions\/(?:cache|upload-artifact|download-artifact)@/);
-  assert.doesNotMatch(workflow, /actions\/(?:upload-artifact|download-artifact)@/);
+  assert.doesNotMatch(reusable, /actions\/(?:upload-artifact|download-artifact)@/);
   assert.doesNotMatch(deploy, /run:.*\$\{\{ github\.(?:ref_name|head_ref) \}\}/);
 });
 
