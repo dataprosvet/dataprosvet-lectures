@@ -4,6 +4,7 @@ import { canonicalJson, checksum } from './models.js';
 export const PUBLICATION_PROTOCOL = 'attachments-v1';
 export const CANONICAL_REPOSITORY = 'dataprosvet/dataprosvet-lectures';
 export const WRITER_WORKFLOW = '.github/workflows/publish-course.yml';
+export const REUSABLE_WRITER_WORKFLOW = '.github/workflows/reusable-publish-course.yml';
 const digest = /^[a-f0-9]{64}$/;
 const sha = /^[a-f0-9]{40}$/;
 const branch = /^courses\/[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -17,7 +18,7 @@ export function readPublicationReadiness(env = process.env) {
 }
 
 export function assertPublicationReadiness(readiness, courseSlug) {
-  if (!readiness || readiness.enabled !== true || readiness.protocol !== PUBLICATION_PROTOCOL || readiness.singleWriterConfirmed !== true || !digest.test(readiness.auditDigest) || !digest.test(readiness.resourceDigest) || !sha.test(readiness.publisherTreeSha) || !Array.isArray(readiness.courseBranches) || readiness.courseBranches.length === 0 || readiness.courseBranches.length > 100 || readiness.courseBranches.some((item) => typeof item !== 'string' || !branch.test(item)) || new Set(readiness.courseBranches).size !== readiness.courseBranches.length || !readiness.courseBranches.includes(`courses/${courseSlug}`)) {
+  if (!readiness || readiness.enabled !== true || readiness.protocol !== PUBLICATION_PROTOCOL || readiness.singleWriterConfirmed !== true || !digest.test(readiness.auditDigest) || !digest.test(readiness.resourceDigest) || !sha.test(readiness.publisherTreeSha) || !sha.test(readiness.publisherCommitSha) || !sha.test(readiness.writerWorkflowSha) || !Array.isArray(readiness.courseBranches) || readiness.courseBranches.length === 0 || readiness.courseBranches.length > 100 || readiness.courseBranches.some((item) => typeof item !== 'string' || !branch.test(item)) || new Set(readiness.courseBranches).size !== readiness.courseBranches.length || !readiness.courseBranches.includes(`courses/${courseSlug}`)) {
     fail('PUBLICATION_READINESS_REQUIRED', 'Publication remains disabled until reviewed audit, resource, baseline and single-writer approvals are supplied');
   }
   return Object.freeze({ ...readiness, courseBranches: Object.freeze([...readiness.courseBranches].sort()) });

@@ -4,25 +4,27 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import YAML from 'yaml';
 import { fail, PublisherError } from './errors.js';
-import { CANONICAL_REPOSITORY, PUBLICATION_PROTOCOL, WRITER_WORKFLOW } from './publication-readiness.js';
+import { CANONICAL_REPOSITORY, PUBLICATION_PROTOCOL, REUSABLE_WRITER_WORKFLOW, WRITER_WORKFLOW } from './publication-readiness.js';
 
 const exec = promisify(execFile);
 const shaPattern = /^[a-f0-9]{40}$/;
 export const WRITER_JOB_CONDITION = "github.event_name == 'push' && needs.validate.outputs.course_branch == github.ref_name && vars.COURSE_PUBLICATION_ROLLOUT == 'attachments-v1'";
 
-export function assertWriterWorkflow(source) {
+export function assertWriterWorkflow(source, writerWorkflowSha) {
   const workflow = YAML.parse(source);
-  const job = workflow?.jobs?.deploy;
-  if (workflow?.permissions?.contents !== 'read' || job?.environment !== 'appwrite' || job?.concurrency?.group !== 'course-${{ needs.validate.outputs.course_branch }}' || job?.concurrency?.['cancel-in-progress'] !== false || job?.if !== WRITER_JOB_CONDITION) fail('WRITER_POLICY_MISMATCH', 'Publisher workflow does not enforce the reviewed environment, rollout and course concurrency policy');
+  const jobs = workflow?.jobs;
+  const job = jobs?.publish;
+  const expected = `${CANONICAL_REPOSITORY}/${REUSABLE_WRITER_WORKFLOW}@${writerWorkflowSha}`;
+  if (workflow?.permissions?.contents !== 'read' || !jobs || Object.keys(jobs).length !== 1 || job?.uses !== expected || job?.secrets !== undefined || job?.with !== undefined) fail('WRITER_POLICY_MISMATCH', 'Course workflow must be a secret-free caller pinned to the reviewed reusable workflow SHA');
 }
 
 export async function createSourceGuard({ root, readiness, courseSlug, env = process.env, fetchImpl = fetch, readHead = async () => (await exec('git', ['rev-parse', 'HEAD'], { cwd: root })).stdout.trim(), readDirty = async () => (await exec('git', ['status', '--porcelain', '--untracked-files=no'], { cwd: root })).stdout, readWorkflow = () => fs.readFile(path.join(root, WRITER_WORKFLOW), 'utf8') }) {
   const branch = env.COURSE_BRANCH;
-  if (env.GITHUB_ACTIONS !== 'true' || env.GITHUB_REPOSITORY !== CANONICAL_REPOSITORY || env.GITHUB_EVENT_NAME !== 'push' || branch !== `courses/${courseSlug}` || !readiness.courseBranches.includes(branch) || env.GITHUB_REF !== `refs/heads/${branch}` || env.GITHUB_WORKFLOW_REF !== `${CANONICAL_REPOSITORY}/${WRITER_WORKFLOW}@refs/heads/${branch}` || env.COURSE_PUBLICATION_ROLLOUT !== PUBLICATION_PROTOCOL || !shaPattern.test(env.GITHUB_SHA) || !env.GITHUB_TOKEN) fail('WRITER_POLICY_MISMATCH', 'Only the approved serialized course workflow may publish');
+  if (env.GITHUB_ACTIONS !== 'true' || env.GITHUB_REPOSITORY !== CANONICAL_REPOSITORY || env.GITHUB_EVENT_NAME !== 'push' || branch !== `courses/${courseSlug}` || !readiness.courseBranches.includes(branch) || env.GITHUB_REF !== `refs/heads/${branch}` || env.GITHUB_WORKFLOW_REF !== `${CANONICAL_REPOSITORY}/${REUSABLE_WRITER_WORKFLOW}@${readiness.writerWorkflowSha}` || env.GITHUB_WORKFLOW_SHA !== readiness.writerWorkflowSha || env.COURSE_PUBLISHER_SHA !== readiness.publisherCommitSha || env.COURSE_PUBLICATION_ROLLOUT !== PUBLICATION_PROTOCOL || !shaPattern.test(env.GITHUB_SHA) || !env.GITHUB_TOKEN) fail('WRITER_POLICY_MISMATCH', 'Only the approved serialized course workflow and publisher commits may publish');
   const sourceCommit = env.GITHUB_SHA;
   if (await readHead() !== sourceCommit) fail('STALE_PUBLICATION_SOURCE', 'Checked-out source differs from the authorized workflow revision');
   if (await readDirty() !== '') fail('STALE_PUBLICATION_SOURCE', 'Tracked source differs from the checked-out workflow revision');
-  assertWriterWorkflow(await readWorkflow());
+  assertWriterWorkflow(await readWorkflow(), readiness.writerWorkflowSha);
   const read = async (suffix) => {
     try {
       const response = await fetchImpl(`https://api.github.com/repos/${CANONICAL_REPOSITORY}/git/${suffix}`, { method: 'GET', redirect: 'error', signal: AbortSignal.timeout(15000), headers: { Accept: 'application/vnd.github+json', Authorization: `Bearer ${env.GITHUB_TOKEN}`, 'X-GitHub-Api-Version': '2022-11-28' } });

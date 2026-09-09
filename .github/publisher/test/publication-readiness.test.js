@@ -5,10 +5,12 @@ import { assertWriterWorkflow, createSourceGuard } from '../src/source-guard.js'
 
 const sourceCommit = 'a'.repeat(40);
 const treeSha = 'b'.repeat(40);
+const publisherCommitSha = '1'.repeat(40);
+const writerWorkflowSha = '2'.repeat(40);
 const branch = 'courses/fixture-course';
-const readiness = () => ({ enabled: true, protocol: 'attachments-v1', singleWriterConfirmed: true, auditDigest: 'c'.repeat(64), resourceDigest: 'd'.repeat(64), publisherTreeSha: treeSha, courseBranches: [branch] });
-const env = () => ({ GITHUB_ACTIONS: 'true', GITHUB_REPOSITORY: 'dataprosvet/dataprosvet-lectures', GITHUB_EVENT_NAME: 'push', COURSE_BRANCH: branch, GITHUB_REF: `refs/heads/${branch}`, GITHUB_WORKFLOW_REF: `dataprosvet/dataprosvet-lectures/.github/workflows/publish-course.yml@refs/heads/${branch}`, COURSE_PUBLICATION_ROLLOUT: 'attachments-v1', GITHUB_SHA: sourceCommit, GITHUB_TOKEN: 'fixture-only-token' });
-const workflow = `permissions:\n  contents: read\njobs:\n  deploy:\n    environment: appwrite\n    if: github.event_name == 'push' && needs.validate.outputs.course_branch == github.ref_name && vars.COURSE_PUBLICATION_ROLLOUT == 'attachments-v1'\n    concurrency:\n      group: course-\${{ needs.validate.outputs.course_branch }}\n      cancel-in-progress: false\n`;
+const readiness = () => ({ enabled: true, protocol: 'attachments-v1', singleWriterConfirmed: true, auditDigest: 'c'.repeat(64), resourceDigest: 'd'.repeat(64), publisherTreeSha: treeSha, publisherCommitSha, writerWorkflowSha, courseBranches: [branch] });
+const env = () => ({ GITHUB_ACTIONS: 'true', GITHUB_REPOSITORY: 'dataprosvet/dataprosvet-lectures', GITHUB_EVENT_NAME: 'push', COURSE_BRANCH: branch, GITHUB_REF: `refs/heads/${branch}`, GITHUB_WORKFLOW_REF: `dataprosvet/dataprosvet-lectures/.github/workflows/reusable-publish-course.yml@${writerWorkflowSha}`, GITHUB_WORKFLOW_SHA: writerWorkflowSha, COURSE_PUBLISHER_SHA: publisherCommitSha, COURSE_PUBLICATION_ROLLOUT: 'attachments-v1', GITHUB_SHA: sourceCommit, GITHUB_TOKEN: 'fixture-only-token' });
+const workflow = `permissions:\n  contents: read\njobs:\n  publish:\n    uses: dataprosvet/dataprosvet-lectures/.github/workflows/reusable-publish-course.yml@${writerWorkflowSha}\n`;
 function fakeGithub(overrides = {}) {
   const calls = [];
   const ref = { ref: `refs/heads/${branch}`, object: { type: 'commit', sha: sourceCommit } };
@@ -39,11 +41,11 @@ test('readiness is default-denied and every required approval is explicit', () =
   assert.deepEqual(readPublicationReadiness({}), { enabled: false });
   assert.throws(() => assertPublicationReadiness(readPublicationReadiness({}), 'fixture-course'), (error) => error.code === 'PUBLICATION_READINESS_REQUIRED');
   assert.equal(assertPublicationReadiness(readiness(), 'fixture-course').enabled, true);
-  for (const key of ['enabled', 'protocol', 'singleWriterConfirmed', 'auditDigest', 'resourceDigest', 'publisherTreeSha', 'courseBranches']) {
+  for (const key of ['enabled', 'protocol', 'singleWriterConfirmed', 'auditDigest', 'resourceDigest', 'publisherTreeSha', 'publisherCommitSha', 'writerWorkflowSha', 'courseBranches']) {
     const candidate = readiness(); delete candidate[key];
     assert.throws(() => assertPublicationReadiness(candidate, 'fixture-course'), (error) => error.code === 'PUBLICATION_READINESS_REQUIRED');
   }
-  for (const changes of [{ enabled: 'true' }, { singleWriterConfirmed: 'true' }, { auditDigest: 'bad' }, { resourceDigest: 'bad' }, { publisherTreeSha: 'bad' }, { courseBranches: [] }, { courseBranches: [branch, branch] }, { courseBranches: ['courses/other'] }, { courseBranches: ['courses/../other'] }]) assert.throws(() => assertPublicationReadiness({ ...readiness(), ...changes }, 'fixture-course'), (error) => error.code === 'PUBLICATION_READINESS_REQUIRED');
+  for (const changes of [{ enabled: 'true' }, { singleWriterConfirmed: 'true' }, { auditDigest: 'bad' }, { resourceDigest: 'bad' }, { publisherTreeSha: 'bad' }, { publisherCommitSha: 'bad' }, { writerWorkflowSha: 'bad' }, { courseBranches: [] }, { courseBranches: [branch, branch] }, { courseBranches: ['courses/other'] }, { courseBranches: ['courses/../other'] }]) assert.throws(() => assertPublicationReadiness({ ...readiness(), ...changes }, 'fixture-course'), (error) => error.code === 'PUBLICATION_READINESS_REQUIRED');
   for (const source of ['{', 'x'.repeat(16385)]) assert.throws(() => readPublicationReadiness({ COURSE_PUBLICATION_READINESS: source }), (error) => error.code === 'PUBLICATION_READINESS_REQUIRED');
 });
 
@@ -66,7 +68,7 @@ test('source guard uses only fake GETs and detects branch advance on a later fen
 });
 
 test('unapproved entrypoints, wrong checkout and missing concurrency fail before any network read', async () => {
-  for (const changes of [{ GITHUB_ACTIONS: 'false' }, { GITHUB_EVENT_NAME: 'workflow_dispatch' }, { GITHUB_REPOSITORY: 'other/repo' }, { GITHUB_REF: 'refs/heads/master' }, { GITHUB_WORKFLOW_REF: 'other-workflow' }, { COURSE_PUBLICATION_ROLLOUT: '' }, { GITHUB_SHA: 'bad' }, { GITHUB_TOKEN: '' }]) {
+  for (const changes of [{ GITHUB_ACTIONS: 'false' }, { GITHUB_EVENT_NAME: 'workflow_dispatch' }, { GITHUB_REPOSITORY: 'other/repo' }, { GITHUB_REF: 'refs/heads/master' }, { GITHUB_WORKFLOW_REF: 'other-workflow' }, { GITHUB_WORKFLOW_SHA: 'bad' }, { COURSE_PUBLISHER_SHA: 'bad' }, { COURSE_PUBLICATION_ROLLOUT: '' }, { GITHUB_SHA: 'bad' }, { GITHUB_TOKEN: '' }]) {
     const fake = fakeGithub();
     await assert.rejects(() => createSourceGuard(guardOptions(fake, { env: { ...env(), ...changes } })), (error) => error.code === 'WRITER_POLICY_MISMATCH');
     assert.equal(fake.calls.length, 0);
@@ -77,7 +79,7 @@ test('unapproved entrypoints, wrong checkout and missing concurrency fail before
   await assert.rejects(() => createSourceGuard(guardOptions(fake, { readDirty: async () => ' M course.yaml\n' })), (error) => error.code === 'STALE_PUBLICATION_SOURCE');
   await assert.rejects(() => createSourceGuard(guardOptions(fake, { courseSlug: 'another-course' })), (error) => error.code === 'WRITER_POLICY_MISMATCH');
   assert.equal(fake.calls.length, 0);
-  for (const bad of [workflow.replace('cancel-in-progress: false', 'cancel-in-progress: true'), workflow.replace('environment: appwrite', 'environment: production'), workflow.replace('group: course-', 'group: other-'), workflow.replace('vars.COURSE_PUBLICATION_ROLLOUT', 'vars.WRONG'), workflow.replace('if: ', 'if: always() || ')]) assert.throws(() => assertWriterWorkflow(bad), (error) => error.code === 'WRITER_POLICY_MISMATCH');
+  for (const bad of [workflow.replace(writerWorkflowSha, '3'.repeat(40)), workflow.replace('publish:', 'deploy:'), `${workflow}  other:\n    runs-on: ubuntu-latest\n`, `${workflow}    secrets: inherit\n`, `${workflow}    with: { publisher: mutable }\n`]) assert.throws(() => assertWriterWorkflow(bad, writerWorkflowSha), (error) => error.code === 'WRITER_POLICY_MISMATCH');
 });
 
 test('incomplete known-writer inventory, old baseline and denied reads fail closed', async () => {

@@ -88,7 +88,7 @@ function options(adapter, fixture, onFence = () => {}) {
   return {
     adapter,
     adapterFactory: () => { throw Error('Real adapters are forbidden in these fixtures'); },
-    readiness: { enabled: true, protocol: 'attachments-v1', singleWriterConfirmed: true, auditDigest: 'c'.repeat(64), resourceDigest: publicationResourceDigest(config), publisherTreeSha: 'b'.repeat(40), courseBranches: [`courses/${fixture.plan.course.slug}`] },
+    readiness: { enabled: true, protocol: 'attachments-v1', singleWriterConfirmed: true, auditDigest: 'c'.repeat(64), resourceDigest: publicationResourceDigest(config), publisherTreeSha: 'b'.repeat(40), publisherCommitSha: '1'.repeat(40), writerWorkflowSha: '2'.repeat(40), courseBranches: [`courses/${fixture.plan.course.slug}`] },
     prepareFiles: async () => fixture.prepared,
     sourceGuard: { sourceCommit: sha, courseSlug: fixture.plan.course.slug, async assertCurrent(stage) { adapter.state.stage = stage; adapter.state.events.push({ type: 'fence', stage }); await onFence(stage); } },
     previewRevision: 'd'.repeat(64),
