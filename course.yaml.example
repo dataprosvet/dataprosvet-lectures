@@ -14,6 +14,10 @@ materials:
   # briefMarkdown under lecture-notes/. Omitted paths stay dormant and are not
   # published; declaring a path enables strict validation and publication.
   # Any material may declare ordered files:
+  # At most 10 files, each <=10 MiB (10,485,760 bytes; configured limit may be lower).
+  # Complete STORE ZIP <=30,000,000 bytes including headers/central directory.
+  # 10 x 10 MiB does not fit: revise the inputs. Overflow rejects the whole plan
+  # before uploads or remote changes; no truncation, splitting or partial publish.
   # attachments: [{ key: slides, title: Slides, file: attachments/slides.pptx, sortOrder: 10 }]
   lectures: []
   seminars: []

@@ -9,11 +9,13 @@ export const LIMITS = Object.freeze({
   maxImageWidth: 4096,
   maxImageHeight: 4096,
   maxImagePixels: 16_000_000,
-  maxAttachmentsPerMaterial: 100,
+  maxAttachmentsPerMaterial: 10,
+  maxAttachmentBundleBytes: 30_000_000,
+  maxAttachmentEntryPathBytes: 2048,
   maxFileIdLength: 36,
 });
 
-export const DEFAULT_MAX_ATTACHMENT_BYTES = 15 * 1024 * 1024;
+export const DEFAULT_MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024;
 export const ATTACHMENT_TYPES = Object.freeze({
   '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
   '.pdf': 'application/pdf',
