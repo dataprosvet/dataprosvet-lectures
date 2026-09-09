@@ -37,7 +37,6 @@ export const IMAGE_TYPES = Object.freeze({
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg',
-  '.webp': 'image/webp',
 });
 export const UNREFERENCED_ASSET_POLICY = 'error';
 export const SLUG_PATTERN = '^[a-z0-9]+(?:-[a-z0-9]+)*$';
