@@ -11,7 +11,7 @@ import { inspectImage } from '../src/image.js';
 import { inspectAttachment } from '../src/attachment.js';
 import { PublisherError } from '../src/errors.js';
 import { containsForbiddenSecret } from '../src/validator.js';
-import { publishCourse } from '../src/publisher.js';
+import { publishCourse } from './legacy-publisher-fixture.js';
 import { assertContentAddressedFileCompatible, collectRows } from '../src/appwrite.js';
 import { officeFixture } from './archive-fixtures.js';
 import { DEFAULT_MAX_ATTACHMENT_BYTES } from '../src/constants.js';
@@ -21,7 +21,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../.
 test('config keeps public values separate and requires the key only for publication', () => {
   const env = Object.fromEntries(['APPWRITE_ENDPOINT', 'APPWRITE_PROJECT_ID', 'APPWRITE_DATABASE_ID', 'APPWRITE_COURSES_TABLE_ID', 'APPWRITE_MATERIALS_TABLE_ID', 'APPWRITE_ASSETS_TABLE_ID', 'APPWRITE_MARKDOWN_BUCKET_ID', 'APPWRITE_MEDIA_BUCKET_ID', 'APPWRITE_ATTACHMENTS_TABLE_ID', 'APPWRITE_ATTACHMENTS_BUCKET_ID'].map((name) => [name, 'value']));
   assert.equal(loadConfig({ env }).APPWRITE_API_KEY, undefined);
-  assert.equal(loadConfig({ env }).COURSE_ATTACHMENT_MAX_BYTES, 15728640);
+  assert.equal(loadConfig({ env }).COURSE_ATTACHMENT_MAX_BYTES, 10485760);
   assert.throws(() => loadConfig({ env, requireKey: true }), /APPWRITE_API_KEY/);
   assert.equal(loadConfig({ env: { ...env, APPWRITE_API_KEY: 'k'.repeat(512) }, requireKey: true }).APPWRITE_API_KEY.length, 512);
 });
@@ -203,12 +203,12 @@ test('publisher rejects transformed checksum drift before contacting Appwrite', 
 
 test('attachment limit parser shares strict default and hard ceiling semantics', () => {
   for (const value of [undefined, null, '']) assert.equal(parseAttachmentLimit(value), DEFAULT_MAX_ATTACHMENT_BYTES);
-  for (const value of [1, '1', 15728640, '15728640', '000123']) assert.equal(parseAttachmentLimit(value), Number(value));
-  for (const value of [0, -1, 15728641, NaN, Infinity, 1.5, '0', '-1', '+1', '1.0', '1e3', '0x20', ' ', ' 1', '1 ', '15728641', false, {}, []]) {
+  for (const value of [1, '1', 10485760, '10485760', '000123']) assert.equal(parseAttachmentLimit(value), Number(value));
+  for (const value of [0, -1, 10485761, 15728640, NaN, Infinity, 1.5, '0', '-1', '+1', '1.0', '1e3', '0x20', ' ', ' 1', '1 ', '10485761', false, {}, []]) {
     assert.throws(() => parseAttachmentLimit(value), (error) => error.code === 'CONFIG_INVALID');
   }
   const env = Object.fromEntries(['APPWRITE_ENDPOINT', 'APPWRITE_PROJECT_ID', 'APPWRITE_DATABASE_ID', 'APPWRITE_COURSES_TABLE_ID', 'APPWRITE_MATERIALS_TABLE_ID', 'APPWRITE_ASSETS_TABLE_ID', 'APPWRITE_MARKDOWN_BUCKET_ID', 'APPWRITE_MEDIA_BUCKET_ID', 'APPWRITE_ATTACHMENTS_TABLE_ID', 'APPWRITE_ATTACHMENTS_BUCKET_ID'].map((name) => [name, 'value']));
   assert.equal(loadConfig({ env: { ...env, COURSE_ATTACHMENT_MAX_BYTES: '' } }).COURSE_ATTACHMENT_MAX_BYTES, DEFAULT_MAX_ATTACHMENT_BYTES);
   assert.equal(loadConfig({ env: { ...env, COURSE_ATTACHMENT_MAX_BYTES: '4096' } }).COURSE_ATTACHMENT_MAX_BYTES, 4096);
-  assert.throws(() => loadConfig({ env: { ...env, COURSE_ATTACHMENT_MAX_BYTES: '15728641' } }), (error) => error.code === 'CONFIG_INVALID');
+  assert.throws(() => loadConfig({ env: { ...env, COURSE_ATTACHMENT_MAX_BYTES: '10485761' } }), (error) => error.code === 'CONFIG_INVALID');
 });

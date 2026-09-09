@@ -2,6 +2,9 @@
 
 `master` — шаблон; `courses/<slug>` — курс. Команды ниже выполняются из корня клона. Нужны Git LFS, Node.js версии из workflow, npm и GitHub CLI (`gh`).
 
+> Новый протокол публикации выключен по умолчанию до review общего baseline, аудита, проверки ресурсов и отдельного разрешения rollout. Локальные тесты не разрешают deployment/backfill. [Условия включения и восстановления](.github/publisher/README.md).
+> Публикация принимает только новый план из полной CLI-валидации; старый reconciler существует исключительно в fake regression tests.
+
 ## 1. Структура и изображения
 
 | Путь | Назначение |
@@ -51,7 +54,8 @@ git push -u origin courses/data-engineering
 - `lifecycleStatus`: `draft`, `published`, `archived`; `availability`: `inDevelopment`, `available`, `temporarilyUnavailable`.
 - `markdown` необязателен; имя — `<sortOrder из 3 цифр>_<slug>.md`. У лекции возможен `briefMarkdown: lecture-notes/001_intro.md`.
 - В `attachments` обязательны `key`, `title`, `file`, `sortOrder`; key и порядок уникальны внутри материала. Один файл принадлежит одному материалу.
-- Вложения: `.pptx`, `.pdf`, `.xlsx`, `.docx`, `.ipynb`, `.py`, `.zip`, `.7z`, `.tar.gz`, `.tar`, `.rar`; максимум **15 MiB = 15 728 640 байт** на файл.
+- Вложения: `.pptx`, `.pdf`, `.xlsx`, `.docx`, `.ipynb`, `.py`, `.zip`, `.7z`, `.tar.gz`, `.tar`, `.rar`; до 10 файлов на материал, каждый до **10 MiB = 10 485 760 байт** (настроенный лимит может быть меньше).
+- Готовый общий ZIP без сжатия — до **30 000 000 байт**, включая headers/central directory. Превышение отклоняет весь план до загрузок и любых удалённых изменений, без обрезания, разбиения или частичной публикации. **10 × 10 MiB не помещаются**: автор сам пересматривает состав или размеры файлов.
 
 Пример требует создания указанных Markdown и вложений:
 
@@ -117,7 +121,7 @@ git push -u origin course/data-engineering/update-materials
 gh pr create --base courses/data-engineering --title "Update course materials"
 ```
 
-Дождитесь `validate`, выполните merge, проверьте `deploy` в GitHub Actions. PR только проверяет; merge публикует. Для доступа к файлам курс и материал должны иметь `published` и `available`.
+Дождитесь `validate`, выполните merge, проверьте `deploy` в GitHub Actions. PR только проверяет; merge публикует только после разрешённого rollout. Для доступа к файлам курс и материал должны иметь `published` и `available`.
 
 Если ветка курса обновилась: `git fetch origin`, `git merge origin/courses/data-engineering`, повторная проверка и `git push`.
 
