@@ -41,7 +41,7 @@ jobs:
           COURSE_BRANCH: ${{ steps.branch-policy.outputs.course_branch }}
           COURSE_ROOT: "${{ github.workspace }}"
   deploy:
-    if: github.event_name == 'push' && needs.validate.outputs.course_branch == github.ref_name
+    if: github.event_name == 'push' && needs.validate.outputs.course_branch == github.ref_name && vars.COURSE_PUBLICATION_ROLLOUT == 'attachments-v1'
     needs: validate
     runs-on: ubuntu-24.04
     environment: appwrite
@@ -58,6 +58,9 @@ jobs:
         env:
           COURSE_BRANCH: ${{ needs.validate.outputs.course_branch }}
           COURSE_ROOT: ${{ github.workspace }}
+          COURSE_PUBLICATION_ROLLOUT: ${{ vars.COURSE_PUBLICATION_ROLLOUT }}
+          COURSE_PUBLICATION_READINESS: ${{ vars.COURSE_PUBLICATION_READINESS }}
+          GITHUB_TOKEN: ${{ github.token }}
           APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
           APPWRITE_ENDPOINT: ${{ vars.APPWRITE_ENDPOINT }}
           APPWRITE_PROJECT_ID: ${{ vars.APPWRITE_PROJECT_ID }}
@@ -69,5 +72,7 @@ jobs:
           APPWRITE_MEDIA_BUCKET_ID: ${{ vars.APPWRITE_MEDIA_BUCKET_ID }}
           APPWRITE_ATTACHMENTS_TABLE_ID: ${{ vars.APPWRITE_ATTACHMENTS_TABLE_ID }}
           APPWRITE_ATTACHMENTS_BUCKET_ID: ${{ vars.APPWRITE_ATTACHMENTS_BUCKET_ID }}
+          APPWRITE_ATTACHMENT_BUNDLES_TABLE_ID: ${{ vars.APPWRITE_ATTACHMENT_BUNDLES_TABLE_ID }}
+          APPWRITE_ATTACHMENT_BUNDLES_BUCKET_ID: ${{ vars.APPWRITE_ATTACHMENT_BUNDLES_BUCKET_ID }}
       - run: |
-          printf '## Course publication\n\n- Repository: `%s`\n- Branch: `%s`\n- Commit: `%s`\n- Result: success; retry the same commit if recovery is needed.\n' "${GITHUB_REPOSITORY}" "${GITHUB_REF_NAME}" "${GITHUB_SHA}" >> "$GITHUB_STEP_SUMMARY"
+          printf '## Course publication\n\n- Repository: `%s`\n- Branch: `%s`\n- Commit: `%s`\n- Result: success; recovery requires a fresh run of the current approved course commit.\n' "${GITHUB_REPOSITORY}" "${GITHUB_REF_NAME}" "${GITHUB_SHA}" >> "$GITHUB_STEP_SUMMARY"
