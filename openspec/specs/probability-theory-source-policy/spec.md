@@ -6,27 +6,30 @@ Defines how normative, textbook, machine-learning, and methodological sources go
 
 ## Requirements
 
-### Requirement: Source authority is explicit and role-based
-The supplied 2026-08-31 topic-plan PDF SHALL govern lecture boundaries, ordering, and the optional status of lecture 8 as the newest source for those decisions. The RPD and OMD SHALL continue to govern workload, learning outcomes, formal individual assignments, control works, cases, and assessment except where the newer topic plan explicitly changes topic placement. V. E. Gmurman's textbook SHALL remain the primary substantive source for definitions, theorems, formulas, derivations, notation comparisons, and core examples. The machine-learning books SHALL be actively used for applied interpretation and relevant ML/data examples. Other books and methodological sources MAY provide exercises, computation, simulation, and enrichment but MUST NOT silently override higher-priority sources.
+### Requirement: Приоритет источников задан явно и по ролям
+Предоставленный PDF с тематическим планом от 2026-08-31 SHALL определять границы и порядок лекций, а также факультативный статус лекции 8 как наиболее новый источник этих решений. РПД и ОМД SHALL продолжать определять трудоёмкость, результаты обучения, формальные индивидуальные задания, контрольные работы, кейсы и оценивание, кроме случаев, когда новый тематический план явно меняет размещение темы. Учебник В. Е. Гмурмана SHALL оставаться основным содержательным источником определений, теорем, формул, выводов, сопоставления обозначений и базовых примеров. Книги по машинному обучению SHALL активно использоваться для прикладной интерпретации и уместных примеров из ML и анализа данных. Другие книги и методические материалы MAY предоставлять упражнения, вычислительные методы, симуляции и дополнительный материал, но MUST NOT неявно переопределять источники с более высоким приоритетом.
 
-#### Scenario: A lecture topic is written or revised
-- **WHEN** a maintainer develops definitions, formulas, explanations, derivations, or examples for a lecture
-- **THEN** the topic boundary is checked against the supplied current plan, mandatory outcomes and assessment links are checked against the RPD/OMD, core mathematics is grounded first in Gmurman, and the machine-learning books are actively considered for useful applications and interpretation
+#### Scenario: Материал обновляется после принятия нового плана
+- **WHEN** создаётся или пересматривается лекция, семинар или домашняя работа
+- **THEN** её тематическая граница соответствует предоставленному плану, оценочные обязательства соответствуют РПД и ОМД, математика опирается на содержательные источники, а полезные применения в ML рассмотрены явно
 
-### Requirement: The expected source inventory is documented
-The course OpenSpec context SHALL identify `sources/лекции.pdf` by its stable filename and SHALL assign it the highest authority for lecture boundaries. It SHALL continue to identify the RPD, OMD, Gmurman, both machine-learning books, exercise and methodological PDFs, Monte Carlo guidance, curriculum plans, and active review evidence. The source files MAY remain local under ignored `sources/`, but their absence SHALL be reported when a requested revision requires direct source verification.
+#### Scenario: Тема лекции создаётся или обновляется
+- **WHEN** автор разрабатывает определения, формулы, объяснения, выводы, примеры или упражнения для лекции
+- **THEN** тематическая граница сверяется с актуальным планом, обязательные результаты и связи с оцениванием проверяются по РПД и ОМД, основная математика сначала сверяется с Гмурманом, а книги по машинному обучению рассматриваются как источник полезных приложений и интерпретаций
 
-#### Scenario: Agent begins source-grounded course work
-- **WHEN** an agent reads the course specification before editing educational content
-- **THEN** it can resolve the current topic-plan PDF, distinguish each source role, apply the conflict hierarchy, and avoid reconstructing absent sources from memory
+### Requirement: Ожидаемый состав источников задокументирован
+Контекст OpenSpec курса SHALL указывать скопированный актуальный PDF с тематическим планом под стабильным именем файла и SHALL назначать ему высший приоритет при определении границ лекций. Контекст SHALL продолжать указывать РПД, ОМД, Гмурмана, обе книги по машинному обучению, сборники задач и методические PDF, материалы по методу Монте-Карло, планы курса и актуальные свидетельства ревью. Все исходные файлы SHALL оставаться локальными, игнорируемыми системой контроля версий и неопубликованными.
 
-### Requirement: Source-derived exercises are transformative and traceable
-Teacher materials SHALL retain internal source provenance for selected definitions, examples, and exercises, while public materials MUST NOT expose local source paths or reproduce substantial copyrighted passages. Adapted exercises SHALL be independently solved and checked before use.
+#### Scenario: Агент начинает работу с материалами на основе источников
+- **WHEN** агент читает политику источников курса перед редактированием материалов
+- **THEN** он может найти актуальный PDF с тематическим планом, различить роли источников, применить иерархию при конфликте и не восстанавливать отсутствующие источники по памяти
 
-#### Scenario: Exercise bank is reviewed
-- **WHEN** an exercise inspired by a local book is accepted
-- **THEN** internal evidence identifies its source role, the published wording is appropriately transformed, and an independently checked solution exists
+### Requirement: Упражнения на основе источников переработаны и прослеживаемы
+Преподавательские материалы SHALL сохранять внутренние сведения о происхождении выбранных определений, примеров и упражнений, а публичные материалы MUST NOT раскрывать локальные пути источников или воспроизводить существенные защищённые авторским правом фрагменты. Адаптированные упражнения SHALL независимо решаться и проверяться до использования.
 
+#### Scenario: Проверяется банк упражнений
+- **WHEN** принимается упражнение, созданное на основе локальной книги
+- **THEN** внутренние свидетельства указывают роль источника, публичная формулировка достаточно переработана и существует независимо проверенное решение
 ### Requirement: Source conflicts and defects are handled explicitly
 A lecture MUST NOT invent missing normative data or conceal a conflict between sources. The course SHALL retain documented handling for the missing graph in control-work task 3.5, the absent independence condition in individual assignment 6.3, the general and special forms of Chebyshev's law of large numbers, and the distinction between the modern convention `F(x)=P(X\le x)` and conventions used in older sources.
 

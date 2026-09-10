@@ -13,6 +13,19 @@ The current production release SHALL expose the published probability-theory cou
 - **WHEN** the current release has completed successfully
 - **THEN** the course and lecture-one metadata are visible, lecture one offers complete and concise text, later lectures are not available for study, and no presentation action is shown
 
+### Requirement: Планирование и перенос материалов не расширяют публичную доступность
+Перестройка тем, добавление материалов семинаров и домашних работ или доведение материалов до готовности к реализации MUST NOT открывать содержимое неактивной лекции, семинара, домашней работы, преподавательского ключа, банка решений, исходного файла или вложения без отдельного явного решения о выпуске. `course.yaml` SHALL содержать metadata-записи всех восьми лекций и всех 17 семинаров. Семинары SHALL иметь `lifecycleStatus: published`, `availability: inDevelopment`, нейтральное обязательное `summary` без тематического описания и MUST NOT иметь путь `markdown` до отдельного решения о выпуске содержимого.
+
+#### Scenario: Система публикации собирает курс после перестройки
+- **WHEN** после переноса всех файлов материалов создаётся план публикации
+- **THEN** план содержит 8 лекционных и 17 семинарских metadata-записей, текстовые действия есть только у лекции 1, все семинары остаются `inDevelopment` без содержимого, ИДЗ отсутствуют, а преподавательские решения и локальные источники не попадают в публикуемые ресурсы
+
+### Requirement: Публичные задачные материалы предотвращают утечку ответов
+Любое будущее публичное действие семинара или домашней работы SHALL ссылаться только на безопасные для студентов файлы. Преподавательские файлы, полные ключи решений, сведения о происхождении источников и скрытые ответы MUST NOT быть доступны через публичный манифест или граф ресурсов.
+
+#### Scenario: Семинар выпускается позднее
+- **WHEN** действие семинара объявляется в манифесте
+- **THEN** связанный файл содержит полные решения только обозначенных типовых задач, а план не содержит преподавательскую версию или ресурс с ключом решений
 ### Requirement: Publication plan is validated before deployment
 Before any production mutation, the repository SHALL pass strict OpenSpec validation, Markdown and asset validation, deterministic publication-plan generation, and a review of the resulting plan against the staged scope. Validation failure or an unexpected public resource MUST stop the release.
 
