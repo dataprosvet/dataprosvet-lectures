@@ -1,9 +1,12 @@
 # Copy this file to course.yaml only in a courses/<slug> branch.
 # This template is deliberately a non-deployable draft with no learning content.
 schemaVersion: 1
-slug: replace-with-course-slug
-title: Replace with the course title
-description: Replace with a short course description.
+slug: big-data
+title: Теория обрабтки больших данных
+description: >-
+  Курс вводит в большие данные применительно к сельскому хозяйству: определение
+  и характеристики Big Data, форматы и методы обработки, инструменты Python,
+  источники данных в растениеводстве и животноводстве, а также возможности
 lifecycleStatus: draft
 availability: inDevelopment
 sortOrder: 1
