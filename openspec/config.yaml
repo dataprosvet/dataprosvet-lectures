@@ -85,8 +85,11 @@ context: |
     - Use `P(A)` for event probability and `P(A|B)` for conditional probability.
     - Use the modern distribution-function convention `F_X(x)=P(X\le x)` and
       explain translations when an older source uses a different boundary.
-    - Use `M(X)=E[X]` for expectation, `D(X)=Var(X)` for variance, and
-      `σ(X)=sqrt(D(X))` for standard deviation.
+  - Use `E[X]` for expectation, `Var(X)` for variance, and `σ(X)=sqrt(Var(X))`
+    for standard deviation as the primary course notation. Introduce `M(X)` and
+    `D(X)` only as explicit source-notation translations when needed.
+  - Prefer Russian elementary-outcome labels such as `О`/`Р` in Russian-language
+    experiments and similar examples; foreign labels require an explanation.
     - Write `X~N(μ,σ²)` so the second parameter is variance; standardization is
       `Z=(X-μ)/σ`.
     - State assumptions before using independence, Bernoulli, Poisson, Laplace,
