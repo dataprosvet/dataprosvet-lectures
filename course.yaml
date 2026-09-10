@@ -45,6 +45,7 @@ materials:
       markdown: seminars/102_comb-and-prob-17-25-2.md
       attachments:
         - { key: jupyter-notebook, title: "Симуляция PoTC", file: attachments/002-seminar-probability-simulation.ipynb, sortOrder: 1 }
+        - { key: notes-s2, title: "Конспект семинара", file: attachments/pt-s2.pdf, sortOrder: 2 }
   homeworks:
     - slug: idz-1-combinatorics
       title: ИДЗ № 1. Основные понятия теории вероятностей
