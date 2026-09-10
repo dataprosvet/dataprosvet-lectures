@@ -1,0 +1,24 @@
+# Copy this file to course.yaml only in a courses/<slug> branch.
+# This template is deliberately a non-deployable draft with no learning content.
+schemaVersion: 1
+slug: replace-with-course-slug
+title: Replace with the course title
+description: Replace with a short course description.
+lifecycleStatus: draft
+availability: inDevelopment
+sortOrder: 1
+materials:
+  # Image attachments are derived from Obsidian/Markdown embeds during CI.
+  # Authors do not need to add per-material assets entries.
+  # Lectures may independently declare markdown under lectures/ and concise
+  # briefMarkdown under lecture-notes/. Omitted paths stay dormant and are not
+  # published; declaring a path enables strict validation and publication.
+  # Any material may declare ordered files:
+  # At most 10 files, each <=10 MiB (10,485,760 bytes; configured limit may be lower).
+  # Complete STORE ZIP <=~28.61 MiB (exactly 30,000,000 bytes), including headers/central directory.
+  # 10 x 10 MiB does not fit: revise the inputs. Overflow rejects the whole plan
+  # before uploads or remote changes; no truncation, splitting or partial publish.
+  # attachments: [{ key: slides, title: Slides, file: attachments/slides.pptx, sortOrder: 10 }]
+  lectures: []
+  seminars: []
+  homeworks: []
