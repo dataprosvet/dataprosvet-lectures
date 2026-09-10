@@ -326,3 +326,17 @@ test('final verification also rejects public metadata belonging to omitted mater
   const empty = await fixturePlan([]);
   await assert.rejects(() => publish(adapter, empty), (error) => error.code === 'PUBLICATION_STATE_MISMATCH');
 });
+
+test('incompatible publication plan fails before file preparation or remote mutation', async () => {
+  const adapter = memoryAdapter(); const fixture = await fixturePlan();
+  const incompatible = structuredClone(fixture.plan); incompatible.version = 1;
+  let prepared = false;
+  const candidate = options(adapter, fixture);
+  candidate.prepareFiles = async () => { prepared = true; return fixture.prepared; };
+  await assert.rejects(
+    () => publishRevisionPlan(incompatible, candidate),
+    (error) => error.code === 'PUBLICATION_PLAN_INVALID',
+  );
+  assert.equal(prepared, false);
+  assert.equal(adapter.state.events.length, 0);
+});
