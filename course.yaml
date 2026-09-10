@@ -39,10 +39,10 @@ materials:
         Python 3.11: https://www.python.org/downloads/
         Устновка юпитера: https://jupyter.org/install#jupyter-notebook
         Где реально применяется алгоритм Power of Two Choices: https://www.haproxy.com/blog/power-of-two-load-balancing
-      sortOrder: 21
+      sortOrder: 102
       lifecycleStatus: published
       availability: available
-      markdown: seminars/202_combinatorics-and-classical-probability.md
+      markdown: seminars/102_comb-and-prob-17-25-2.md
       attachments:
         - { key: jupyter-notebook, title: "Симуляция PoTC", file: attachments/002-seminar-probability-simulation.ipynb, sortOrder: 1 }
   homeworks:
