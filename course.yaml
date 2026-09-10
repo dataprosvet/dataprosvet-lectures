@@ -42,7 +42,7 @@ materials:
       sortOrder: 21
       lifecycleStatus: published
       availability: available
-      markdown: seminars/002__17-25-2__combinatorics-and-classical-probability.md
+      markdown: seminars/202_combinatorics-and-classical-probability.md
       attachments:
         - { key: jupyter-notebook, title: "Симуляция PoTC", file: attachments/002-seminar-probability-simulation.ipynb, sortOrder: 1 }
   homeworks:
