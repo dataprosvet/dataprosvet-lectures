@@ -20,20 +20,19 @@ The course SHALL enable students to model random experiments and events, calcula
 - **WHEN** the complete lecture and seminar sequence has been studied
 - **THEN** the student can select, calculate, and interpret an appropriate elementary probability model for problems in business, information systems, reliability, and machine learning
 
-### Requirement: Eight lectures preserve the approved topic sequence
-The lecture sequence SHALL follow the newest supplied topic plan: (1) events, operations, combinatorics, definitions and properties of probability; (2) conditional probability, independence, addition and multiplication theorems, complete systems, total probability, and Bayes; (3) repeated independent trials, Bernoulli, local and integral Laplace, and Poisson; (4) discrete and continuous random variables, distribution series, CDFs, and densities; (5) expectation, mode, median, variance, standard deviation, variation, moments, skewness, and kurtosis; (6) named discrete and continuous distribution laws; (7) Markov, Chebyshev, and Bernoulli inequalities, laws of large numbers, and the central limit theorem; and (8) optional bivariate random variables if time remains. Lecture 8 SHALL have no dedicated seminar, and its time SHALL be returned to lectures 1-7 when required.
+### Requirement: Восемь лекций сохраняют утверждённую последовательность тем
+Последовательность лекций SHALL соответствовать новейшему предоставленному тематическому плану: (1) события, операции над событиями, комбинаторика, определения и свойства вероятности; (2) условная вероятность, независимость, теоремы сложения и умножения, полные системы событий, полная вероятность и формула Байеса; (3) повторные независимые испытания, формула Бернулли, локальная и интегральная теоремы Лапласа и формула Пуассона; (4) дискретные и непрерывные случайные величины, ряды распределения, функции распределения и плотности; (5) математическое ожидание, мода, медиана, дисперсия, стандартное отклонение, коэффициент вариации, моменты, асимметрия и эксцесс; (6) именованные дискретные и непрерывные законы распределения; (7) неравенства Маркова, Чебышёва и Бернулли, законы больших чисел и центральная предельная теорема; (8) факультативные элементы двумерной случайной величины при наличии времени. Лекция 8 MUST NOT иметь отдельного семинара, а её время SHALL использоваться для завершения лекций 1-7, когда это необходимо.
 
-#### Scenario: Public lecture set is inspected
-- **WHEN** the eight lecture materials are ordered by their manifest sort order
-- **THEN** their titles and substantive scope follow the newest progression without a missing or duplicated required topic block, and lecture 8 is marked optional
+#### Scenario: Проверяется публичный набор лекций
+- **WHEN** восемь лекционных материалов упорядочены по полю сортировки манифеста
+- **THEN** их названия и содержательные границы соответствуют новой последовательности без пропущенных или продублированных обязательных тематических блоков, а лекция 8 отмечена как факультативная
 
-### Requirement: Seminars and formal homework align to the lecture progression
-The course SHALL maintain 17 ordered seminar capabilities and seven formal homework capabilities. Each seminar and homework SHALL identify its prerequisite lecture topics, and no seminar SHALL depend on optional lecture 8.
+### Requirement: Семинары и формальные домашние работы согласованы с последовательностью лекций
+Курс SHALL поддерживать 17 упорядоченных возможностей семинаров и семь возможностей формальных домашних работ. Каждый семинар и каждая домашняя работа SHALL указывать необходимые лекционные темы, при этом ни один семинар MUST NOT зависеть от факультативной лекции 8.
 
-#### Scenario: Curriculum map is validated
-- **WHEN** the complete curriculum map is inspected
-- **THEN** lectures 1-7 have aligned practice and assessment coverage, all 17 seminars and seven IDZ capabilities are present, and lecture 8 has no seminar dependency
-
+#### Scenario: Проверяется карта учебного курса
+- **WHEN** проводится проверка полной карты учебного курса
+- **THEN** лекции 1-7 имеют согласованное практическое и оценочное покрытие, присутствуют все 17 семинаров и семь возможностей ИДЗ, а лекция 8 не имеет зависимого от неё семинара
 ### Requirement: Required learning outcomes remain covered
 Course materials SHALL cover event operations and combinatorics; classical, geometric, and statistical probability; addition and multiplication theorems; conditional probability; total probability and Bayes; Bernoulli, Poisson, local Laplace, and integral Laplace methods; discrete and continuous distributions; expectation, variance, and standard deviation; binomial, Poisson, uniform, exponential, and normal laws; joint distributions, covariance, and correlation; Chebyshev and Bernoulli laws of large numbers; the central limit theorem; and an introductory interpretation of statistical hypotheses and p-values.
 

@@ -35,21 +35,46 @@ Student notes MUST NOT contain instructor timing tables, presentation instructio
 - **WHEN** a section exists to manage lesson delivery rather than explain probability theory to a student
 - **THEN** it remains only in the teacher script and is omitted from the corresponding public note
 
-### Requirement: Public lecture identity remains stable
-The complete lectures and concise notes SHALL retain the existing eight filenames, slugs, sort order, and titles across their respective directories. In the current staged release, lecture one SHALL declare `lectures/001_random-experiments-events-combinatorics.md` as `markdown` and `lecture-notes/001_random-experiments-events-combinatorics.md` as `briefMarkdown`; lectures two through eight SHALL remain present and quality-checked but MUST NOT be made publicly available. Any retained image reference SHALL resolve through the supported asset mechanism, and every asset in the publication plan SHALL be referenced by a declared public material.
+### Requirement: Публичная идентичность лекций остаётся стабильной
+Курс SHALL сохранять стабильные идентификаторы в рамках нового тематического плана и SHALL предоставлять явную карту миграции от старых идентификаторов к новым для каждого изменённого имени файла, slug, названия, перекрёстной ссылки или ссылки на ресурс. Все восемь metadata-записей лекций SHALL содержать названия и описания, соответствующие актуальным тематическим границам. Лекция 1 SHALL оставаться единственной публично доступной полной и краткой лекцией, пока отдельное решение о выпуске не изменит доступность; лекции 2–8 SHALL иметь `published` + `inDevelopment` без публичных текстовых действий.
 
-#### Scenario: Current staged release is inspected
-- **WHEN** the eight manifest entries are examined after the change
-- **THEN** lecture one exposes both complete and concise text actions while lectures two through eight remain unavailable or in development without an exposed public text action
+#### Scenario: Текущий поэтапный выпуск проверяется после миграции
+- **WHEN** проверяются манифест и план публикации
+- **THEN** лекция 1 предоставляет только корректные перенесённые пути полной и краткой версий, лекции 2-8 остаются неактивными, а все старые внутренние ссылки разрешаются через карту миграции или обновлены
 
-#### Scenario: Course is published after conversion
-- **WHEN** the publisher validates the staged course branch
-- **THEN** lecture one resolves to both stable student paths, later lecture files remain dormant, and no teacher or OpenSpec file enters the plan
+#### Scenario: Проверяется текущий поэтапный выпуск
+- **WHEN** после тематической миграции проверяются восемь записей манифеста
+- **THEN** названия и описания всех лекций совпадают с актуальным распределением тем, лекция 1 предоставляет действия для полной и краткой версий, а лекции 2–8 имеют `published` + `inDevelopment` без публичного текстового действия
 
-#### Scenario: A later lecture is prepared for a future release
-- **WHEN** a maintainer inspects its repository files before changing its availability
-- **THEN** its complete lecture and concise note retain the stable identity needed for a later manifest-only release decision
+#### Scenario: Курс публикуется после преобразования
+- **WHEN** система публикации проверяет перенесённую ветку поэтапного выпуска курса
+- **THEN** лекция 1 разрешается в оба актуальных студенческих пути, файлы последующих лекций остаются неактивными, а преподавательские файлы, источники, ключи решений и OpenSpec не попадают в план
 
+#### Scenario: Последующая лекция готовится к будущему выпуску
+- **WHEN** автор проверяет преподавательскую, полную студенческую и краткую студенческую версии последующей лекции
+- **THEN** все три версии имеют единый идентификатор и тематическую границу актуального плана, сохраняя различия для своих аудиторий
+
+### Requirement: Каждая лекция имеет три версии для разных аудиторий
+Каждая возможность лекции SHALL иметь полный преподавательский сценарий, самодостаточную полную студенческую лекцию и содержательно более краткий студенческий конспект. Три версии SHALL совпадать по определениям, обозначениям, формулам, условиям, результатам и тематической границе; только преподавательский сценарий MAY содержать тайминг, реплики, методику проведения, карту источников и полные преподавательские рекомендации.
+
+#### Scenario: Выполняется перекрёстное ревью версий
+- **WHEN** сравниваются три файла одной лекции
+- **THEN** математический смысл и обязательное покрытие совпадают, студенческие файлы не содержат преподавательскую обвязку, а краткий конспект остаётся короче полной лекции
+
+### Requirement: Формулы лекций согласованы и читаемо оформлены
+Во всех трёх версиях лекций 1–8 определения, обозначения, формулы, условия применимости и численные результаты SHALL быть взаимно согласованы и математически корректны. Формула или содержащий формулу фрагмент MUST NOT оформляться как Markdown-цитата. Формулы и математические обозначения MUST использовать корректные LaTeX-разделители; исправление оформления MUST сохранять исходное содержание, кроме отдельно подтверждённых исправлений ошибок.
+
+#### Scenario: Лекции 2–8 проходят формульную сверку
+- **WHEN** преподавательская, полная студенческая и краткая студенческая версии одной лекции сравниваются редакционно и автоматическими проверками
+- **THEN** обязательные формулы и соглашения совпадают по смыслу, численные примеры воспроизводятся, команды LaTeX корректны и формулы отсутствуют внутри Markdown-цитат
+
+#### Scenario: Лекция 1 проходит аудит LaTeX-оформления
+- **WHEN** три версии лекции 1 проверяются после форматирования
+- **THEN** математические обозначения не остаются обычным текстом, LaTeX-разделители сбалансированы, а нормализованное текстово-математическое содержание совпадает с post-pull baseline
+
+#### Scenario: Исправляется ошибка без расширения лекции
+- **WHEN** в лекции 2–8 обнаружена неверная нотация, опечатка LaTeX, фактическая или вычислительная ошибка
+- **THEN** исправляется только ошибочный фрагмент и связанные с ним версии, а новые темы и содержательные блоки не добавляются
 ### Requirement: Course OpenSpec is versioned but unpublished
 The course SHALL track `openspec/config.yaml`, durable specifications, and change artifacts required for reproducible course maintenance. The broad `openspec/` ignore rule SHALL be removed, while transient operating-system files SHALL remain ignored. Course OpenSpec content MUST NOT be interpreted as educational material or uploaded by the publisher.
 
