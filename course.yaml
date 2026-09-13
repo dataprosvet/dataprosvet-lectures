@@ -30,5 +30,59 @@ materials:
       briefMarkdown: lecture-notes/001_what-is-os.md
       attachments:
         - { key: slides, title: Слайды, file: attachments/001_what-is-os.pptx, sortOrder: 1 }
-  seminars: []
+    - slug: processes-and-threads
+      title: Процессы и потоки — введение
+      summary: Процессы и потоки — введение
+      lifecycleStatus: published
+      availability: inDevelopment
+      sortOrder: 2
+    - slug: ipc-synchronization-deadlocks
+      title: IPC, синхронизация и deadlocks
+      summary: IPC, синхронизация и deadlocks
+      lifecycleStatus: published
+      availability: inDevelopment
+      sortOrder: 3
+    - slug: scheduling-and-multiprocessors
+      title: Планирование и мультипроцессорность
+      summary: Планирование и мультипроцессорность
+      lifecycleStatus: published
+      availability: inDevelopment
+      sortOrder: 4
+    - slug: memory-management
+      title: Управление памятью и виртуальная память
+      summary: Управление памятью и виртуальная память
+      lifecycleStatus: published
+      availability: inDevelopment
+      sortOrder: 5
+    - slug: file-systems
+      title: Файловые системы
+      summary: Файловые системы
+      lifecycleStatus: published
+      availability: inDevelopment
+      sortOrder: 6
+    - slug: io-devices
+      title: I/O, устройства
+      summary: I/O, устройства
+      lifecycleStatus: published
+      availability: inDevelopment
+      sortOrder: 7
+    - slug: course-review
+      title: Обзор курса
+      summary: Обзор курса
+      lifecycleStatus: published
+      availability: inDevelopment
+      sortOrder: 8
+  seminars:
+    - slug: week-01-tutorial
+      title: Введение в ОС (туториал 1)
+      summary: >-
+        Туториал Week 01: функции ОС, multiprogramming и time-sharing,
+        kernel/user mode, расчёты памяти экрана, загрузки CPU и среднего
+        времени доступа cache/RAM/disk.
+      lifecycleStatus: published
+      availability: inDevelopment
+      sortOrder: 101
+      markdown: seminars/101_week-01-tutorial.md
+      attachments:
+        - { key: slides, title: Слайды, file: attachments/101_week-01-tutorial.pptx, sortOrder: 1 }
   homeworks: []
