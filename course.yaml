@@ -37,5 +37,17 @@ materials:
       briefMarkdown: lecture-notes/001_concepts-and-sources.md
       attachments:
         - { key: slides, title: Слайды, file: attachments/001_concepts-and-sources.pptx, sortOrder: 1 }
-  seminars: []
+  seminars:
+    - slug: processing-tutorial
+      title: Технологии обработки больших данных
+      summary: >-
+        Туториал 1: 7V и форматы на примерах из АПК, выбор методов обработки,
+        сбор данных, batch и streaming, operational БД, DWH и Data Lake
+        на банковском контуре.
+      lifecycleStatus: published
+      availability: available
+      sortOrder: 2
+      markdown: seminars/002_processing-tutorial.md
+      attachments:
+        - { key: slides, title: Слайды, file: attachments/002_processing-tutorial.pptx, sortOrder: 1 }
   homeworks: []
