@@ -7,6 +7,7 @@ description: >-
   Курс вводит в большие данные применительно к сельскому хозяйству: определение
   и характеристики Big Data, форматы и методы обработки, инструменты Python,
   источники данных в растениеводстве и животноводстве, а также возможности
+  и ограничения внедрения.
 lifecycleStatus: draft
 availability: inDevelopment
 sortOrder: 1
@@ -22,6 +23,19 @@ materials:
   # 10 x 10 MiB does not fit: revise the inputs. Overflow rejects the whole plan
   # before uploads or remote changes; no truncation, splitting or partial publish.
   # attachments: [{ key: slides, title: Slides, file: attachments/slides.pptx, sortOrder: 10 }]
-  lectures: []
+  lectures:
+    - slug: concepts-and-sources
+      title: Понятие, характеристики и источники больших данных
+      summary: >-
+        Определение Big Data по ГОСТ, характеристики variety, velocity,
+        variability и veracity, форматы данных, методы обработки, библиотеки
+        Python и источники данных в сельском хозяйстве.
+      lifecycleStatus: draft
+      availability: inDevelopment
+      sortOrder: 1
+      markdown: lectures/001_concepts-and-sources.md
+      briefMarkdown: lecture-notes/001_concepts-and-sources.md
+      attachments:
+        - { key: slides, title: Слайды, file: attachments/001_concepts-and-sources.pptx, sortOrder: 1 }
   seminars: []
   homeworks: []
