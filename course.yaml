@@ -8,8 +8,8 @@ description: >-
   и характеристики Big Data, форматы и методы обработки, инструменты Python,
   источники данных в растениеводстве и животноводстве, а также возможности
   и ограничения внедрения.
-lifecycleStatus: draft
-availability: inDevelopment
+lifecycleStatus: published
+availability: available
 sortOrder: 1
 materials:
   # Image attachments are derived from Obsidian/Markdown embeds during CI.
@@ -30,8 +30,8 @@ materials:
         Определение Big Data по ГОСТ, характеристики variety, velocity,
         variability и veracity, форматы данных, методы обработки, библиотеки
         Python и источники данных в сельском хозяйстве.
-      lifecycleStatus: draft
-      availability: inDevelopment
+      lifecycleStatus: published
+      availability: available
       sortOrder: 1
       markdown: lectures/001_concepts-and-sources.md
       briefMarkdown: lecture-notes/001_concepts-and-sources.md
