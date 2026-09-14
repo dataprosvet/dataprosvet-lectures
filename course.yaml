@@ -2,7 +2,7 @@
 # This template is deliberately a non-deployable draft with no learning content.
 schemaVersion: 1
 slug: big-data
-title: Теория обрабтки больших данных
+title: Теория обработки больших данных
 description: >-
   Курс вводит в большие данные применительно к сельскому хозяйству: определение
   и характеристики Big Data, форматы и методы обработки, инструменты Python,
@@ -50,4 +50,16 @@ materials:
       markdown: seminars/002_processing-tutorial.md
       attachments:
         - { key: slides, title: Слайды, file: attachments/002_processing-tutorial.pptx, sortOrder: 1 }
+    - slug: etl-sql-python
+      title: Практика №1. ETL, SQL и Python
+      summary: >-
+        Практическая работа: ETL от CSV к отчёту, основы SQL и pandas
+        на наборе продаж sales.csv.
+      lifecycleStatus: draft
+      availability: inDevelopment
+      sortOrder: 102
+      markdown: seminars/102_etl-sql-python.md
+      attachments:
+        - { key: slides, title: Слайды, file: attachments/102_etl-sql-python.pptx, sortOrder: 1 }
+        - { key: data, title: Данные sales.csv и SQL-скрипт, file: attachments/102_etl-sql-python-data.zip, sortOrder: 2 }
   homeworks: []
