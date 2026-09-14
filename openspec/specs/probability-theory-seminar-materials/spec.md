@@ -1,25 +1,24 @@
-<<<<<<< HEAD
 # Спецификация возможности: probability-theory-seminar-materials
 
 ## Purpose
 
-Устанавливает единый проверяемый контракт для преподавательских и публичных версий всех семинаров курса теории вероятностей.
+Устанавливает единый проверяемый контракт для преподавательских и студенческих версий 17 семинаров курса и связывает практический маршрут с утверждённой последовательностью лекций и оценочными материалами РПД.
 
 ## Requirements
 
 ### Requirement: Каждый семинар имеет две согласованные версии
-Для каждого из 17 семинаров курс SHALL поддерживать закрытую преподавательскую и публичную студенческую версии с одинаковой нумерацией и условиями задач. Преподавательская версия MUST содержать полный пошаговый разбор каждой задачи; публичная версия SHALL раскрывать решения только выбранных типовых задач.
+Для каждого из 17 семинаров курс SHALL поддерживать закрытую преподавательскую и студенческую версии с одинаковой нумерацией и условиями задач. Преподавательская версия MUST содержать полный пошаговый разбор каждой задачи; студенческая версия SHALL раскрывать решения только выбранных типовых задач.
 
 #### Scenario: Проверка паритета версий
 - **WHEN** две версии одного семинара сравниваются автоматически или редакционно
-- **THEN** количество, номера и условия задач совпадают, преподавательская версия решает каждую задачу, а публичная версия не раскрывает решения нетиповых задач
+- **THEN** количество, номера и условия задач совпадают, преподавательская версия решает каждую задачу, а студенческая версия не раскрывает решения нетиповых задач
 
 ### Requirement: Семинар содержит 15-20 качественных задач
-Каждый семинар SHALL содержать от 15 до 20 задач, распределённых по базовому, стандартному и повышенному уровням и включающих вычисление, выбор модели, проверку условий и интерпретацию результата. Повторы, отличающиеся только числами, MUST NOT учитываться как содержательно разные задачи. Единственное временное исключение — семинар 1: в текущем post-pull change он MUST сохранить семь задач неизменяемой преподавательской версии и SHALL быть расширен только после отдельного разрешения пользователя.
+Каждый содержательный семинар SHALL содержать от 15 до 20 основных задач, распределённых по базовому, стандартному и повышенному уровням и включающих вычисление, выбор модели, проверку условий и интерпретацию результата. Отдельные вопросы разминки MAY не входить в основной банк. Повторы, отличающиеся только числами, MUST NOT учитываться как содержательно разные задачи.
 
 #### Scenario: Банк задач проходит приёмку
 - **WHEN** семинар проверяется перед публикацией
-- **THEN** в нём насчитывается 15-20 содержательно различных задач, типовые задачи явно выбраны для публичного разбора, а остальные не содержат утечек решения
+- **THEN** в нём насчитывается 15-20 содержательно различных основных задач, разминка учтена отдельно, типовые задачи явно выбраны для студенческого разбора, а остальные не содержат утечек решения
 
 ### Requirement: Решения математически воспроизводимы
 Каждое преподавательское решение SHALL явно фиксировать модель, предпосылки, формулу, подстановку, вычисление, ответ и интерпретацию. Численные результаты SHALL быть независимо перепроверены, а точные, приближённые, асимптотические и ограничивающие выводы SHALL различаться.
@@ -29,66 +28,57 @@
 - **THEN** преподавательская версия указывает условия применимости, характер погрешности и причину выбора метода
 
 ### Requirement: Прикладные задачи используют источники трансформативно
-Задачи MAY опираться на все утверждённые книги и методические материалы, но SHALL быть переформулированы, проверены и адаптированы к целям курса. ML-примеры SHALL моделировать правдоподобные явления: классификационные ошибки, байесовское обновление, шум, редкие события, распределения данных, ожидание потерь или выборку.
+Задачи MAY опираться на утверждённые книги и методические материалы, но SHALL быть переформулированы, проверены и адаптированы к целям курса. ML-примеры SHALL моделировать правдоподобные явления: классификационные ошибки, байесовское обновление, шум, редкие события, распределения данных, ожидание потерь или выборку.
 
 #### Scenario: Задача создана на основе источника
 - **WHEN** редактор включает задачу, вдохновлённую книгой или методичкой
 - **THEN** задача не воспроизводит существенный фрагмент источника дословно, имеет проверенное решение и явно служит результату конкретного семинара
-=======
-# Probability Theory Seminar Materials Specification
 
-## Purpose
+### Requirement: Семнадцать семинаров сохраняют утверждённую сетку курса
+Курс SHALL сохранять 17 семинарских записей по два академических часа каждая. Актуальный ранний маршрут SHALL назначать семинару 1 классическую, статистическую и геометрическую вероятность, семинару 2 — перестановки, размещения, сочетания и повторения, семинару 3 — сложение, умножение, условную вероятность и независимость, семинару 4 — полную вероятность и Байеса. Семинары 5-17 MUST сохранять ранее утверждённые идентичности и доступность до отдельного изменения их содержания.
 
-Defines the complete source-grounded seminar sequence that turns the approved lecture progression into 17 coherent, practice-oriented meetings without introducing unapproved assessed content.
+#### Scenario: Проверяется инвентарь семинаров
+- **WHEN** записи семинаров упорядочиваются по `sortOrder`
+- **THEN** присутствуют 17 уникальных записей общей длительностью 34 академических часа, первые четыре соответствуют актуальному раннему маршруту, а записи 5-17 не изменены
 
-## Requirements
+### Requirement: Предпосылки семинаров не опережают лекции
+Каждый семинар SHALL использовать только понятия, введённые в предшествующей или текущей утверждённой лекции, кроме явно обозначенного расширения, которое объясняется самодостаточно и не становится скрытой предпосылкой оценочного задания РПД.
 
-### Requirement: Seventeen seminars follow the approved RPD sequence
-The course SHALL provide 17 student-facing seminar files, each representing two academic hours, in this order: (1) sum/product rules and permutations; (2) arrangements, combinations, and constrained counting; (3) classical probability; (4) geometric and statistical probability; (5) control work 1; (6) addition/multiplication theorems, conditional probability, and independence; (7) total probability and Bayes; (8) repeated independent trials; (9) control work 2; (10) discrete distribution rows and polygons; (11) expectation, variance, and standard deviation; (12) linear transformations, sums, binomial and Poisson laws; (13) discrete distribution functions and joint distributions; (14) continuous distribution functions and densities; (15) numerical characteristics, uniform and exponential laws; (16) normal distribution, standardization, interval probabilities, and the three-sigma rule; and (17) control work 3.
+#### Scenario: Выполняется проверка зависимостей
+- **WHEN** определения, формулы и методы решения семинара сравниваются с последовательностью лекций
+- **THEN** каждый обязательный метод уже введён либо явно объяснён в семинаре без опоры на более поздний материал
 
-#### Scenario: Seminar inventory is inspected
-- **WHEN** the seminar files and manifest entries are ordered by sort order
-- **THEN** all 17 meetings are present once, retain the approved progression, and total 34 academic hours
+### Requirement: Семинары являются полноценными учебными материалами
+Каждый неконтрольный семинар SHALL формулировать результаты обучения и предпосылки, давать компактное напоминание теории с условиями применимости, включать типовые разборы и самостоятельную практику, типичные ошибки, итог и ссылку на соответствующее ИДЗ или кейс РПД, если такая связь подтверждена. Оцениваемые задания РПД SHALL быть отделены от дополнительной тренировки.
 
-### Requirement: Seminar prerequisites do not outrun the lecture sequence
-Each seminar SHALL use only concepts introduced in a preceding or current approved lecture, except for a clearly labelled seminar-level extension that is explained self-containedly and does not become an unstated prerequisite for an assessed RPD task.
+#### Scenario: Студент готовится самостоятельно
+- **WHEN** студент открывает семинар без преподавательского сценария и исходных книг
+- **THEN** он может определить требуемый метод, проследить репрезентативное рассуждение, выполнить практику и отличить официальное оценивание от дополнительной тренировки
 
-#### Scenario: Seminar dependency review is performed
-- **WHEN** definitions, formulas, and solution methods in a seminar are compared with the lecture progression
-- **THEN** every required method has already been introduced or is explicitly taught in that seminar without relying on later-course material
+### Requirement: Утверждённые кейсы и практическая подготовка сохраняют нормативную роль
+Семинары, к которым действующая карта курса привязывает кейсы РПД и часы практической подготовки, SHALL сохранять эти связи. Перенос ранних тем MUST NOT автоматически переносить оценочный кейс или практическую подготовку без отдельной сверки карты курса и РПД.
 
-### Requirement: Seminars are complete teaching materials
-Each non-control seminar SHALL state learning goals and prerequisites, provide a concise theory recap with applicability conditions, include worked examples, guided and independent practice, answers or solution guidance, typical errors, a lesson summary, and a clear link to the corresponding RPD individual assignment or case where applicable. Assessed RPD tasks SHALL remain distinguishable from non-assessed enrichment.
+#### Scenario: Проверяется покрытие активностей РПД
+- **WHEN** 17 семинаров сопоставляются с таблицами 4-6 РПД и актуальной картой курса
+- **THEN** все кейсы, часы практической подготовки и интерактивные формы учтены ровно один раз и не получают новой нормативной роли без явного решения
 
-#### Scenario: Student prepares from a seminar independently
-- **WHEN** the student opens a seminar without the teacher script or source books
-- **THEN** the student can identify the required method, follow representative reasoning, practise it, and distinguish official assessment from optional training
+### Requirement: Примеры используют единые обозначения и язык курса
+Элементарные исходы и похожие метки SHALL использовать естественные русские обозначения, например `О`/`Р`. Числовые характеристики SHALL использовать `E[X]`, `Var(X)` и `σ(X)` как основные обозначения; альтернативные обозначения источников объясняются только при необходимости.
 
-### Requirement: Approved cases and practical preparation are covered
-Seminars 7, 8, and 13 SHALL incorporate RPD cases 3, 1, and 2 respectively. Seminars 13 and 14 SHALL jointly provide the four required hours of practical preparation, including distribution construction and interpretation with the software usage required by the RPD.
+#### Scenario: Проверяются обозначения разных материалов
+- **WHEN** формулы и примеры семинаров сопоставляются с соглашениями курса
+- **THEN** в них нет необъяснённых английских меток монеты или конкурирующих основных обозначений ожидания и дисперсии
 
-#### Scenario: RPD activity coverage is audited
-- **WHEN** the 17 seminars are mapped back to RPD tables 4–6
-- **THEN** all three cases, all four practical-preparation hours, and the required interactive forms are explicitly accounted for without changing their normative role
+### Requirement: Семинары следуют стабильному студенческому шаблону
+Каждый учебный семинар SHALL содержать в распознаваемом порядке название и метаданные занятия, результаты обучения, ссылки на лекционные предпосылки, компактное напоминание теории с условиями, типовые разборы, самостоятельную практику, типичные ошибки, итог и навигацию. Контрольный семинар SHALL сохранять контекст и навигацию, но заменять обычную практику правилами проведения, ссылкой на официальный банк РПД, разрешёнными пояснениями и границами обсуждения после работы.
 
-### Requirement: Seminar examples follow course notation and language
-Experiment outcomes and similar elementary labels SHALL use Russian forms such as `О`/`Р` when a Russian representation is natural. Numerical characteristics SHALL use `E[X]`, `Var(X)`, and `σ(X)` as the primary notation, with source alternatives explained only where needed.
+#### Scenario: Проверяется структура семинаров
+- **WHEN** все 17 студенческих файлов сравниваются с применимым шаблоном
+- **THEN** каждый обязательный раздел присутствует или явно отмечен как неприменимый, а контрольные семинары не раскрывают преподавательские решения
 
-#### Scenario: Cross-material notation scan is run
-- **WHEN** seminar formulas and examples are compared with the adopted conventions
-- **THEN** no unexplained English coin labels or competing primary expectation/variance notation remains
+### Requirement: Семинары ссылаются на лекционные предпосылки
+Каждый семинар SHALL содержать относительные локальные Markdown-ссылки на полную студенческую лекцию или лекции, вводящие необходимую теорию. Обратная карта «лекция — семинар» SHALL соответствовать актуальному маршруту и MUST NOT сама по себе менять доступность материала.
 
-### Requirement: Seminars follow a stable student-facing template
-Each teaching seminar SHALL contain, in a recognizable order: title and two-hour metadata; learning outcomes; prerequisite lecture links and required concepts; compact theory recap with applicability conditions; worked examples; guided practice; independent practice; answers, hints, or checking guidance; connection to the relevant IDZ, case, or control activity; typical errors; summary; and previous/next navigation where applicable. A control seminar SHALL use the same navigation and context sections but replace ordinary practice blocks with administration guidance, the official RPD bank link, permitted clarification notes, and post-control reflection boundaries.
-
-#### Scenario: Seminar structure is audited
-- **WHEN** all 17 seminar files are compared with the applicable teaching or control template
-- **THEN** every required section is present or explicitly marked not applicable, and control seminars do not leak teacher-only solutions
-
-### Requirement: Seminars link back to prerequisite lectures
-Every seminar SHALL include relative local Markdown links to the complete student lecture or lectures that introduce its required theory. The reciprocal lecture-to-seminar mapping SHALL match the approved sequence and MUST NOT alter material availability.
-
-#### Scenario: Bidirectional navigation is checked
-- **WHEN** lecture and seminar Markdown links are traversed in both directions
-- **THEN** all paths resolve locally, the relationship is reciprocal, and no link targets a teacher-only file
->>>>>>> 9b805d1 (ADD: lecturs and seminars refactoring)
+#### Scenario: Проверяется двусторонняя навигация
+- **WHEN** Markdown-ссылки лекций и семинаров обходятся в обе стороны
+- **THEN** все пути разрешаются локально, отношения соответствуют актуальному маршруту и ни одна ссылка не ведёт в преподавательский каталог
