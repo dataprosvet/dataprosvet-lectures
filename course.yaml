@@ -55,8 +55,8 @@ materials:
       summary: >-
         Практическая работа: ETL от CSV к отчёту, основы SQL и pandas
         на наборе продаж sales.csv.
-      lifecycleStatus: draft
-      availability: inDevelopment
+      lifecycleStatus: published
+      availability: available
       sortOrder: 102
       markdown: seminars/102_etl-sql-python.md
       attachments:
