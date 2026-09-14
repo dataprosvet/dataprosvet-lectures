@@ -1,0 +1,8 @@
+<observations xmlns="urn:course:observations:v1" officeId="42">
+  <observation hour="2026-09-14T09:00:00Z">
+    <visitors>45</visitors><note>Офис, центр</note>
+  </observation>
+  <observation hour="2026-09-14T10:00:00Z">
+    <visitors>0</visitors>
+  </observation>
+</observations>
