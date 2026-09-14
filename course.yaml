@@ -80,7 +80,7 @@ materials:
         kernel/user mode, расчёты памяти экрана, загрузки CPU и среднего
         времени доступа cache/RAM/disk.
       lifecycleStatus: published
-      availability: inDevelopment
+      availability: available
       sortOrder: 101
       markdown: seminars/101_week-01-tutorial.md
       attachments:
