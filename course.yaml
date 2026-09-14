@@ -4,7 +4,7 @@ schemaVersion: 1
 slug: api-technologies
 title: API Технологии
 description: >-
-    Курс «API-технологии» учит проектировать, реализовывать, документировать и тестировать API для бизнес-приложений и систем искусственного интеллекта. Рассматриваются HTTP/REST, OpenAPI, FastAPI, безопасность, тестирование и мониторинг, а также профильные технологии: Python, ETL и ML-интеграции для бизнес-решений; gRPC, потоковую обработку и интеграцию ИИ-моделей — для систем искусственного интеллекта.
+    Курс «API-технологии» для профиля «Программные решения для бизнеса» учит проектировать, реализовывать, документировать и тестировать API бизнес-приложений, включая системы с элементами ИИ. Рассматриваются HTTP/REST, OpenAPI, FastAPI, Python-клиенты и сервисы, ETL и ML-интеграции, интеграционные стили, безопасность, тестирование и мониторинг.
 lifecycleStatus: published
 availability: available
 sortOrder: 1
@@ -30,6 +30,20 @@ materials:
           title: "Презентация Лекции 1"
           file: attachments/lecture_1.pdf
           sortOrder: 10
+    - slug: http-rest-openapi-data-contracts
+      title: HTTP, REST, форматы данных и OpenAPI
+      summary: >-
+        Лекция 2: структура HTTP-запроса и ответа, HTTP/1.1–3 и gRPC, методы и коды состояния, REST, JSON/XML/CSV/YAML, схемы и валидация, OpenAPI 3.2.1 и Swagger UI. Полная лекция, краткий конспект для повторения и презентация с примерами получения готового прогноза и передачи наблюдений.
+      lifecycleStatus: published
+      availability: available
+      sortOrder: 2
+      markdown: lectures/002_http-rest-openapi-data-contracts.md
+      briefMarkdown: lecture-notes/002_http-rest-openapi-data-contracts.md
+      attachments:
+        - key: slides-lecture-2
+          title: "Презентация лекции 2 — HTTP, REST, форматы и OpenAPI"
+          file: attachments/002_http-rest-openapi-data-contracts-r3.pptx
+          sortOrder: 10
   seminars:
     - slug: service-interaction-architecture
       title: Проектирование взаимодействия сервисов
@@ -37,7 +51,7 @@ materials:
         Совместно разберём архитектуру взаимодействия сервисов, разделимся на команды и случайно распределим три семестровых кейса. Начнём проектирование назначенного кейса на занятии.
       lifecycleStatus: published
       availability: temporarilyUnavailable
-      sortOrder: 2
+      sortOrder: 3
   homeworks:
     - slug: team-case-architecture
       title: ДЗ 1. Архитектура командного проекта
@@ -45,4 +59,4 @@ materials:
         Завершите проектирование архитектуры назначенного команде кейса: внешние потребители, диаграммы C4 уровней 1 и 2, выбор протоколов и баз данных. Реализация проекта продолжится в течение семестра.
       lifecycleStatus: published
       availability: temporarilyUnavailable
-      sortOrder: 3
+      sortOrder: 4
