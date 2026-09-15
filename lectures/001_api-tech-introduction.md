@@ -331,5 +331,7 @@ API особенно заметен на этапе внедрения, но р�
 
 ## Связанные материалы
 
-- [Краткий конспект лекции](../lecture-notes/001_api-tech-introduction.md).
+- [[../lecture-notes/001_api-tech-introduction.md|Краткий конспект лекции]]
+- [[../seminars/101_service-interaction-architecture.md|Семинар 1. Проектирование взаимодействия сервисов]]
+- [[../seminars/102_architecture-to-http.md|Семинар 2. Короткий обзор HTTP и продолжение проектирования сервисов]]
 - Следующая тема курса: HTTP, REST, форматы данных, OpenAPI и контракты.

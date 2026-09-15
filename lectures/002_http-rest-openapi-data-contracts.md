@@ -670,3 +670,8 @@ requestBody:
 - [релиз 5.32.15](https://github.com/swagger-api/swagger-ui/releases/tag/v5.32.15)
 - [openapi-spec-validator](https://openapi-spec-validator.readthedocs.io/en/latest/)
 - [Google AIP-180 — Backwards compatibility](https://google.aip.dev/180)
+
+## Связанные материалы
+
+- [[../seminars/103_http-api-diagnostics.md|Семинар 3. Диагностика HTTP API]]
+- [[../seminars/104_integration-style-selection.md|Семинар 4. Выбор стиля интеграции]]
