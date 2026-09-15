@@ -76,7 +76,7 @@ materials:
       markdown: homeworks/201_team-case-architecture.md
       sortOrder: 201
     - slug: team-rest-api-design
-      title: ДЗ 2. Архитектура командного проекта
+      title: ДЗ 2. Разработка АПИ-контрактов
       summary: >-
         Проектирование REST API командного проекта. Описываем контракты взаимодействия между сервисами.
       lifecycleStatus: published
