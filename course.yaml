@@ -4,7 +4,7 @@ schemaVersion: 1
 slug: api-technologies
 title: API Технологии
 description: >-
-    Курс «API-технологии» для профиля «Программные решения для бизнеса» учит проектировать, реализовывать, документировать и тестировать API бизнес-приложений, включая системы с элементами ИИ. Рассматриваются HTTP/REST, OpenAPI, FastAPI, Python-клиенты и сервисы, ETL и ML-интеграции, интеграционные стили, безопасность, тестирование и мониторинг.
+  Курс «API-технологии» для профиля «Программные решения для бизнеса» учит проектировать, реализовывать, документировать и тестировать API бизнес-приложений, включая системы с элементами ИИ. Рассматриваются HTTP/REST, OpenAPI, FastAPI, Python-клиенты и сервисы, ETL и ML-интеграции, интеграционные стили, безопасность, тестирование и мониторинг.
 lifecycleStatus: published
 availability: available
 sortOrder: 1
@@ -50,13 +50,31 @@ materials:
       summary: >-
         Совместно разберём архитектуру взаимодействия сервисов, разделимся на команды и случайно распределим три семестровых кейса. Начнём проектирование назначенного кейса на занятии.
       lifecycleStatus: published
-      availability: temporarilyUnavailable
-      sortOrder: 3
+      availability: available
+      markdown: seminars/001_service-interaction-architecture.md
+      sortOrder: 101
+    - slug: service-interaction-architecture
+      title: Проектирование взаимодействия сервисов
+      summary: >-
+        Совместно разберём архитектуру взаимодействия сервисов, разделимся на команды и случайно распределим три семестровых кейса. Начнём проектирование назначенного кейса на занятии.
+      lifecycleStatus: published
+      markdown: seminars/002_architecture-to-http.md
+      availability: available
+      sortOrder: 102
   homeworks:
     - slug: team-case-architecture
       title: ДЗ 1. Архитектура командного проекта
       summary: >-
         Завершите проектирование архитектуры назначенного команде кейса: внешние потребители, диаграммы C4 уровней 1 и 2, выбор протоколов и баз данных. Реализация проекта продолжится в течение семестра.
       lifecycleStatus: published
-      availability: temporarilyUnavailable
-      sortOrder: 4
+      availability: available
+      markdown: homeworks/001_team-case-architecture.md
+      sortOrder: 201
+    - slug: team-rest-api-design
+      title: ДЗ 2. Архитектура командного проекта
+      summary: >-
+        Проектирование REST API командного проекта. Описываем контракты взаимодействия между сервисами.
+      lifecycleStatus: published
+      availability: available
+      markdown: homeworks/002_team-rest-api-design.md
+      sortOrder: 202
