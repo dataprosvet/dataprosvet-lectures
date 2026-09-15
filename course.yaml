@@ -73,7 +73,7 @@ materials:
         Завершите проектирование архитектуры назначенного команде кейса: внешние потребители, диаграммы C4 уровней 1 и 2, выбор протоколов и баз данных. Реализация проекта продолжится в течение семестра.
       lifecycleStatus: published
       availability: available
-      markdown: homeworks/101_team-case-architecture.md
+      markdown: homeworks/201_team-case-architecture.md
       sortOrder: 201
     - slug: team-rest-api-design
       title: ДЗ 2. Архитектура командного проекта
@@ -81,5 +81,5 @@ materials:
         Проектирование REST API командного проекта. Описываем контракты взаимодействия между сервисами.
       lifecycleStatus: published
       availability: available
-      markdown: homeworks/102_team-rest-api-design.md
+      markdown: homeworks/202_team-rest-api-design.md
       sortOrder: 202
