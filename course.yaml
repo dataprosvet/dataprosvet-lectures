@@ -66,15 +66,6 @@ materials:
           title: "Исходники демки с семинара"
           file: attachments/seminar2-sources.zip
           sortOrder: 10
-        - key: context-diagram
-          title: "Context Diagram Exmaple(C4v1)"
-          file: attachments/002-context.png
-          sortOrder: 11
-        - key: containers-diagram
-          title: "Containers Diagram Example (C4v2)"
-          file: attachments/002-containers.png
-          sortOrder: 12
-        
   homeworks:
     - slug: team-case-architecture
       title: ДЗ 1. Архитектура командного проекта
