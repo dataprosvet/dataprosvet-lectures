@@ -51,14 +51,14 @@ materials:
         Совместно разберём архитектуру взаимодействия сервисов, разделимся на команды и случайно распределим три семестровых кейса. Начнём проектирование назначенного кейса на занятии.
       lifecycleStatus: published
       availability: available
-      markdown: seminars/001_service-interaction-architecture.md
+      markdown: seminars/101_service-interaction-architecture.md
       sortOrder: 101
     - slug: architecture-to-http
       title: Проектирование взаимодействия сервисов
       summary: >-
         Совместно разберём архитектуру взаимодействия сервисов, разделимся на команды и случайно распределим три семестровых кейса. Начнём проектирование назначенного кейса на занятии.
       lifecycleStatus: published
-      markdown: seminars/002_architecture-to-http.md
+      markdown: seminars/102_architecture-to-http.md
       availability: available
       sortOrder: 102
   homeworks:
@@ -68,7 +68,7 @@ materials:
         Завершите проектирование архитектуры назначенного команде кейса: внешние потребители, диаграммы C4 уровней 1 и 2, выбор протоколов и баз данных. Реализация проекта продолжится в течение семестра.
       lifecycleStatus: published
       availability: available
-      markdown: homeworks/001_team-case-architecture.md
+      markdown: homeworks/101_team-case-architecture.md
       sortOrder: 201
     - slug: team-rest-api-design
       title: ДЗ 2. Архитектура командного проекта
@@ -76,5 +76,5 @@ materials:
         Проектирование REST API командного проекта. Описываем контракты взаимодействия между сервисами.
       lifecycleStatus: published
       availability: available
-      markdown: homeworks/002_team-rest-api-design.md
+      markdown: homeworks/102_team-rest-api-design.md
       sortOrder: 202
