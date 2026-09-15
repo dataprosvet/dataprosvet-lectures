@@ -29,7 +29,7 @@ materials:
         Сложение и умножение вероятностей, условная вероятность, независимость,
         формула полной вероятности и формула Байеса.
       lifecycleStatus: published
-      availability: temporarilyUnavailable
+      availability: available
       sortOrder: 2
       markdown: lectures/002_probability-theorems-bayes.md
       briefMarkdown: lecture-notes/002_probability-theorems-bayes.md
@@ -38,7 +38,7 @@ materials:
       title: Комбинаторика и определения вероятности
       summary: Описание будет добавлено позднее.
       lifecycleStatus: published
-      availability: temporarilyUnavailable
+      availability: available
       sortOrder: 101
       markdown: seminars/101_combinatorics-and-probabilit.md
     - slug: comb-and-prob-17-25-2
@@ -63,14 +63,14 @@ materials:
       title: Классическая, статистическая и геометрическая вероятность
       summary: Практика по классической, статистической и геометрической вероятности.
       lifecycleStatus: published
-      availability: temporarilyUnavailable
+      availability: available
       sortOrder: 102
       markdown: seminars/102_combinations-and-permutations-with-repetitions.md
     - slug: theorems-conditional-probability
       title: Сложение, умножение и условная вероятность
       summary: Теоремы сложения и умножения, условная вероятность и независимость событий.
       lifecycleStatus: published
-      availability: temporarilyUnavailable
+      availability: available
       sortOrder: 103
       markdown: seminars/103_theorems-conditional-probability.md
     - slug: total-probability-bayes
