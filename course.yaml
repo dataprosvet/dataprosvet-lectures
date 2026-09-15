@@ -53,7 +53,7 @@ materials:
       availability: available
       markdown: seminars/001_service-interaction-architecture.md
       sortOrder: 101
-    - slug: service-interaction-architecture
+    - slug: architecture-to-http
       title: Проектирование взаимодействия сервисов
       summary: >-
         Совместно разберём архитектуру взаимодействия сервисов, разделимся на команды и случайно распределим три семестровых кейса. Начнём проектирование назначенного кейса на занятии.
