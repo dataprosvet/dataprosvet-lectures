@@ -86,11 +86,11 @@ materials:
       summary: Три обязательные задачи РПД по комбинаторике.
       lifecycleStatus: published
       availability: available
-      sortOrder: 201
-      markdown: homeworks/201_idz-1-combinatorics.md
+      sortOrder: 301
+      markdown: homeworks/301_idz-1-combinatorics.md
     - slug: idz-2-classical-probability
       title: ИДЗ № 2. Основные понятия теории вероятностей
       summary: Три обязательные задачи РПД по классической вероятности.
       lifecycleStatus: published
       availability: inDevelopment
-      sortOrder: 202
+      sortOrder: 302
