@@ -1,0 +1,8 @@
+fastapi==0.116.1
+pydantic==2.11.7
+uvicorn==0.35.0
+httpx==0.28.1
+PyYAML==6.0.2
+openapi-spec-validator==0.7.2
+jsonschema==4.25.0
+pytest==8.4.1

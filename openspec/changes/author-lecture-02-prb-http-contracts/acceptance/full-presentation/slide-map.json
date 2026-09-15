@@ -1,0 +1,408 @@
+[
+  {
+    "slide": 1,
+    "sourceSlide": 1,
+    "topic": "Рекап",
+    "subtitle": "О чём говорили на первой лекции",
+    "extra": ""
+  },
+  {
+    "slide": 2,
+    "sourceSlide": 2,
+    "topic": "Рекап",
+    "subtitle": "Что берём в сегодняшнюю работу",
+    "extra": ""
+  },
+  {
+    "slide": 3,
+    "sourceSlide": 3,
+    "topic": "HTTP",
+    "subtitle": "Как клиент формулирует запрос,\nа сервер сообщает результат",
+    "divider": true
+  },
+  {
+    "slide": 4,
+    "sourceSlide": 3,
+    "topic": "HTTP",
+    "subtitle": "Запрос: структура HTTP/1.1",
+    "extra": "Запрос и ответ показаны последовательно в рамках исходных 2 минут. Заголовков может быть много, каждый записывается отдельной строкой."
+  },
+  {
+    "slide": 5,
+    "sourceSlide": 3,
+    "topic": "HTTP",
+    "subtitle": "Ответ: структура HTTP/1.1",
+    "extra": "Запрос и ответ показаны последовательно в рамках исходных 2 минут. Заголовков может быть много, каждый записывается отдельной строкой."
+  },
+  {
+    "slide": 6,
+    "sourceSlide": 4,
+    "topic": "HTTP",
+    "subtitle": "Получение готового прогноза",
+    "extra": ""
+  },
+  {
+    "slide": 7,
+    "sourceSlide": 4,
+    "topic": "HTTP",
+    "subtitle": "Передача наблюдения: заполненный запрос",
+    "extra": ""
+  },
+  {
+    "slide": 8,
+    "sourceSlide": 5,
+    "topic": "HTTP",
+    "subtitle": "Версии: одна семантика, разная передача",
+    "extra": ""
+  },
+  {
+    "slide": 9,
+    "sourceSlide": 5,
+    "topic": "HTTP",
+    "subtitle": "Когда появились первые RFC версий",
+    "extra": ""
+  },
+  {
+    "slide": 10,
+    "sourceSlide": 5,
+    "topic": "HTTP",
+    "subtitle": "Какая версия встречается чаще",
+    "extra": ""
+  },
+  {
+    "slide": 11,
+    "sourceSlide": 6,
+    "topic": "HTTP",
+    "subtitle": "HTTP/2: соединение, поток, сообщение, кадр",
+    "extra": ""
+  },
+  {
+    "slide": 12,
+    "sourceSlide": 7,
+    "topic": "HTTP",
+    "subtitle": "HTTP/2: два потока в одном соединении",
+    "extra": ""
+  },
+  {
+    "slide": 13,
+    "sourceSlide": 8,
+    "topic": "HTTP",
+    "subtitle": "gRPC: вызов метода другого сервиса",
+    "extra": ""
+  },
+  {
+    "slide": 14,
+    "sourceSlide": 9,
+    "topic": "HTTP",
+    "subtitle": "Метод выражает намерение",
+    "extra": ""
+  },
+  {
+    "slide": 15,
+    "sourceSlide": 9,
+    "topic": "HTTP",
+    "subtitle": "Другие методы",
+    "extra": ""
+  },
+  {
+    "slide": 16,
+    "sourceSlide": 10,
+    "topic": "HTTP",
+    "subtitle": "Почему не делать всё через GET?",
+    "extra": ""
+  },
+  {
+    "slide": 17,
+    "sourceSlide": 10,
+    "topic": "HTTP",
+    "subtitle": "Методы — договор со всей инфраструктурой",
+    "extra": ""
+  },
+  {
+    "slide": 18,
+    "sourceSlide": 11,
+    "topic": "HTTP",
+    "subtitle": "Нужен ли полный CRUD на каждом URI?",
+    "extra": ""
+  },
+  {
+    "slide": 19,
+    "sourceSlide": 12,
+    "topic": "HTTP",
+    "subtitle": "Интерактив: выберите метод и результат",
+    "extra": ""
+  },
+  {
+    "slide": 20,
+    "sourceSlide": 13,
+    "topic": "HTTP",
+    "subtitle": "Интерактив: сервер обработал запрос, ответ потерялся",
+    "extra": ""
+  },
+  {
+    "slide": 21,
+    "sourceSlide": 14,
+    "topic": "HTTP",
+    "subtitle": "1xx: промежуточный ответ",
+    "extra": ""
+  },
+  {
+    "slide": 22,
+    "sourceSlide": 15,
+    "topic": "HTTP",
+    "subtitle": "2xx: что именно удалось",
+    "extra": ""
+  },
+  {
+    "slide": 23,
+    "sourceSlide": 16,
+    "topic": "HTTP",
+    "subtitle": "3xx: перейти или использовать сохранённое",
+    "extra": ""
+  },
+  {
+    "slide": 24,
+    "sourceSlide": 17,
+    "topic": "HTTP",
+    "subtitle": "4xx: что исправить в обращении",
+    "extra": ""
+  },
+  {
+    "slide": 25,
+    "sourceSlide": 18,
+    "topic": "HTTP",
+    "subtitle": "5xx: почему запрос не выполнен",
+    "extra": ""
+  },
+  {
+    "slide": 26,
+    "sourceSlide": 19,
+    "topic": "REST",
+    "subtitle": "Как организовать ресурсы\nи взаимодействие с ними",
+    "divider": true
+  },
+  {
+    "slide": 27,
+    "sourceSlide": 19,
+    "topic": "REST",
+    "subtitle": "Ресурс и его представление",
+    "extra": ""
+  },
+  {
+    "slide": 28,
+    "sourceSlide": 19,
+    "topic": "REST",
+    "subtitle": "Ограничения архитектурного стиля",
+    "extra": ""
+  },
+  {
+    "slide": 29,
+    "sourceSlide": 19,
+    "topic": "REST",
+    "subtitle": "Связи и доступные действия",
+    "extra": ""
+  },
+  {
+    "slide": 30,
+    "sourceSlide": 20,
+    "topic": "REST",
+    "subtitle": "Когда можно повторно использовать прогноз",
+    "extra": ""
+  },
+  {
+    "slide": 31,
+    "sourceSlide": 21,
+    "topic": "Форматы данных",
+    "subtitle": "Как кодировать, передавать\nи хранить представление",
+    "divider": true
+  },
+  {
+    "slide": 32,
+    "sourceSlide": 21,
+    "topic": "Форматы данных",
+    "subtitle": "JSON: сообщение приложения",
+    "extra": ""
+  },
+  {
+    "slide": 33,
+    "sourceSlide": 22,
+    "topic": "Форматы данных",
+    "subtitle": "XML: документ для партнёра",
+    "extra": ""
+  },
+  {
+    "slide": 34,
+    "sourceSlide": 23,
+    "topic": "Форматы данных",
+    "subtitle": "CSV: таблица для импорта",
+    "extra": ""
+  },
+  {
+    "slide": 35,
+    "sourceSlide": 24,
+    "topic": "Форматы данных",
+    "subtitle": "Parquet: группы строк и блоки колонок",
+    "extra": ""
+  },
+  {
+    "slide": 36,
+    "sourceSlide": 24,
+    "topic": "Форматы данных",
+    "subtitle": "Выбор зависит от потребителя",
+    "extra": ""
+  },
+  {
+    "slide": 37,
+    "sourceSlide": 25,
+    "topic": "Схемы и валидация",
+    "subtitle": "Как проверить структуру\nи сохранить смысл данных",
+    "divider": true
+  },
+  {
+    "slide": 38,
+    "sourceSlide": 25,
+    "topic": "Схемы и валидация",
+    "subtitle": "Отсутствие, null и ноль",
+    "extra": ""
+  },
+  {
+    "slide": 39,
+    "sourceSlide": 26,
+    "topic": "Схемы и валидация",
+    "subtitle": "Проверки до выполнения действия",
+    "extra": "Кадр 1 из 3; все кадры занимают 2 минуты суммарно."
+  },
+  {
+    "slide": 40,
+    "sourceSlide": 26,
+    "topic": "Схемы и валидация",
+    "subtitle": "Проверки до выполнения действия",
+    "extra": "Кадр 2 из 3; все кадры занимают 2 минуты суммарно."
+  },
+  {
+    "slide": 41,
+    "sourceSlide": 26,
+    "topic": "Схемы и валидация",
+    "subtitle": "Проверки до выполнения действия",
+    "extra": "Кадр 3 из 3; все кадры занимают 2 минуты суммарно."
+  },
+  {
+    "slide": 42,
+    "sourceSlide": 27,
+    "topic": "Схемы и валидация",
+    "subtitle": "Тип сохранён, смысл изменился",
+    "extra": ""
+  },
+  {
+    "slide": 43,
+    "sourceSlide": 28,
+    "topic": "OpenAPI",
+    "subtitle": "Описание HTTP-интерфейса\nи проверка его обещаний",
+    "divider": true
+  },
+  {
+    "slide": 44,
+    "sourceSlide": 28,
+    "topic": "OpenAPI",
+    "subtitle": "Спецификация, документ, интерфейс и сервер",
+    "extra": "Раскрытие 1/4. Общая длительность всей последовательности 2 минуты."
+  },
+  {
+    "slide": 45,
+    "sourceSlide": 28,
+    "topic": "OpenAPI",
+    "subtitle": "Спецификация, документ, интерфейс и сервер",
+    "extra": "Раскрытие 2/4. Общая длительность всей последовательности 2 минуты."
+  },
+  {
+    "slide": 46,
+    "sourceSlide": 28,
+    "topic": "OpenAPI",
+    "subtitle": "Спецификация, документ, интерфейс и сервер",
+    "extra": "Раскрытие 3/4. Общая длительность всей последовательности 2 минуты."
+  },
+  {
+    "slide": 47,
+    "sourceSlide": 28,
+    "topic": "OpenAPI",
+    "subtitle": "Спецификация, документ, интерфейс и сервер",
+    "extra": "Раскрытие 4/4. Общая длительность всей последовательности 2 минуты."
+  },
+  {
+    "slide": 48,
+    "sourceSlide": 29,
+    "topic": "OpenAPI",
+    "subtitle": "Знакомый GET в документе",
+    "extra": ""
+  },
+  {
+    "slide": 49,
+    "sourceSlide": 29,
+    "topic": "OpenAPI",
+    "subtitle": "Параметры, ответы и переиспользование схем",
+    "extra": ""
+  },
+  {
+    "slide": 50,
+    "sourceSlide": 30,
+    "topic": "OpenAPI",
+    "subtitle": "Тот же документ в Swagger UI",
+    "extra": ""
+  },
+  {
+    "slide": 51,
+    "sourceSlide": 31,
+    "topic": "OpenAPI",
+    "subtitle": "Execute: обещание и фактический ответ",
+    "extra": ""
+  },
+  {
+    "slide": 52,
+    "sourceSlide": 32,
+    "topic": "OpenAPI",
+    "subtitle": "POST: requestBody и $ref",
+    "extra": ""
+  },
+  {
+    "slide": 53,
+    "sourceSlide": 32,
+    "topic": "OpenAPI",
+    "subtitle": "Три разных проверки",
+    "extra": ""
+  },
+  {
+    "slide": 54,
+    "sourceSlide": 33,
+    "topic": "OpenAPI",
+    "subtitle": "Совместимость для конкретного клиента",
+    "extra": ""
+  },
+  {
+    "slide": 55,
+    "sourceSlide": 34,
+    "topic": "Итоги",
+    "subtitle": "Как получить прогноз, не читая серверный код?",
+    "extra": ""
+  },
+  {
+    "slide": 56,
+    "sourceSlide": 35,
+    "topic": "Источники",
+    "subtitle": "HTTP, REST и gRPC",
+    "extra": ""
+  },
+  {
+    "slide": 57,
+    "sourceSlide": 36,
+    "topic": "Источники",
+    "subtitle": "форматы и описание API",
+    "extra": ""
+  },
+  {
+    "slide": 58,
+    "sourceSlide": 37,
+    "topic": "Источники",
+    "subtitle": "Читать дальше и применить к своему кейсу",
+    "extra": ""
+  }
+]

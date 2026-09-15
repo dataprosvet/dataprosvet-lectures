@@ -1,0 +1,16 @@
+ Container api-seminar-002-check-tools-run-bd458b14c815 Creating 
+ Container api-seminar-002-check-tools-run-bd458b14c815 Created 
+....................                                                     [100%]
+=============================== warnings summary ===============================
+../usr/local/lib/python3.12/site-packages/starlette/testclient.py:51
+  /usr/local/lib/python3.12/site-packages/starlette/testclient.py:51: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = Callable[[], AbstractContextManager[anyio.abc.BlockingPortal]]
+
+tests/test_demo.py::test_contract_snapshots_and_examples
+tests/test_demo.py::test_contract_snapshots_and_examples
+tests/test_demo.py::test_contract_snapshots_and_examples
+  /usr/local/lib/python3.12/site-packages/openapi_spec_validator/shortcuts.py:66: DeprecationWarning: validate_spec shortcut is deprecated. Use validate instead.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+20 passed, 4 warnings in 6.77s

@@ -1,0 +1,15 @@
+{
+  "sha256": {
+    "course.yaml": "fdf20d2a68550d6beed0ef5ec82f1574c197ff4dee95be86bdd38725a8d0c0fb",
+    "seminars/001_service-interaction-architecture.md": "6b9dfe91aff3e1ef5ef2a4b717592a33ef5fefb6a6355eee20aaec574dcc2486",
+    "homeworks/001_team-case-architecture.md": "fd642060fff31a5378b361ab993ab1f21bf8b0a832052b1e40d0754a80e1f7b9",
+    "lectures/.gitkeep": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "lectures/001_api-tech-introduction.md": "53744650d5f5f9ffcf12f3c5ada90387232651c3074bd963052cc61bb72c6a28",
+    "lecture-notes/.gitkeep": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lecture-notes/001_api-tech-introduction.md": "1c931a4b94d617671a2ea191563fa594206e0073adeab8550c3e2dae4134f0da",
+    "lectures-teacher/.gitkeep": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lectures-teacher/homeworks/.gitkeep": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lectures-teacher/seminars/.gitkeep": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "git_status": "?? openspec/changes/seminar-and-homework-002/\n"
+}

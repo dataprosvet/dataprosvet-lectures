@@ -1,0 +1,388 @@
+openapi: 3.2.1
+info:
+  title: Готовый прогноз и наблюдения — лекция 2
+  version: 1.0.0
+  description: Авторское описание выбранных операций существующих HTTP-моков версии 2.0.0. Данные синтетические.
+    GET читает фиксированный прогноз; POST имитирует приём без сохранения. Примеры не являются фактическими
+    результатами Execute. Обычная /docs показывает отдельное, неполное generated-описание.
+servers:
+- url: http://127.0.0.1:8000
+  description: Read API через локальный опубликованный порт
+paths:
+  /offices/{office_id}/forecast:
+    get:
+      summary: Получение готового прогноза
+      operationId: getReadyForecast
+      description: 'Горизонт 1 или 7 дней. Для 42 прогноз готов, для 43 — нет, прочие офисы неизвестны. Расчёт
+        модели не выполняется. Параметр days проверяется прежде наличия офиса. Схема строже фактического преобразования
+        входов FastAPI: клиенты следуют контракту.'
+      parameters:
+      - name: office_id
+        in: path
+        required: true
+        schema:
+          type: integer
+        example: 42
+      - name: days
+        in: query
+        required: false
+        schema:
+          type: integer
+          enum:
+          - 1
+          - 7
+          default: 1
+        example: 1
+      responses:
+        '200':
+          description: Готовый фиксированный прогноз.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Forecast'
+              examples:
+                oneDay:
+                  value:
+                    office_id: 42
+                    days: 1
+                    interval_hours: 1
+                    generated_at: '2026-09-13T12:00:00Z'
+                    source_updated_at: '2026-09-13T11:00:00Z'
+                    stale: false
+                    synthetic: true
+                    model_version: fixed-mock-v2
+                    points:
+                    - hour: '2026-09-14T00:00:00Z'
+                      visitors: 0
+                    - hour: '2026-09-14T01:00:00Z'
+                      visitors: 0
+                    - hour: '2026-09-14T02:00:00Z'
+                      visitors: 0
+                    - hour: '2026-09-14T03:00:00Z'
+                      visitors: 0
+                    - hour: '2026-09-14T04:00:00Z'
+                      visitors: 0
+                    - hour: '2026-09-14T05:00:00Z'
+                      visitors: 0
+                    - hour: '2026-09-14T06:00:00Z'
+                      visitors: 0
+                    - hour: '2026-09-14T07:00:00Z'
+                      visitors: 0
+                    - hour: '2026-09-14T08:00:00Z'
+                      visitors: 0
+                    - hour: '2026-09-14T09:00:00Z'
+                      visitors: 45
+                    - hour: '2026-09-14T10:00:00Z'
+                      visitors: 45
+                    - hour: '2026-09-14T11:00:00Z'
+                      visitors: 45
+                    - hour: '2026-09-14T12:00:00Z'
+                      visitors: 45
+                    - hour: '2026-09-14T13:00:00Z'
+                      visitors: 45
+                    - hour: '2026-09-14T14:00:00Z'
+                      visitors: 45
+                    - hour: '2026-09-14T15:00:00Z'
+                      visitors: 45
+                    - hour: '2026-09-14T16:00:00Z'
+                      visitors: 45
+                    - hour: '2026-09-14T17:00:00Z'
+                      visitors: 45
+                    - hour: '2026-09-14T18:00:00Z'
+                      visitors: 0
+                    - hour: '2026-09-14T19:00:00Z'
+                      visitors: 0
+                    - hour: '2026-09-14T20:00:00Z'
+                      visitors: 0
+                    - hour: '2026-09-14T21:00:00Z'
+                      visitors: 0
+                    - hour: '2026-09-14T22:00:00Z'
+                      visitors: 0
+                    - hour: '2026-09-14T23:00:00Z'
+                      visitors: 0
+        '404':
+          description: Неизвестный офис или известный офис без прогноза.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                unknownOffice:
+                  value:
+                    error:
+                      code: office_not_found
+                      message: Офис не найден
+                notReady:
+                  value:
+                    error:
+                      code: forecast_not_ready
+                      message: Прогноз ещё не готов
+        '422':
+          description: Недопустимый days либо отказ проверки типов параметров FastAPI.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/Error'
+                - $ref: '#/components/schemas/ValidationError'
+              examples:
+                invalidHorizon:
+                  value:
+                    error:
+                      code: invalid_request
+                      message: days должен быть 1 или 7
+                invalidType:
+                  value:
+                    detail:
+                    - type: int_parsing
+                      loc:
+                      - query
+                      - days
+                      msg: Input should be a valid integer, unable to parse string as an integer
+                      input: abc
+  /observations:
+    post:
+      summary: Имитация приёма наблюдения
+      operationId: acceptObservationMock
+      servers:
+      - url: http://127.0.0.1:8001
+        description: BankOffices; POST читаем в UI, выполняем curl
+      description: 'Ответ 201 имитирует создание. Ничего не сохраняется; id фиктивный, Location отсутствует.
+        Мок не доказывает идемпотентность. BankOffices не настроен на CORS для страницы Read API: межсерверный
+        Execute из этой страницы не является сценарием показа.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Observation'
+            example:
+              office_id: 42
+              visitors: 45
+      responses:
+        '201':
+          description: Имитация приёма; данные возвращены без записи.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObservationAccepted'
+              examples:
+                accepted:
+                  value:
+                    id: mock-observation
+                    observation:
+                      office_id: 42
+                      visitors: 45
+        '404':
+          description: Неизвестный офис.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                unknownOffice:
+                  value:
+                    error:
+                      code: office_not_found
+                      message: Офис не найден
+        '422':
+          description: Ошибка visitors либо валидации JSON-тела FastAPI.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/Error'
+                - $ref: '#/components/schemas/ValidationError'
+              examples:
+                invalidVisitors:
+                  value:
+                    error:
+                      code: invalid_request
+                      message: visitors — целое число, не меньше нуля
+components:
+  schemas:
+    ForecastPoint:
+      type: object
+      properties:
+        hour:
+          type: string
+          format: date-time
+          description: Начало часового интервала в UTC.
+        visitors:
+          type: integer
+          minimum: 0
+          description: Прогноз количества посетителей за один час.
+      required:
+      - hour
+      - visitors
+    Forecast:
+      type: object
+      properties:
+        office_id:
+          type: integer
+        days:
+          type: integer
+          enum:
+          - 1
+          - 7
+        interval_hours:
+          type: integer
+          const: 1
+        generated_at:
+          type: string
+          format: date-time
+        source_updated_at:
+          type: string
+          format: date-time
+        stale:
+          type: boolean
+          description: Фиксированное учебное значение; актуальность мок не вычисляет.
+        synthetic:
+          type: boolean
+          const: true
+        model_version:
+          type: string
+        points:
+          type: array
+          items:
+            $ref: '#/components/schemas/ForecastPoint'
+          minItems: 24
+          maxItems: 168
+          description: 24 точки для days=1; 168 для days=7. Межполевая связь дополнительно проверяется тестом.
+      required:
+      - office_id
+      - days
+      - interval_hours
+      - generated_at
+      - source_updated_at
+      - stale
+      - synthetic
+      - model_version
+      - points
+      examples:
+      - office_id: 42
+        days: 1
+        interval_hours: 1
+        generated_at: '2026-09-13T12:00:00Z'
+        source_updated_at: '2026-09-13T11:00:00Z'
+        stale: false
+        synthetic: true
+        model_version: fixed-mock-v2
+        points:
+        - hour: '2026-09-14T00:00:00Z'
+          visitors: 0
+        - hour: '2026-09-14T01:00:00Z'
+          visitors: 0
+        - hour: '2026-09-14T02:00:00Z'
+          visitors: 0
+        - hour: '2026-09-14T03:00:00Z'
+          visitors: 0
+        - hour: '2026-09-14T04:00:00Z'
+          visitors: 0
+        - hour: '2026-09-14T05:00:00Z'
+          visitors: 0
+        - hour: '2026-09-14T06:00:00Z'
+          visitors: 0
+        - hour: '2026-09-14T07:00:00Z'
+          visitors: 0
+        - hour: '2026-09-14T08:00:00Z'
+          visitors: 0
+        - hour: '2026-09-14T09:00:00Z'
+          visitors: 45
+        - hour: '2026-09-14T10:00:00Z'
+          visitors: 45
+        - hour: '2026-09-14T11:00:00Z'
+          visitors: 45
+        - hour: '2026-09-14T12:00:00Z'
+          visitors: 45
+        - hour: '2026-09-14T13:00:00Z'
+          visitors: 45
+        - hour: '2026-09-14T14:00:00Z'
+          visitors: 45
+        - hour: '2026-09-14T15:00:00Z'
+          visitors: 45
+        - hour: '2026-09-14T16:00:00Z'
+          visitors: 45
+        - hour: '2026-09-14T17:00:00Z'
+          visitors: 45
+        - hour: '2026-09-14T18:00:00Z'
+          visitors: 0
+        - hour: '2026-09-14T19:00:00Z'
+          visitors: 0
+        - hour: '2026-09-14T20:00:00Z'
+          visitors: 0
+        - hour: '2026-09-14T21:00:00Z'
+          visitors: 0
+        - hour: '2026-09-14T22:00:00Z'
+          visitors: 0
+        - hour: '2026-09-14T23:00:00Z'
+          visitors: 0
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+          required:
+          - code
+          - message
+      required:
+      - error
+    ValidationError:
+      type: object
+      properties:
+        detail:
+          type: array
+          items:
+            type: object
+            properties:
+              loc:
+                type: array
+                items:
+                  anyOf:
+                  - type: string
+                  - type: integer
+              msg:
+                type: string
+              type:
+                type: string
+              input: {}
+              ctx:
+                type: object
+            required:
+            - loc
+            - msg
+            - type
+      required:
+      - detail
+    Observation:
+      type: object
+      properties:
+        office_id:
+          type: integer
+          enum:
+          - 42
+          - 43
+        visitors:
+          type: integer
+          minimum: 0
+      required:
+      - office_id
+      - visitors
+      description: Минимальный учебный вход. Дополнительные поля допускаются, возвращаются без проверки. Мок
+        проверяет лишь visitors и office_id.
+    ObservationAccepted:
+      type: object
+      properties:
+        id:
+          type: string
+          const: mock-observation
+        observation:
+          $ref: '#/components/schemas/Observation'
+      required:
+      - id
+      - observation

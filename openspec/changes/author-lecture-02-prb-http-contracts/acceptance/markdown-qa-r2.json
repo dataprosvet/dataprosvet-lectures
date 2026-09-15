@@ -1,0 +1,14 @@
+{
+  "status": "PASS",
+  "slides": 37,
+  "seconds": 5400,
+  "local_links_checked": 38,
+  "json_blocks_parsed": 9,
+  "sha256": {
+    "lectures-teacher/002_http-rest-openapi-data-contracts.md": "485d1b5d11f5f5716de0d1709264b206af6525ef8a17c9838a44475abff189d2",
+    "lectures/002_http-rest-openapi-data-contracts.md": "a10dec7e6c905ae5ca430ff10a8a2c3c0ce1eb2f02d6654ec6fc4ec53f91cb04",
+    "lecture-notes/002_http-rest-openapi-data-contracts.md": "a7d17e36a74403119f4b5b7db5bf8e924fc540b4ef240b23aa15b73943016a49"
+  },
+  "visual_checks": "Four HTTP diagrams and five cat status groups inspected; PDF agent inspected all 25 pages, root inspected answer page 23.",
+  "gates": "Revised Markdown pending approval; PPTX absent; PDF explicitly authorized in parallel."
+}

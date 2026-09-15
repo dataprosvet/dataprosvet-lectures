@@ -1,0 +1,624 @@
+
+> dataprosvet-course-publisher@1.0.0 test
+> node --test test/*.test.js
+
+TAP version 13
+# Subtest: SDK adapter preflight uses resource GETs only and checks source fixed ceiling independently of lower effective limit
+ok 1 - SDK adapter preflight uses resource GETs only and checks source fixed ceiling independently of lower effective limit
+  ---
+  duration_ms: 1.824125
+  ...
+# Subtest: legacy Markdown/media storage switches are preserved without inventing new rollout requirements
+ok 2 - legacy Markdown/media storage switches are preserved without inventing new rollout requirements
+  ---
+  duration_ms: 0.984875
+  ...
+# Subtest: resource preflight fails closed for malformed permissions, identities, bounds, schema, indexes and private-read failures
+ok 3 - resource preflight fails closed for malformed permissions, identities, bounds, schema, indexes and private-read failures
+  ---
+  duration_ms: 6.922042
+  ...
+# Subtest: SDK file create/reuse verifies exact bytes, never overwrites a same-sized collision and treats only 404 as missing
+ok 4 - SDK file create/reuse verifies exact bytes, never overwrites a same-sized collision and treats only 404 as missing
+  ---
+  duration_ms: 2.968583
+  ...
+# Subtest: anonymous denied verification accepts only definite HTTP denials, never network failures or corrupt public bytes
+ok 5 - anonymous denied verification accepts only definite HTTP denials, never network failures or corrupt public bytes
+  ---
+  duration_ms: 4.286666
+  ...
+# Subtest: read pagination rejects missing/wrong lists, duplicates, repeated cursors and overfull pages
+ok 6 - read pagination rejects missing/wrong lists, duplicates, repeated cursors and overfull pages
+  ---
+  duration_ms: 0.886458
+  ...
+# Subtest: production config requires exact non-overlapping bundle resources and safe endpoint before SDK construction
+ok 7 - production config requires exact non-overlapping bundle resources and safe endpoint before SDK construction
+  ---
+  duration_ms: 0.594959
+  ...
+# Subtest: CRC32 matches the published check value
+ok 8 - CRC32 matches the published check value
+  ---
+  duration_ms: 1.383333
+  ...
+# Subtest: all five archive formats and uppercase suffixes preserve bytes and normalized MIME
+ok 9 - all five archive formats and uppercase suffixes preserve bytes and normalized MIME
+  ---
+  duration_ms: 11.068375
+  ...
+# Subtest: ZIP requires a consistent central directory and local records, not just magic
+ok 10 - ZIP requires a consistent central directory and local records, not just magic
+  ---
+  duration_ms: 0.585791
+  ...
+# Subtest: ZIP directory budget rejects excessive records before parsing them
+ok 11 - ZIP directory budget rejects excessive records before parsing them
+  ---
+  duration_ms: 0.160792
+  ...
+# Subtest: ZIP supports deflated entries and checks data descriptors without extracting payloads
+ok 12 - ZIP supports deflated entries and checks data descriptors without extracting payloads
+  ---
+  duration_ms: 0.403
+  ...
+# Subtest: Office ZIP content types match the declared Office format
+ok 13 - Office ZIP content types match the declared Office format
+  ---
+  duration_ms: 4.257833
+  ...
+# Subtest: Office content types recognize namespace prefixes and explicit end tags
+ok 14 - Office content types recognize namespace prefixes and explicit end tags
+  ---
+  duration_ms: 1.714667
+  ...
+# Subtest: Office XML supports UTF-16LE and UTF-16BE and validates encoding declarations
+ok 15 - Office XML supports UTF-16LE and UTF-16BE and validates encoding declarations
+  ---
+  duration_ms: 1.517167
+  ...
+# Subtest: Office XML rejects spoofed comments, CDATA, wrong namespaces, DTD and malformed XML
+ok 16 - Office XML rejects spoofed comments, CDATA, wrong namespaces, DTD and malformed XML
+  ---
+  duration_ms: 1.380708
+  ...
+# Subtest: Office XML budgets limit elements, depth, attributes and inflated input
+ok 17 - Office XML budgets limit elements, depth, attributes and inflated input
+  ---
+  duration_ms: 39.603541
+  ...
+# Subtest: Office XML adversarial 1 MiB input terminates within a bounded process deadline
+ok 18 - Office XML adversarial 1 MiB input terminates within a bounded process deadline
+  ---
+  duration_ms: 177.516584
+  ...
+# Subtest: 7z start and next header checksums and bounds are checked
+ok 19 - 7z start and next header checksums and bounds are checked
+  ---
+  duration_ms: 2.5775
+  ...
+# Subtest: TAR accepts POSIX, GNU, V7 and base-256 sizes with valid checksums
+ok 20 - TAR accepts POSIX, GNU, V7 and base-256 sizes with valid checksums
+  ---
+  duration_ms: 165.956125
+  ...
+# Subtest: TAR.GZ recognizes TAR after pax metadata and rejects other gzip content
+ok 21 - TAR.GZ recognizes TAR after pax metadata and rejects other gzip content
+  ---
+  duration_ms: 14.05025
+  ...
+# Subtest: TAR.GZ fails excessive metadata output and gzip header input budgets
+ok 22 - TAR.GZ fails excessive metadata output and gzip header input budgets
+  ---
+  duration_ms: 84.385542
+  ...
+# Subtest: TAR.GZ does not expand an ordinary file payload after format recognition
+ok 23 - TAR.GZ does not expand an ordinary file payload after format recognition
+  ---
+  duration_ms: 5.705958
+  ...
+# Subtest: RAR4 and RAR5 validate main, file, end headers and their checksums
+ok 24 - RAR4 and RAR5 validate main, file, end headers and their checksums
+  ---
+  duration_ms: 0.661541
+  ...
+# Subtest: empty revision has no ZIP, source read, or writer; single attachment always has ZIP
+ok 25 - empty revision has no ZIP, source read, or writer; single attachment always has ZIP
+  ---
+  duration_ms: 18.212625
+  ...
+# Subtest: canonical revision uses ordered metadata/source checksums, not file path, title, clock or provenance
+ok 26 - canonical revision uses ordered metadata/source checksums, not file path, title, clock or provenance
+  ---
+  duration_ms: 4.799875
+  ...
+# Subtest: ten entries retain sort order, duplicate basenames, Unicode, exact bytes and deterministic headers
+ok 27 - ten entries retain sort order, duplicate basenames, Unicode, exact bytes and deterministic headers
+  ---
+  duration_ms: 8.584208
+  ...
+# Subtest: all eleven validated source formats are copied inertly without recompression
+ok 28 - all eleven validated source formats are copied inertly without recompression
+  ---
+  duration_ms: 14.451667
+  ...
+# Subtest: ZIP checksum is identical across process timezone and locale
+ok 29 - ZIP checksum is identical across process timezone and locale
+  ---
+  duration_ms: 414.322375
+  ...
+# Subtest: ZIP at exactly 30,000,000 bytes is accepted; plus one and source-only budgets reject before writer
+ok 30 - ZIP at exactly 30,000,000 bytes is accepted; plus one and source-only budgets reject before writer
+  ---
+  duration_ms: 502.249833
+  ...
+# Subtest: 10 x 10 MiB source set is rejected before reading sources or constructing ZIP
+ok 31 - 10 x 10 MiB source set is rejected before reading sources or constructing ZIP
+  ---
+  duration_ms: 0.459291
+  ...
+# Subtest: count, unsafe entry paths, UTF-8 byte budget and metadata fail closed
+ok 32 - count, unsafe entry paths, UTF-8 byte budget and metadata fail closed
+  ---
+  duration_ms: 0.566667
+  ...
+# Subtest: source drift fails before writer; writer throw/error/truncated result is rejected safely
+ok 33 - source drift fails before writer; writer throw/error/truncated result is rejected safely
+  ---
+  duration_ms: 1.581333
+  ...
+# Subtest: actual writer output cannot exceed 30,000,000 bytes even if the planned input fits
+ok 34 - actual writer output cannot exceed 30,000,000 bytes even if the planned input fits
+  ---
+  duration_ms: 0.395417
+  ...
+# Subtest: push policy accepts only an exact permanent course branch
+ok 35 - push policy accepts only an exact permanent course branch
+  ---
+  duration_ms: 1.198709
+  ...
+# Subtest: pull request policy rejects malformed, mismatched, and incomplete inputs before lineage
+ok 36 - pull request policy rejects malformed, mismatched, and incomplete inputs before lineage
+  ---
+  duration_ms: 0.881625
+  ...
+# Subtest: lineage remains valid when the target advances after branching
+ok 37 - lineage remains valid when the target advances after branching
+  ---
+  duration_ms: 629.712083
+  ...
+# Subtest: lineage rejects a matching name created before the course existed
+ok 38 - lineage rejects a matching name created before the course existed
+  ---
+  duration_ms: 264.449833
+  ...
+# Subtest: lineage rejects another course and malformed historical manifests
+ok 39 - lineage rejects another course and malformed historical manifests
+  ---
+  duration_ms: 567.599875
+  ...
+# Subtest: lineage accepts a contribution after it incorporates the intended target
+ok 40 - lineage accepts a contribution after it incorporates the intended target
+  ---
+  duration_ms: 270.038458
+  ...
+# Subtest: lineage fails closed when required Git history is unavailable
+ok 41 - lineage fails closed when required Git history is unavailable
+  ---
+  duration_ms: 84.349541
+  ...
+# Subtest: media contract accepts exactly 5 MiB and rejects one byte more
+ok 42 - media contract accepts exactly 5 MiB and rejects one byte more
+  ---
+  duration_ms: 1.483042
+  ...
+# Subtest: WebP is rejected by extension and by signature, including renamed files
+ok 43 - WebP is rejected by extension and by signature, including renamed files
+  ---
+  duration_ms: 0.387875
+  ...
+# Subtest: transforms root, basename, aliased, relative, Unicode, and percent-encoded images
+ok 44 - transforms root, basename, aliased, relative, Unicode, and percent-encoded images
+  ---
+  duration_ms: 3.237292
+  ...
+# Subtest: preserves untouched bytes, CRLF, escaped examples, code spans, fences, formulas, and links
+ok 45 - preserves untouched bytes, CRLF, escaped examples, code spans, fences, formulas, and links
+  ---
+  duration_ms: 1.042792
+  ...
+# Subtest: keeps explicit attachment compatibility and supports mixed generated references
+ok 46 - keeps explicit attachment compatibility and supports mixed generated references
+  ---
+  duration_ms: 1.06825
+  ...
+# Subtest: generated key is path-stable and uses the documented path digest
+ok 47 - generated key is path-stable and uses the documented path digest
+  ---
+  duration_ms: 0.228708
+  ...
+# Subtest: rejects ambiguous, escaping, remote, malformed, unsupported, and orphan compatibility targets
+ok 48 - rejects ambiguous, escaping, remote, malformed, unsupported, and orphan compatibility targets
+  ---
+  duration_ms: 0.614
+  ...
+# Subtest: rejects normalized path and generated-explicit key collisions
+ok 49 - rejects normalized path and generated-explicit key collisions
+  ---
+  duration_ms: 0.229916
+  ...
+# Subtest: readiness is default-denied and every required approval is explicit
+ok 50 - readiness is default-denied and every required approval is explicit
+  ---
+  duration_ms: 1.509125
+  ...
+# Subtest: resource evidence binds exact public IDs and effective limits, never API keys
+ok 51 - resource evidence binds exact public IDs and effective limits, never API keys
+  ---
+  duration_ms: 0.767042
+  ...
+# Subtest: source guard uses only fake GETs and detects branch advance on a later fence
+ok 52 - source guard uses only fake GETs and detects branch advance on a later fence
+  ---
+  duration_ms: 24.413083
+  ...
+# Subtest: unapproved entrypoints, wrong checkout and missing concurrency fail before any network read
+ok 53 - unapproved entrypoints, wrong checkout and missing concurrency fail before any network read
+  ---
+  duration_ms: 14.151333
+  ...
+# Subtest: incomplete known-writer inventory, old baseline and denied reads fail closed
+ok 54 - incomplete known-writer inventory, old baseline and denied reads fail closed
+  ---
+  duration_ms: 10.939042
+  ...
+# Subtest: config keeps public values separate and requires the key only for publication
+ok 55 - config keeps public values separate and requires the key only for publication
+  ---
+  duration_ms: 7.402083
+  ...
+# Subtest: canonical plans and content-addressed IDs are deterministic
+ok 56 - canonical plans and content-addressed IDs are deterministic
+  ---
+  duration_ms: 0.157958
+  ...
+# Subtest: content-addressed files survive a path rename when bytes are unchanged
+ok 57 - content-addressed files survive a path rename when bytes are unchanged
+  ---
+  duration_ms: 0.140125
+  ...
+# Subtest: Appwrite pagination includes course materials beyond the first 25 rows
+ok 58 - Appwrite pagination includes course materials beyond the first 25 rows
+  ---
+  duration_ms: 4.245
+  ...
+# Subtest: image signature must match extension and dimensions
+ok 59 - image signature must match extension and dimensions
+  ---
+  duration_ms: 0.794209
+  ...
+# Subtest: download attachment formats are structurally inspected without execution
+ok 60 - download attachment formats are structurally inspected without execution
+  ---
+  duration_ms: 2.322459
+  ...
+# Subtest: validator diagnostics retain a bounded public error type
+ok 61 - validator diagnostics retain a bounded public error type
+  ---
+  duration_ms: 0.075375
+  ...
+# Subtest: secret scanner allows references but rejects literal credentials
+ok 62 - secret scanner allows references but rejects literal credentials
+  ---
+  duration_ms: 0.290875
+  ...
+# Subtest: workflow has the required branch and credential boundaries
+ok 63 - workflow has the required branch and credential boundaries
+  ---
+  duration_ms: 30.956209
+  ...
+# Subtest: publisher reads files from the explicit course root
+ok 64 - publisher reads files from the explicit course root
+  ---
+  duration_ms: 12.496875
+  ...
+# Subtest: publisher uploads the validated transformed Markdown copy without modifying source
+ok 65 - publisher uploads the validated transformed Markdown copy without modifying source
+  ---
+  duration_ms: 5.612834
+  ...
+# Subtest: publisher rejects source drift before contacting Appwrite
+ok 66 - publisher rejects source drift before contacting Appwrite
+  ---
+  duration_ms: 2.983
+  ...
+# Subtest: publisher rejects transformed checksum drift before contacting Appwrite
+ok 67 - publisher rejects transformed checksum drift before contacting Appwrite
+  ---
+  duration_ms: 5.241583
+  ...
+# Subtest: attachment limit parser shares strict default and hard ceiling semantics
+ok 68 - attachment limit parser shares strict default and hard ceiling semantics
+  ---
+  duration_ms: 1.193208
+  ...
+# Subtest: reconciliation reuses stable row and file IDs on same-plan retry
+ok 69 - reconciliation reuses stable row and file IDs on same-plan retry
+  ---
+  duration_ms: 21.066375
+  ...
+# Subtest: public permission ordering exposes file, material, then course
+ok 70 - public permission ordering exposes file, material, then course
+  ---
+  duration_ms: 9.196333
+  ...
+# Subtest: omitted material is archived and diff reports create/update/archive counts
+ok 71 - omitted material is archived and diff reports create/update/archive counts
+  ---
+  duration_ms: 0.435166
+  ...
+# Subtest: locking an omitted material revokes its attachment row and file
+ok 72 - locking an omitted material revokes its attachment row and file
+  ---
+  duration_ms: 0.265375
+  ...
+# Subtest: removing reading declarations nulls references and revokes prior file access
+ok 73 - removing reading declarations nulls references and revokes prior file access
+  ---
+  duration_ms: 0.203208
+  ...
+# Subtest: removing attachment declarations revokes files before mappings and preserves material
+ok 74 - removing attachment declarations revokes files before mappings and preserves material
+  ---
+  duration_ms: 0.240209
+  ...
+# Subtest: partial upload failure remains locked and emits bounded secret-free recovery
+ok 75 - partial upload failure remains locked and emits bounded secret-free recovery
+  ---
+  duration_ms: 10.724709
+  ...
+# Subtest: same-course publications are serialized
+ok 76 - same-course publications are serialized
+  ---
+  duration_ms: 23.862583
+  ...
+# Subtest: generated attachment mappings are idempotent and renamed mappings retire safely
+ok 77 - generated attachment mappings are idempotent and renamed mappings retire safely
+  ---
+  duration_ms: 47.990833
+  ...
+# Subtest: fake publication verifies private complete set, grants files, activates material last, exposes course last
+ok 78 - fake publication verifies private complete set, grants files, activates material last, exposes course last
+  ---
+  duration_ms: 35.106208
+  ...
+# Subtest: retry is idempotent and never deletes old files or retired metadata
+ok 79 - retry is idempotent and never deletes old files or retired metadata
+  ---
+  duration_ms: 17.672667
+  ...
+# Subtest: all old files including omitted materials lose access before any course or material hide
+ok 80 - all old files including omitted materials lose access before any course or material hide
+  ---
+  duration_ms: 9.521917
+  ...
+# Subtest: equal source bytes in different materials have independently revocable IDs
+ok 81 - equal source bytes in different materials have independently revocable IDs
+  ---
+  duration_ms: 8.215125
+  ...
+# Subtest: legacy shared ownership blocks before private uploads or permission changes
+ok 82 - legacy shared ownership blocks before private uploads or permission changes
+  ---
+  duration_ms: 2.004916
+  ...
+# Subtest: failure before active revision cannot announce a partial replacement; current retry repairs it
+ok 83 - failure before active revision cannot announce a partial replacement; current retry repairs it
+  ---
+  duration_ms: 37.817875
+  ...
+# Subtest: stale run cannot mutate after lock or revoke/promote fences, and an old retry cannot overwrite new state
+ok 84 - stale run cannot mutate after lock or revoke/promote fences, and an old retry cannot overwrite new state
+  ---
+  duration_ms: 2.144584
+  ...
+# Subtest: malformed ownership inventory cannot be treated as empty or trigger any mutation
+ok 85 - malformed ownership inventory cannot be treated as empty or trigger any mutation
+  ---
+  duration_ms: 3.616167
+  ...
+# Subtest: private readback mismatch prevents granting files and switching active revision
+ok 86 - private readback mismatch prevents granting files and switching active revision
+  ---
+  duration_ms: 8.43075
+  ...
+# Subtest: unknown acknowledgements after actual mutations retain files and next fresh plan revokes public candidates
+ok 87 - unknown acknowledgements after actual mutations retain files and next fresh plan revokes public candidates
+  ---
+  duration_ms: 19.349791
+  ...
+# Subtest: new dispatcher serializes same-course fake publications and prevents a course-mismatched fence
+ok 88 - new dispatcher serializes same-course fake publications and prevents a course-mismatched fence
+  ---
+  duration_ms: 14.853458
+  ...
+# Subtest: real adapter paths run complete protocol against fake SDK services with no probes or deletes
+ok 89 - real adapter paths run complete protocol against fake SDK services with no probes or deletes
+  ---
+  duration_ms: 8.338458
+  ...
+# Subtest: simultaneous first publications of two courses cannot share revocable Markdown, brief or asset objects
+ok 90 - simultaneous first publications of two courses cannot share revocable Markdown, brief or asset objects
+  ---
+  duration_ms: 2.507959
+  ...
+# Subtest: final verification also rejects public metadata belonging to omitted materials
+ok 91 - final verification also rejects public metadata belonging to omitted materials
+  ---
+  duration_ms: 1.26175
+  ...
+# Subtest: empty draft plan is deterministic and contains no materials
+ok 92 - empty draft plan is deterministic and contains no materials
+  ---
+  duration_ms: 166.522375
+  ...
+# Subtest: equal Markdown, brief and image bytes have material/course/role-scoped identities without source changes
+ok 93 - equal Markdown, brief and image bytes have material/course/role-scoped identities without source changes
+  ---
+  duration_ms: 191.539167
+  ...
+# Subtest: tracked support paths are accepted and excluded from the publication plan
+ok 94 - tracked support paths are accepted and excluded from the publication plan
+  ---
+  duration_ms: 70.274834
+  ...
+# Subtest: metadata-only and concise-only lectures remain valid
+ok 95 - metadata-only and concise-only lectures remain valid
+  ---
+  duration_ms: 66.318834
+  ...
+# Subtest: declared download attachment records deterministic inert metadata
+ok 96 - declared download attachment records deterministic inert metadata
+  ---
+  duration_ms: 61.639334
+  ...
+# Subtest: attachment size override applies only to declared publication inputs
+ok 97 - attachment size override applies only to declared publication inputs
+  ---
+  duration_ms: 59.619542
+  ...
+# Subtest: undeclared resources are reported as dormant and excluded from the plan
+ok 98 - undeclared resources are reported as dormant and excluded from the plan
+  ---
+  duration_ms: 71.622834
+  ...
+# Subtest: dormant Markdown remains secret-scanned without publication parsing
+ok 99 - dormant Markdown remains secret-scanned without publication parsing
+  ---
+  duration_ms: 145.735292
+  ...
+# Subtest: dormant path and byte changes do not affect the publication digest
+ok 100 - dormant path and byte changes do not affect the publication digest
+  ---
+  duration_ms: 105.26575
+  ...
+# Subtest: unknown and tracked source roots remain rejected
+ok 101 - unknown and tracked source roots remain rejected
+  ---
+  duration_ms: 81.670416
+  ...
+# Subtest: all material kinds and effective status combinations normalize in sort order
+ok 102 - all material kinds and effective status combinations normalize in sort order
+  ---
+  duration_ms: 52.934125
+  ...
+# Subtest: attachment references resolve to inspected image metadata
+ok 103 - attachment references resolve to inspected image metadata
+  ---
+  duration_ms: 53.938709
+  ...
+# Subtest: explicit compatibility assets accept tracked Unicode paths with spaces
+ok 104 - explicit compatibility assets accept tracked Unicode paths with spaces
+  ---
+  duration_ms: 58.645291
+  ...
+# Subtest: omitted assets generate a body-free deterministic transformed plan
+ok 105 - omitted assets generate a body-free deterministic transformed plan
+  ---
+  duration_ms: 95.457875
+  ...
+# Subtest: generated key survives image replacement while media identity changes
+ok 106 - generated key survives image replacement while media identity changes
+  ---
+  duration_ms: 73.754458
+  ...
+# Subtest: malformed YAML and branch identity mismatch are rejected
+ok 107 - malformed YAML and branch identity mismatch are rejected
+  ---
+  duration_ms: 101.901333
+  ...
+# Subtest: duplicate identity and missing or unresolved content are rejected
+ok 108 - duplicate identity and missing or unresolved content are rejected
+  ---
+  duration_ms: 198.716834
+  ...
+# Subtest: declared resource paths retain strict validation
+ok 109 - declared resource paths retain strict validation
+  ---
+  duration_ms: 197.030542
+  ...
+# Subtest: unsafe tree, raw HTML, invalid UTF-8, and credentials are rejected
+ok 110 - unsafe tree, raw HTML, invalid UTF-8, and credentials are rejected
+  ---
+  duration_ms: 178.375
+  ...
+# Subtest: declared unreferenced and MIME-mismatched assets are rejected
+ok 111 - declared unreferenced and MIME-mismatched assets are rejected
+  ---
+  duration_ms: 98.75875
+  ...
+# Subtest: unmaterialized Git LFS publication input is rejected explicitly
+ok 112 - unmaterialized Git LFS publication input is rejected explicitly
+  ---
+  duration_ms: 51.299792
+  ...
+# Subtest: all archive formats retain filename, bytes and content address in prepared publication files
+ok 113 - all archive formats retain filename, bytes and content address in prepared publication files
+  ---
+  duration_ms: 61.066875
+  ...
+# Subtest: revision-aware publication is default-denied before adapter construction; legacy plans are unsupported
+ok 114 - revision-aware publication is default-denied before adapter construction; legacy plans are unsupported
+  ---
+  duration_ms: 51.189666
+  ...
+# Subtest: a valid ZIP at exactly 10 MiB is accepted and limit plus one cannot reach Appwrite
+ok 115 - a valid ZIP at exactly 10 MiB is accepted and limit plus one cannot reach Appwrite
+  ---
+  duration_ms: 394.54475
+  ...
+# Subtest: a smaller effective limit is inclusive and malformed configuration fails before tree inspection
+ok 116 - a smaller effective limit is inclusive and malformed configuration fails before tree inspection
+  ---
+  duration_ms: 68.88575
+  ...
+# Subtest: bad archives, standalone gzip and LFS pointers fail before remote mutation
+ok 117 - bad archives, standalone gzip and LFS pointers fail before remote mutation
+  ---
+  duration_ms: 146.91775
+  ...
+# Subtest: undeclared archives remain dormant even when corrupt or larger than the attachment ceiling
+ok 118 - undeclared archives remain dormant even when corrupt or larger than the attachment ceiling
+  ---
+  duration_ms: 109.580208
+  ...
+# Subtest: manifest count 0/1/10 succeeds with consistent revision; count 11 fails the schema
+ok 119 - manifest count 0/1/10 succeeds with consistent revision; count 11 fails the schema
+  ---
+  duration_ms: 220.066833
+  ...
+# Subtest: whole plan fails before remote calls for 10 x 10 MiB and ZIP overhead overflow
+ok 120 - whole plan fails before remote calls for 10 x 10 MiB and ZIP overhead overflow
+  ---
+  duration_ms: 834.287584
+  ...
+# Subtest: preparation rejects changed source size/hash and changed ZIP metadata without remote calls
+ok 121 - preparation rejects changed source size/hash and changed ZIP metadata without remote calls
+  ---
+  duration_ms: 68.386792
+  ...
+# Subtest: unsafe attachment traversal and post-validation symlink escape cannot be prepared
+ok 122 - unsafe attachment traversal and post-validation symlink escape cannot be prepared
+  ---
+  duration_ms: 87.6605
+  ...
+1..122
+# tests 122
+# suites 0
+# pass 122
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4783.195042

@@ -1,0 +1,4 @@
+<forecast xmlns="urn:example:forecast" officeId="42">
+  <visitors>120</visitors>
+  <generatedAt>2026-09-14T09:00:00Z</generatedAt>
+</forecast>

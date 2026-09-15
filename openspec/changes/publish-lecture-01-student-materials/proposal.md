@@ -1,3 +1,5 @@
+> Решение от 14.09.2026: действующий курс имеет единственный профиль ПРБ. Прежние положения о втором направлении, его источниках и профильных вариантах в этом change являются историческими и не подлежат применению. Новая подготовка лекции 2 определяется change `author-lecture-02-prb-http-contracts`; прежние отметки выполнения не заменяют три новых аппрува преподавателя. Остальной применимый scope этого change сохраняется.
+
 ## Why
 
 Lecture 1 is already represented by published metadata and `attachments/lecture_1.pdf`, and a presentation-derived complete student lecture now exists, but neither a complete lecture nor a concise revision note is declared through the publication manifest. Students therefore lack an auditable text path from the introductory architecture narrative to its essential definitions and concepts.

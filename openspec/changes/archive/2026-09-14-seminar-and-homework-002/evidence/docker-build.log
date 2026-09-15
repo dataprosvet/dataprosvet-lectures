@@ -1,0 +1,258 @@
+ Image api-seminar-002-app:1 Building 
+ Image api-seminar-002-tools:1 Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 1.89kB done
+#1 DONE 0.0s
+
+#2 [read-api internal] load build definition from Dockerfile
+#2 transferring dockerfile: 865B done
+#2 DONE 0.0s
+
+#3 [auth] library/python:pull token for registry-1.docker.io
+#3 DONE 0.0s
+
+#4 [read-api internal] load metadata for docker.io/library/python:3.12.14-slim-bookworm
+#4 DONE 2.8s
+
+#5 [tools internal] load .dockerignore
+#5 transferring context: 104B done
+#5 DONE 0.0s
+
+#6 [read-api runtime 1/9] FROM docker.io/library/python:3.12.14-slim-bookworm@sha256:782412e85d0f0984994c290652577d4018aff08145c85b262bb63dc0c7522254
+#6 resolve docker.io/library/python:3.12.14-slim-bookworm@sha256:782412e85d0f0984994c290652577d4018aff08145c85b262bb63dc0c7522254 done
+#6 DONE 0.0s
+
+#7 [read-api runtime 2/9] WORKDIR /app
+#7 CACHED
+
+#8 [read-api internal] load build context
+#8 transferring context: 1.70MB 0.0s done
+#8 DONE 0.1s
+
+#9 [tools internal] load build context
+#9 transferring context: 1.71MB 0.0s done
+#9 DONE 0.1s
+
+#10 [read-api runtime 3/9] COPY requirements-runtime.txt ./
+#10 DONE 0.0s
+
+#11 [read-api runtime 4/9] RUN pip install --no-cache-dir --only-binary=:all: -r requirements-runtime.txt     && groupadd --gid 10001 seminar && useradd --uid 10001 --gid seminar --no-create-home seminar     && mkdir /state && chown seminar:seminar /state
+#11 1.578 Collecting annotated-types==0.8.0 (from -r requirements-runtime.txt (line 1))
+#11 2.270   Downloading annotated_types-0.8.0-py3-none-any.whl.metadata (15 kB)
+#11 2.506 Collecting anyio==4.15.1 (from -r requirements-runtime.txt (line 2))
+#11 2.621   Downloading anyio-4.15.1-py3-none-any.whl.metadata (4.7 kB)
+#11 2.702 Collecting asn1crypto==1.5.1 (from -r requirements-runtime.txt (line 3))
+#11 2.791   Downloading asn1crypto-1.5.1-py2.py3-none-any.whl.metadata (13 kB)
+#11 2.878 Collecting certifi==2026.7.22 (from -r requirements-runtime.txt (line 4))
+#11 2.972   Downloading certifi-2026.7.22-py3-none-any.whl.metadata (2.5 kB)
+#11 3.057 Collecting click==8.5.0 (from -r requirements-runtime.txt (line 5))
+#11 3.231   Downloading click-8.5.0-py3-none-any.whl.metadata (2.6 kB)
+#11 3.412 Collecting fastapi==0.116.1 (from -r requirements-runtime.txt (line 6))
+#11 3.508   Downloading fastapi-0.116.1-py3-none-any.whl.metadata (28 kB)
+#11 3.670 Collecting h11==0.16.0 (from -r requirements-runtime.txt (line 7))
+#11 3.761   Downloading h11-0.16.0-py3-none-any.whl.metadata (8.3 kB)
+#11 3.841 Collecting httpcore==1.0.9 (from -r requirements-runtime.txt (line 8))
+#11 3.933   Downloading httpcore-1.0.9-py3-none-any.whl.metadata (21 kB)
+#11 4.023 Collecting httpx==0.28.1 (from -r requirements-runtime.txt (line 9))
+#11 4.191   Downloading httpx-0.28.1-py3-none-any.whl.metadata (7.1 kB)
+#11 4.268 Collecting idna==3.19 (from -r requirements-runtime.txt (line 10))
+#11 4.359   Downloading idna-3.19-py3-none-any.whl.metadata (9.2 kB)
+#11 4.453 Collecting pg8000==1.31.5 (from -r requirements-runtime.txt (line 11))
+#11 4.545   Downloading pg8000-1.31.5-py3-none-any.whl.metadata (88 kB)
+#11 4.992 Collecting pydantic==2.11.7 (from -r requirements-runtime.txt (line 12))
+#11 5.082   Downloading pydantic-2.11.7-py3-none-any.whl.metadata (67 kB)
+#11 5.842 Collecting pydantic-core==2.33.2 (from -r requirements-runtime.txt (line 13))
+#11 5.935   Downloading pydantic_core-2.33.2-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl.metadata (6.8 kB)
+#11 6.012 Collecting python-dateutil==2.9.0.post0 (from -r requirements-runtime.txt (line 14))
+#11 6.097   Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl.metadata (8.4 kB)
+#11 6.179 Collecting scramp==1.4.17 (from -r requirements-runtime.txt (line 15))
+#11 6.289   Downloading scramp-1.4.17-py3-none-any.whl.metadata (22 kB)
+#11 6.372 Collecting six==1.17.0 (from -r requirements-runtime.txt (line 16))
+#11 6.462   Downloading six-1.17.0-py2.py3-none-any.whl.metadata (1.7 kB)
+#11 6.561 Collecting starlette==0.47.3 (from -r requirements-runtime.txt (line 17))
+#11 6.654   Downloading starlette-0.47.3-py3-none-any.whl.metadata (6.2 kB)
+#11 6.823 Collecting typing-extensions==4.16.0 (from -r requirements-runtime.txt (line 18))
+#11 6.910   Downloading typing_extensions-4.16.0-py3-none-any.whl.metadata (3.3 kB)
+#11 7.013 Collecting typing-inspection==0.4.4 (from -r requirements-runtime.txt (line 19))
+#11 7.103   Downloading typing_inspection-0.4.4-py3-none-any.whl.metadata (2.6 kB)
+#11 7.211 Collecting uvicorn==0.35.0 (from -r requirements-runtime.txt (line 20))
+#11 7.337   Downloading uvicorn-0.35.0-py3-none-any.whl.metadata (6.5 kB)
+#11 7.498 Downloading annotated_types-0.8.0-py3-none-any.whl (13 kB)
+#11 7.587 Downloading anyio-4.15.1-py3-none-any.whl (132 kB)
+#11 7.760 Downloading asn1crypto-1.5.1-py2.py3-none-any.whl (105 kB)
+#11 7.944 Downloading certifi-2026.7.22-py3-none-any.whl (136 kB)
+#11 8.039 Downloading click-8.5.0-py3-none-any.whl (125 kB)
+#11 8.130 Downloading fastapi-0.116.1-py3-none-any.whl (95 kB)
+#11 8.226 Downloading h11-0.16.0-py3-none-any.whl (37 kB)
+#11 8.384 Downloading httpcore-1.0.9-py3-none-any.whl (78 kB)
+#11 8.477 Downloading httpx-0.28.1-py3-none-any.whl (73 kB)
+#11 8.572 Downloading idna-3.19-py3-none-any.whl (68 kB)
+#11 8.669 Downloading pg8000-1.31.5-py3-none-any.whl (57 kB)
+#11 8.761 Downloading pydantic-2.11.7-py3-none-any.whl (444 kB)
+#11 9.005 Downloading pydantic_core-2.33.2-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl (1.9 MB)
+#11 9.114    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.9/1.9 MB 16.2 MB/s eta 0:00:00
+#11 9.207 Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl (229 kB)
+#11 9.307 Downloading scramp-1.4.17-py3-none-any.whl (16 kB)
+#11 9.435 Downloading six-1.17.0-py2.py3-none-any.whl (11 kB)
+#11 9.525 Downloading starlette-0.47.3-py3-none-any.whl (72 kB)
+#11 9.620 Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+#11 9.713 Downloading typing_inspection-0.4.4-py3-none-any.whl (14 kB)
+#11 9.806 Downloading uvicorn-0.35.0-py3-none-any.whl (66 kB)
+#11 9.871 Installing collected packages: asn1crypto, typing-extensions, six, scramp, idna, h11, click, certifi, annotated-types, uvicorn, typing-inspection, python-dateutil, pydantic-core, httpcore, anyio, starlette, pydantic, pg8000, httpx, fastapi
+#11 10.60 Successfully installed annotated-types-0.8.0 anyio-4.15.1 asn1crypto-1.5.1 certifi-2026.7.22 click-8.5.0 fastapi-0.116.1 h11-0.16.0 httpcore-1.0.9 httpx-0.28.1 idna-3.19 pg8000-1.31.5 pydantic-2.11.7 pydantic-core-2.33.2 python-dateutil-2.9.0.post0 scramp-1.4.17 six-1.17.0 starlette-0.47.3 typing-extensions-4.16.0 typing-inspection-0.4.4 uvicorn-0.35.0
+#11 10.60 WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
+#11 DONE 10.7s
+
+#12 [tools runtime 5/9] COPY *.py ./
+#12 DONE 0.0s
+
+#13 [read-api runtime 6/9] COPY web/ web/
+#13 DONE 0.0s
+
+#14 [read-api runtime 7/9] COPY static/ static/
+#14 DONE 0.0s
+
+#15 [read-api runtime 8/9] COPY contracts/ contracts/
+#15 DONE 0.0s
+
+#16 [tools runtime 9/9] COPY openapi-template.yaml ./
+#16 DONE 0.0s
+
+#17 [tools runtime 3/9] COPY requirements-runtime.txt ./
+#17 CACHED
+
+#18 [tools runtime 9/9] COPY openapi-template.yaml ./
+#18 CACHED
+
+#19 [tools runtime 8/9] COPY contracts/ contracts/
+#19 CACHED
+
+#20 [tools runtime 6/9] COPY web/ web/
+#20 CACHED
+
+#21 [tools runtime 4/9] RUN pip install --no-cache-dir --only-binary=:all: -r requirements-runtime.txt     && groupadd --gid 10001 seminar && useradd --uid 10001 --gid seminar --no-create-home seminar     && mkdir /state && chown seminar:seminar /state
+#21 CACHED
+
+#22 [tools runtime 5/9] COPY *.py ./
+#22 CACHED
+
+#23 [tools runtime 7/9] COPY static/ static/
+#23 CACHED
+
+#24 [tools tools 1/4] COPY requirements.txt ./
+#24 DONE 0.0s
+
+#25 [read-api] exporting to image
+#25 exporting layers 0.1s done
+#25 writing image sha256:cc5dd50291e857121c487dc9e0ea87128e40475baa3edffc51c730962e2c337d done
+#25 naming to docker.io/library/api-seminar-002-app:1 done
+#25 DONE 0.1s
+
+#26 [read-api] resolving provenance for metadata file
+#26 DONE 0.0s
+
+#27 [tools tools 2/4] RUN pip install --no-cache-dir --only-binary=:all: -r requirements.txt
+#27 0.995 Requirement already satisfied: annotated-types==0.8.0 in /usr/local/lib/python3.12/site-packages (from -r requirements.txt (line 1)) (0.8.0)
+#27 0.996 Requirement already satisfied: anyio==4.15.1 in /usr/local/lib/python3.12/site-packages (from -r requirements.txt (line 2)) (4.15.1)
+#27 0.996 Requirement already satisfied: asn1crypto==1.5.1 in /usr/local/lib/python3.12/site-packages (from -r requirements.txt (line 3)) (1.5.1)
+#27 1.589 Collecting attrs==26.1.0 (from -r requirements.txt (line 4))
+#27 2.075   Downloading attrs-26.1.0-py3-none-any.whl.metadata (8.8 kB)
+#27 2.083 Requirement already satisfied: certifi==2026.7.22 in /usr/local/lib/python3.12/site-packages (from -r requirements.txt (line 5)) (2026.7.22)
+#27 2.622 Collecting charset-normalizer==3.5.1 (from -r requirements.txt (line 6))
+#27 2.682   Downloading charset_normalizer-3.5.1-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl.metadata (45 kB)
+#27 2.859 Requirement already satisfied: click==8.5.0 in /usr/local/lib/python3.12/site-packages (from -r requirements.txt (line 7)) (8.5.0)
+#27 2.859 Requirement already satisfied: fastapi==0.116.1 in /usr/local/lib/python3.12/site-packages (from -r requirements.txt (line 8)) (0.116.1)
+#27 2.861 Requirement already satisfied: h11==0.16.0 in /usr/local/lib/python3.12/site-packages (from -r requirements.txt (line 9)) (0.16.0)
+#27 2.862 Requirement already satisfied: httpcore==1.0.9 in /usr/local/lib/python3.12/site-packages (from -r requirements.txt (line 10)) (1.0.9)
+#27 2.862 Requirement already satisfied: httpx==0.28.1 in /usr/local/lib/python3.12/site-packages (from -r requirements.txt (line 11)) (0.28.1)
+#27 2.864 Requirement already satisfied: idna==3.19 in /usr/local/lib/python3.12/site-packages (from -r requirements.txt (line 12)) (3.19)
+#27 2.939 Collecting iniconfig==2.3.0 (from -r requirements.txt (line 13))
+#27 3.000   Downloading iniconfig-2.3.0-py3-none-any.whl.metadata (2.5 kB)
+#27 3.101 Collecting jsonschema==4.25.0 (from -r requirements.txt (line 14))
+#27 3.163   Downloading jsonschema-4.25.0-py3-none-any.whl.metadata (7.7 kB)
+#27 3.248 Collecting jsonschema-path==0.3.4 (from -r requirements.txt (line 15))
+#27 3.372   Downloading jsonschema_path-0.3.4-py3-none-any.whl.metadata (4.3 kB)
+#27 3.461 Collecting jsonschema-specifications==2025.9.1 (from -r requirements.txt (line 16))
+#27 3.519   Downloading jsonschema_specifications-2025.9.1-py3-none-any.whl.metadata (2.9 kB)
+#27 3.623 Collecting lazy-object-proxy==1.12.0 (from -r requirements.txt (line 17))
+#27 3.684   Downloading lazy_object_proxy-1.12.0-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl.metadata (5.1 kB)
+#27 3.788 Collecting openapi-schema-validator==0.6.3 (from -r requirements.txt (line 18))
+#27 3.894   Downloading openapi_schema_validator-0.6.3-py3-none-any.whl.metadata (5.4 kB)
+#27 3.975 Collecting openapi-spec-validator==0.7.2 (from -r requirements.txt (line 19))
+#27 4.038   Downloading openapi_spec_validator-0.7.2-py3-none-any.whl.metadata (5.7 kB)
+#27 4.128 Collecting packaging==26.3 (from -r requirements.txt (line 20))
+#27 4.183   Downloading packaging-26.3-py3-none-any.whl.metadata (3.5 kB)
+#27 4.257 Collecting pathable==0.4.4 (from -r requirements.txt (line 21))
+#27 4.318   Downloading pathable-0.4.4-py3-none-any.whl.metadata (1.8 kB)
+#27 4.320 Requirement already satisfied: pg8000==1.31.5 in /usr/local/lib/python3.12/site-packages (from -r requirements.txt (line 22)) (1.31.5)
+#27 4.427 Collecting pluggy==1.6.0 (from -r requirements.txt (line 23))
+#27 4.482   Downloading pluggy-1.6.0-py3-none-any.whl.metadata (4.8 kB)
+#27 4.484 Requirement already satisfied: pydantic==2.11.7 in /usr/local/lib/python3.12/site-packages (from -r requirements.txt (line 24)) (2.11.7)
+#27 4.485 Requirement already satisfied: pydantic_core==2.33.2 in /usr/local/lib/python3.12/site-packages (from -r requirements.txt (line 25)) (2.33.2)
+#27 4.587 Collecting Pygments==2.21.0 (from -r requirements.txt (line 26))
+#27 4.645   Downloading pygments-2.21.0-py3-none-any.whl.metadata (2.5 kB)
+#27 4.776 Collecting pytest==8.4.1 (from -r requirements.txt (line 27))
+#27 4.835   Downloading pytest-8.4.1-py3-none-any.whl.metadata (7.7 kB)
+#27 4.839 Requirement already satisfied: python-dateutil==2.9.0.post0 in /usr/local/lib/python3.12/site-packages (from -r requirements.txt (line 28)) (2.9.0.post0)
+#27 4.993 Collecting PyYAML==6.0.2 (from -r requirements.txt (line 29))
+#27 5.054   Downloading PyYAML-6.0.2-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl.metadata (2.1 kB)
+#27 5.173 Collecting referencing==0.36.2 (from -r requirements.txt (line 30))
+#27 5.228   Downloading referencing-0.36.2-py3-none-any.whl.metadata (2.8 kB)
+#27 5.337 Collecting requests==2.34.2 (from -r requirements.txt (line 31))
+#27 5.467   Downloading requests-2.34.2-py3-none-any.whl.metadata (4.8 kB)
+#27 5.552 Collecting rfc3339-validator==0.1.4 (from -r requirements.txt (line 32))
+#27 5.610   Downloading rfc3339_validator-0.1.4-py2.py3-none-any.whl.metadata (1.5 kB)
+#27 5.954 Collecting rpds-py==2026.6.3 (from -r requirements.txt (line 33))
+#27 6.044   Downloading rpds_py-2026.6.3-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl.metadata (4.1 kB)
+#27 6.045 Requirement already satisfied: scramp==1.4.17 in /usr/local/lib/python3.12/site-packages (from -r requirements.txt (line 34)) (1.4.17)
+#27 6.045 Requirement already satisfied: six==1.17.0 in /usr/local/lib/python3.12/site-packages (from -r requirements.txt (line 35)) (1.17.0)
+#27 6.046 Requirement already satisfied: starlette==0.47.3 in /usr/local/lib/python3.12/site-packages (from -r requirements.txt (line 36)) (0.47.3)
+#27 6.046 Requirement already satisfied: typing-inspection==0.4.4 in /usr/local/lib/python3.12/site-packages (from -r requirements.txt (line 37)) (0.4.4)
+#27 6.046 Requirement already satisfied: typing_extensions==4.16.0 in /usr/local/lib/python3.12/site-packages (from -r requirements.txt (line 38)) (4.16.0)
+#27 6.129 Collecting urllib3==2.7.0 (from -r requirements.txt (line 39))
+#27 6.187   Downloading urllib3-2.7.0-py3-none-any.whl.metadata (6.9 kB)
+#27 6.191 Requirement already satisfied: uvicorn==0.35.0 in /usr/local/lib/python3.12/site-packages (from -r requirements.txt (line 40)) (0.35.0)
+#27 6.306 Downloading attrs-26.1.0-py3-none-any.whl (67 kB)
+#27 6.423 Downloading charset_normalizer-3.5.1-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl (238 kB)
+#27 6.625 Downloading iniconfig-2.3.0-py3-none-any.whl (7.5 kB)
+#27 6.686 Downloading jsonschema-4.25.0-py3-none-any.whl (89 kB)
+#27 6.743 Downloading jsonschema_path-0.3.4-py3-none-any.whl (14 kB)
+#27 6.800 Downloading jsonschema_specifications-2025.9.1-py3-none-any.whl (18 kB)
+#27 6.858 Downloading lazy_object_proxy-1.12.0-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl (71 kB)
+#27 6.918 Downloading openapi_schema_validator-0.6.3-py3-none-any.whl (8.8 kB)
+#27 7.042 Downloading openapi_spec_validator-0.7.2-py3-none-any.whl (39 kB)
+#27 7.106 Downloading packaging-26.3-py3-none-any.whl (129 kB)
+#27 7.169 Downloading pathable-0.4.4-py3-none-any.whl (9.6 kB)
+#27 7.224 Downloading pluggy-1.6.0-py3-none-any.whl (20 kB)
+#27 7.283 Downloading pygments-2.21.0-py3-none-any.whl (1.3 MB)
+#27 7.404    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.3/1.3 MB 8.9 MB/s eta 0:00:00
+#27 7.463 Downloading pytest-8.4.1-py3-none-any.whl (365 kB)
+#27 7.622 Downloading PyYAML-6.0.2-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl (739 kB)
+#27 7.653    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 739.2/739.2 kB 23.8 MB/s eta 0:00:00
+#27 7.708 Downloading referencing-0.36.2-py3-none-any.whl (26 kB)
+#27 7.764 Downloading requests-2.34.2-py3-none-any.whl (73 kB)
+#27 7.820 Downloading rfc3339_validator-0.1.4-py2.py3-none-any.whl (3.5 kB)
+#27 7.877 Downloading rpds_py-2026.6.3-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl (368 kB)
+#27 7.953 Downloading urllib3-2.7.0-py3-none-any.whl (131 kB)
+#27 7.990 Installing collected packages: urllib3, rpds-py, rfc3339-validator, PyYAML, Pygments, pluggy, pathable, packaging, lazy-object-proxy, iniconfig, charset-normalizer, attrs, requests, referencing, pytest, jsonschema-specifications, jsonschema-path, jsonschema, openapi-schema-validator, openapi-spec-validator
+#27 9.003 Successfully installed PyYAML-6.0.2 Pygments-2.21.0 attrs-26.1.0 charset-normalizer-3.5.1 iniconfig-2.3.0 jsonschema-4.25.0 jsonschema-path-0.3.4 jsonschema-specifications-2025.9.1 lazy-object-proxy-1.12.0 openapi-schema-validator-0.6.3 openapi-spec-validator-0.7.2 packaging-26.3 pathable-0.4.4 pluggy-1.6.0 pytest-8.4.1 referencing-0.36.2 requests-2.34.2 rfc3339-validator-0.1.4 rpds-py-2026.6.3 urllib3-2.7.0
+#27 9.003 WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
+#27 DONE 9.1s
+
+#28 [tools tools 3/4] COPY tests/ tests/
+#28 DONE 0.0s
+
+#29 [tools tools 4/4] COPY smoke.py ./
+#29 DONE 0.0s
+
+#30 [tools] exporting to image
+#30 exporting layers
+#30 exporting layers 0.2s done
+#30 writing image sha256:7a237996da192da44bcbeaad9df9f2c30c4796ac40e1d6443341bdc777f7ce68 done
+#30 naming to docker.io/library/api-seminar-002-tools:1 done
+#30 DONE 0.2s
+
+#31 [tools] resolving provenance for metadata file
+#31 DONE 0.0s
+ Image api-seminar-002-app:1 Built 
+ Image api-seminar-002-tools:1 Built 

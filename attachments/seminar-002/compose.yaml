@@ -1,0 +1,82 @@
+name: api-seminar-002
+services:
+  read-api:
+    networks: [services]
+    image: api-seminar-002-app:2
+    build: {context: ., target: runtime}
+    environment:
+      WEB_ORIGIN: http://127.0.0.1:8003
+  bank-offices:
+    networks: [services]
+    image: api-seminar-002-app:2
+    command: [python, -m, uvicorn, "bank_offices:app", --host, 0.0.0.0, --port, "8000"]
+  office-manager:
+    networks: [services]
+    image: api-seminar-002-app:2
+    command: [python, -m, uvicorn, "office_manager:app", --host, 0.0.0.0, --port, "8000"]
+    environment:
+      READ_API_URL: http://traffic:8000
+  web:
+    networks: [services]
+    image: api-seminar-002-app:2
+    command: [python, -m, uvicorn, "web_server:app", --host, 0.0.0.0, --port, "8000"]
+    environment:
+      READ_API_PUBLIC_URL: http://127.0.0.1:8000
+      BANK_OFFICES_PUBLIC_URL: http://127.0.0.1:8001
+      OFFICE_MANAGER_PUBLIC_URL: http://127.0.0.1:8002
+    ports: ["127.0.0.1:8003:8000"]
+  traffic:
+    image: mitmproxy/mitmproxy:12.2.3
+    networks: [services]
+    command:
+      - mitmweb
+      - --mode
+      - reverse:http://read-api:8000@8000
+      - --mode
+      - reverse:http://bank-offices:8000@8001
+      - --mode
+      - reverse:http://office-manager:8000@8002
+      - --listen-host
+      - 0.0.0.0
+      - --web-host
+      - 0.0.0.0
+      - --web-port
+      - "8081"
+      - --set
+      - web_open_browser=false
+      - --set
+      - web_password=${MITMWEB_PASSWORD:-seminar02}
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; [urllib.request.urlopen('http://127.0.0.1:' + str(port) + '/openapi.json', timeout=2).close() for port in (8000, 8001, 8002)]"]
+      interval: 10s
+      timeout: 8s
+      retries: 6
+      start_period: 5s
+    ports:
+      - "127.0.0.1:8000:8000"
+      - "127.0.0.1:8001:8001"
+      - "127.0.0.1:8002:8002"
+      - "127.0.0.1:8081:8081"
+  observer:
+    image: api-seminar-002-app:2
+    networks: [services]
+    command: [python, -m, uvicorn, "observer:app", --host, 0.0.0.0, --port, "8000"]
+    environment:
+      MITMWEB_URL: http://traffic:8081
+      MITMWEB_PASSWORD: ${MITMWEB_PASSWORD:-seminar02}
+      TRAFFIC_URL: http://traffic
+    ports: ["127.0.0.1:8004:8000"]
+  tools:
+    networks: [services]
+    image: api-seminar-002-tools:2
+    build: {context: ., target: tools}
+    environment:
+      READ_API_URL: http://traffic:8000
+      WEB_ORIGIN: http://127.0.0.1:8003
+    profiles: [tools]
+    command: [python, -m, pytest, -q]
+
+# Общая сеть контейнеров: адреса соседей задаются именами сервисов.
+networks:
+  services:
+    driver: bridge

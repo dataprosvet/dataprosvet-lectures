@@ -1,0 +1,6 @@
+ Container api-seminar-002-check-tools-run-34659d7618e9 Creating 
+ Container api-seminar-002-check-tools-run-34659d7618e9 Created 
+OK openapi-template.yaml: OpenAPI 3.1.0, ссылки, 1 примеров
+OK contracts/read-api.json: OpenAPI 3.1.0, ссылки, 13 примеров
+OK contracts/bank-offices.json: OpenAPI 3.1.0, ссылки, 17 примеров
+OK contracts/office-manager.json: OpenAPI 3.1.0, ссылки, 5 примеров

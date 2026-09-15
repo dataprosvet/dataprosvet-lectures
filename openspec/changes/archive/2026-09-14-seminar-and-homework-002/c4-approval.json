@@ -1,0 +1,12 @@
+{
+  "version": "C4-v3, light palette",
+  "approval": "Так-с, диаграммы все согласую. Можешь продолжать реализацию семинара",
+  "sha256": {
+    "lectures-teacher/seminars/diagrams/002-context.mmd": "d1ad53ddb1674ab80dea8d9994f110927214f465173a22c7e2d037868d9295e2",
+    "lectures-teacher/seminars/diagrams/002-context.png": "f7f808817460d72543f370849414f8d54d1cc240f4906dc15f0ef9a9b0241e72",
+    "lectures-teacher/seminars/diagrams/002-context.svg": "c5f9e33ec6c757268476402689d525670a38b164eaad46d60ce925459455bc7a",
+    "lectures-teacher/seminars/diagrams/002-containers.mmd": "29d8d42e9849c3ed310d28de3ef6aa63b92b552cd03249d097c394f6692a0a46",
+    "lectures-teacher/seminars/diagrams/002-containers.png": "e9b4d824770542c10864b1cd8fb07cc38a0aad549f136fc327801a97942112c3",
+    "lectures-teacher/seminars/diagrams/002-containers.svg": "7900156f6129225d43148578a3011605472ae01e6620276b9b471f89fadde068"
+  }
+}

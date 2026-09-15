@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Прогноз потока · учебный пример</title>
+<style>
+body{font:17px/1.5 system-ui,sans-serif;background:#f6f8fc;color:#20334a;max-width:950px;margin:40px auto;padding:0 24px}h1{font-size:30px}section{background:white;border:1px solid #dbe3ed;border-radius:12px;padding:24px;margin-top:22px}button,input,select{font:inherit;padding:8px;border:1px solid #9bb5ca;border-radius:6px}button{background:#dbeafe;cursor:pointer}label{display:inline-block;margin:0 20px 14px 0}pre{font:13px/1.5 ui-monospace,monospace;overflow:auto;max-height:420px;background:#f3f5f8;padding:16px}#status{font-weight:600}.error{color:#9d2525}table{border-collapse:collapse;width:100%}td,th{text-align:left;padding:7px;border-bottom:1px solid #e5e9ef}small{color:#52627a}
+</style>
+<h1>Прогноз клиентского потока</h1><p>Учебный пример: только вымышленные офисы и заранее подготовленные значения.</p>
+<section><form id="query"><label>Офис <input id="office" type="number" min="1" value="42" required></label><label>Горизонт <select id="days"><option value="1">1 день</option><option value="7">7 дней</option></select></label><button>Получить прогноз</button></form><p id="status" role="status" aria-live="polite">Выберите офис и отправьте запрос.</p><div id="summary"></div><details><summary>Запрос и ответ HTTP</summary><pre id="exchange"></pre></details></section>
+<section><h2>Что можно проверить</h2><p>Офис 42 — готовый прогноз. Офис 43 существует, но прогноз пока отсутствует. Офис 999 не существует.</p><p><a href="__READ_API_PUBLIC_URL__/docs">Документация Read API</a> · <a href="__BANK_OFFICES_PUBLIC_URL__/docs">BankOffices</a> · <a href="__OFFICE_MANAGER_PUBLIC_URL__/docs">OfficeManager</a></p><small>Данные за завершённые часы и дата подготовки прогноза — разные сведения.</small></section>
+<script>
+const statusBox=document.getElementById('status'),summary=document.getElementById('summary'),exchange=document.getElementById('exchange');
+document.getElementById('query').addEventListener('submit',async e=>{
+ e.preventDefault();const id=document.getElementById('office').value,days=document.getElementById('days').value;
+ const url=`__READ_API_PUBLIC_URL__/offices/${encodeURIComponent(id)}/forecast?days=${days}`;
+ statusBox.className='';statusBox.textContent='Получаем готовый прогноз…';summary.replaceChildren();
+ try{const response=await fetch(url);const data=await response.json();exchange.textContent=`GET ${url}\nHTTP ${response.status}\nContent-Type: ${response.headers.get('content-type')}\n\n${JSON.stringify(data,null,2)}`;
+ if(!response.ok){statusBox.className='error';statusBox.textContent=`${response.status} · ${data.error.message} (${data.error.code})`;return;}
+ statusBox.textContent=`200 · Прогноз получен${data.stale?' · Исходные данные устарели':''}`;
+ const p=document.createElement('p');p.textContent=`Подготовлен: ${data.generated_at}. Исходные данные: ${data.source_updated_at}. Интервал: ${data.interval_hours} ч. Все значения синтетические.`;summary.append(p);
+ const table=document.createElement('table');table.innerHTML='<thead><tr><th>Начало часа (UTC)</th><th>Посетителей</th></tr></thead>';const body=document.createElement('tbody');
+ for(const point of data.points){const row=document.createElement('tr');for(const value of [point.hour,point.visitors]){const cell=document.createElement('td');cell.textContent=value;row.append(cell);}body.append(row);}table.append(body);summary.append(table);
+ }catch(error){statusBox.className='error';statusBox.textContent='Не удалось связаться с Read API. Проверьте, что демо запущено.';exchange.textContent=String(error);}
+});
+</script></html>

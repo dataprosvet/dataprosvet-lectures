@@ -44,6 +44,10 @@ materials:
           title: "Презентация лекции 2 — HTTP, REST, форматы и OpenAPI"
           file: attachments/002_http-rest-openapi-data-contracts-r3.pptx
           sortOrder: 10
+        - key: lecture2-sources
+          title: "Исходники демки с лекции"
+          file: attachments/seminar2-sources.zip
+          sortOrder: 11
   seminars:
     - slug: service-interaction-architecture
       title: Проектирование взаимодействия сервисов
@@ -61,6 +65,20 @@ materials:
       markdown: seminars/102_architecture-to-http.md
       availability: available
       sortOrder: 102
+      attachments:
+        - key: seminar2-sources
+          title: "Исходники демки с семинара"
+          file: attachments/seminar2-sources.zip
+          sortOrder: 10
+        - key: context-diagram
+          title: "Context Diagram Exmaple(C4v1)"
+          file: attachments/002-context.png
+          sortOrder: 11
+        - key: containers-diagram
+          title: "Containers Diagram Example (C4v2)"
+          file: attachments/002-containers.png
+          sortOrder: 12
+        
   homeworks:
     - slug: team-case-architecture
       title: ДЗ 1. Архитектура командного проекта

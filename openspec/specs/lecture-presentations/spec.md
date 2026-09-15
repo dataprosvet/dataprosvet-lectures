@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Defines instructor-facing lecture presentations that faithfully condense authoritative teacher scripts into readable, source-attributed visual aids while preserving COMMON, PRB, and SII scope boundaries.
+Defines instructor-facing lecture presentations that faithfully condense authoritative teacher scripts into readable, source-attributed visual aids for the sole PRB course profile.
 
 ## Requirements
 
@@ -27,12 +27,12 @@ Every non-title slide SHALL use a short audience-facing title that communicates 
 - **WHEN** a student reads the ordered slide titles without the speaker notes
 - **THEN** the titles form a coherent summary from the opening API question through consumer goals, contract boundaries, architectural and lifecycle consequences, and the final answer
 
-### Requirement: COMMON and profile content remain distinguishable
-The shared conceptual sequence SHALL be marked or otherwise recognizable as `COMMON`. The PRB demand-forecasting slide SHALL remain a PRB-only business-system example involving CRM, forecasting, sales or reference data, BI, and ERP planning. The SII image-analysis slide SHALL remain an SII-only inference example involving a client, image input, preprocessing, a computer-vision model, result metadata, feedback, and model lifecycle. The deck SHALL NOT present either profile's technology or competency requirements as mandatory for the other profile.
+### Requirement: Presentation targets the sole PRB course scope
+The deck SHALL present one coherent PRB narrative. The demand-forecasting slide SHALL remain a business-system example involving CRM, forecasting, sales or reference data, BI, and ERP planning. AI/ML or inference content MAY support that business-system explanation where appropriate. The deck SHALL NOT require selection between profile variants or present another program's technology or competency requirements as mandatory for PRB.
 
-#### Scenario: Instructor prepares one profile cohort
-- **WHEN** the instructor hides the non-matching profile slide before class
-- **THEN** the remaining deck preserves a complete COMMON narrative and includes only the matching profile's normative example
+#### Scenario: Instructor prepares the PRB cohort
+- **WHEN** the instructor prepares the deck for class
+- **THEN** the deck already contains a complete PRB narrative and does not require hiding another profile's slides
 
 ### Requirement: Visuals are relevant, permitted, and attributed
 Every external image or reused figure SHALL have a documented source URL or bibliographic reference and a verified permission basis appropriate for inclusion in the instructor deck. Original diagrams SHALL be clearly distinguishable from reproduced figures and MAY state that they are adapted from named literature. The deck SHALL paraphrase source ideas and SHALL NOT reproduce copyrighted prose or an unlicensed textbook figure merely because it is locally available.
@@ -42,7 +42,7 @@ Every external image or reused figure SHALL have a documented source URL or bibl
 - **THEN** each non-original visual can be traced to its source and permission basis, and each adapted conceptual diagram identifies the underlying literature without copying protected prose
 
 ### Requirement: Speaker notes preserve delivery context
-Slides that correspond to timed explanations, audience questions, mini-interactives, expected answers, demonstrations, or profile selection SHALL include concise speaker notes derived from the teacher script. Speaker notes SHALL keep instructor-only guidance out of the visible student-facing canvas and SHALL identify the relevant lecture block or timing cue where useful.
+Slides that correspond to timed explanations, audience questions, mini-interactives, expected answers, or demonstrations SHALL include concise speaker notes derived from the teacher script. Speaker notes SHALL keep instructor-only guidance out of the visible student-facing canvas and SHALL identify the relevant lecture block or timing cue where useful.
 
 #### Scenario: Instructor presents without opening the Markdown script
 - **WHEN** the instructor uses presenter view
@@ -56,11 +56,11 @@ The completed PowerPoint file SHALL be stored as `attachments/001_api-interface-
 - **THEN** the new deck exists under `attachments/` while the publication allowlist and all existing educational Markdown remain unchanged
 
 ### Requirement: The deck passes visual and structural verification
-The final `.pptx` SHALL open successfully, contain no slide-canvas overflow, use embedded or reliably packaged media, and render consistently enough for classroom projection. Verification SHALL include a full slide render, montage inspection, automated overflow checking, and a second render after any correction. The review SHALL also confirm adequate contrast and that profile distinctions are not communicated by color alone.
+The final `.pptx` SHALL open successfully, contain no slide-canvas overflow, use embedded or reliably packaged media, and render consistently enough for classroom projection. Verification SHALL include a full slide render, montage inspection, automated overflow checking, and a second render after any correction. The review SHALL also confirm adequate contrast and that instructional distinctions are not communicated by color alone.
 
 #### Scenario: Final deck quality gate
 - **WHEN** the implementation workflow renders and inspects the final presentation
-- **THEN** every slide is present, visually balanced, free of clipped content and broken media, and the rendered montage demonstrates consistent alternating compositions and profile labeling
+- **THEN** every slide is present, visually balanced, free of clipped content and broken media, and the rendered montage demonstrates consistent alternating compositions and a coherent PRB narrative
 
 ### Requirement: Visual approval remains separate from technical verification
 A lecture presentation SHALL NOT be considered visually approved solely because it opens, renders, and passes automated overflow checks. The current lecture 1 attachment is explicitly recorded as requiring further instructor-led visual revision before it is treated as the final classroom deck, with composition, image selection, information density, and overall teaching appeal reviewed against instructor feedback.

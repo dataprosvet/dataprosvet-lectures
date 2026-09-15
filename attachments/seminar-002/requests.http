@@ -1,0 +1,26 @@
+### Готовый прогноз: 200
+GET http://127.0.0.1:8000/offices/42/forecast?days=1
+
+### Нет офиса: 404
+GET http://127.0.0.1:8000/offices/999/forecast
+
+### Нет прогноза: 404
+GET http://127.0.0.1:8000/offices/43/forecast
+
+### Неверный горизонт: 422
+GET http://127.0.0.1:8000/offices/42/forecast?days=30
+
+### Мок приёма: 201, повтор также 201
+POST http://127.0.0.1:8001/observations
+Content-Type: application/json
+
+{"office_id":42,"visitors":45}
+
+### Отрицательное число: 422
+POST http://127.0.0.1:8001/observations
+Content-Type: application/json
+
+{"office_id":42,"visitors":-1}
+
+### Через соседний сервис: 200
+GET http://127.0.0.1:8002/offices/42/forecast?days=1

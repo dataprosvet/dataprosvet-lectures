@@ -1,0 +1,57 @@
+{
+  "status": "PASS",
+  "products": {
+    "lectures-teacher/002_http-rest-openapi-data-contracts.md": {
+      "words": 9585,
+      "characters": 76472,
+      "sha256": "6a3be3e226524ac6b986376a5c5eb8f5479d60edb0e880d7f1a36a391bf63cc4"
+    },
+    "lectures/002_http-rest-openapi-data-contracts.md": {
+      "words": 5606,
+      "characters": 45734,
+      "sha256": "1863637f86fe9acc807a6c293186f1e656f042139683667d6f4d3d92ffeb248b"
+    },
+    "lecture-notes/002_http-rest-openapi-data-contracts.md": {
+      "words": 1078,
+      "characters": 8773,
+      "sha256": "28d15df8072852526b8d68890eca8267bfba8ed99bc0e550a528d335e97f0a39"
+    }
+  },
+  "slides": 35,
+  "seconds": 5400,
+  "local_links_checked": 144,
+  "parseable_example_blocks": 25,
+  "protected_baseline_files": 35,
+  "mirror_files": 42,
+  "changed_baseline_files": [
+    "attachments/seminar-002/README.md",
+    "attachments/seminar-002/contracts/bank-offices.json",
+    "attachments/seminar-002/contracts/office-manager.json",
+    "attachments/seminar-002/contracts/read-api.json",
+    "attachments/seminar-002/docs.py",
+    "attachments/seminar-002/openapi-template.yaml",
+    "attachments/seminar-002/requirements.txt",
+    "attachments/seminar-002/static/README.md",
+    "attachments/seminar-002/static/swagger-ui-bundle.js",
+    "attachments/seminar-002/static/swagger-ui.css",
+    "attachments/seminar-002/validate_contract.py",
+    "lectures-teacher/seminars/002_architecture-to-http.md",
+    "lectures-teacher/seminars/seminar02-sources/README.md",
+    "lectures-teacher/seminars/seminar02-sources/contracts/bank-offices.json",
+    "lectures-teacher/seminars/seminar02-sources/contracts/office-manager.json",
+    "lectures-teacher/seminars/seminar02-sources/contracts/read-api.json",
+    "lectures-teacher/seminars/seminar02-sources/docs.py",
+    "lectures-teacher/seminars/seminar02-sources/openapi-template.yaml",
+    "lectures-teacher/seminars/seminar02-sources/requirements.txt",
+    "lectures-teacher/seminars/seminar02-sources/static/README.md",
+    "lectures-teacher/seminars/seminar02-sources/static/swagger-ui-bundle.js",
+    "lectures-teacher/seminars/seminar02-sources/static/swagger-ui.css",
+    "lectures-teacher/seminars/seminar02-sources/validate_contract.py"
+  ],
+  "checks": [
+    "Source attribution beside both HTTP/2 slides",
+    "JSON/XML/CSV representations agree",
+    "Student files contain no internal links or teacher cues",
+    "PPTX/PDF gates preserved"
+  ]
+}

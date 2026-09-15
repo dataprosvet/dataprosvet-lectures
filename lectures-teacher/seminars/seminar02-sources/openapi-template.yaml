@@ -1,0 +1,38 @@
+openapi: 3.2.1
+info:
+  title: 'TODO: API командного проекта'
+  version: 0.1.0
+  description: >-
+    Каркас для проектирования после лекции 2. Замените TODO и заполните paths
+    операциями своего кейса. Пустой каркас валиден, но не является готовой работой.
+servers:
+  - url: http://127.0.0.1:8000
+    description: Планируемый локальный адрес; реализация сервера не требуется.
+paths: {}
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      additionalProperties: false
+      required: [error]
+      properties:
+        error:
+          type: object
+          additionalProperties: false
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              description: Стабильный код для программного клиента.
+            message:
+              type: string
+              description: Понятное описание для человека.
+      examples:
+        - error:
+            code: invalid_request
+            message: Проверьте входные данные.
+# В каждой операции: summary, operationId, параметры и ограничения,
+# requestBody при необходимости, responses для успеха и применимых ошибок.
+# Примеры: content -> application/json -> examples -> имя -> value.
+# Схемы: $ref: '#/components/schemas/Имя'. Все определения в одном файле.
+# Статусы в YAML заключайте в кавычки: '200', '201', '404', ...
