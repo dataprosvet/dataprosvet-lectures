@@ -114,9 +114,9 @@ $$
 Высокая чувствительность теста не означает высокую вероятность гипотезы после положительного результата. На редком классе ложноположительные срабатывания могут преобладать. В терминах классификации:
 
 $$
-\operatorname{Precision}=\frac{TP}{TP+FP},
+\mathrm{Precision}=\frac{TP}{TP+FP},
 \qquad
-\operatorname{Recall}=\frac{TP}{TP+FN}.
+\mathrm{Recall}=\frac{TP}{TP+FN}.
 $$
 
 Апостериорная вероятность класса в конкретной модели — не accuracy модели.
@@ -132,5 +132,5 @@ $$
 
 ## Связанные семинары
 
-- [Семинар № 3. Сложение, умножение и условная вероятность](../seminars/103_theorems-conditional-probability.md)
-- [Семинар № 4. Полная вероятность и Байес](../seminars/104_total-probability-bayes.md)
+- [Семинар № 3. Сложение, умножение и условная вероятность](/courses/probability-theory/seminars/theorems-conditional-probability)
+- [Семинар № 4. Полная вероятность и Байес](/courses/probability-theory/seminars/total-probability-bayes)

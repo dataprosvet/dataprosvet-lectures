@@ -311,13 +311,13 @@ $$
 В диагностической задаче величина $P(H\mid A)$ соответствует доле истинно положительных случаев среди положительных предсказаний, то есть **precision**:
 
 $$
-\operatorname{Precision}=\frac{TP}{TP+FP}.
+\mathrm{Precision}=\frac{TP}{TP+FP}.
 $$
 
 Чувствительность теста соответствует **recall**:
 
 $$
-\operatorname{Recall}=\frac{TP}{TP+FN}.
+\mathrm{Recall}=\frac{TP}{TP+FN}.
 $$
 
 Эти метрики отвечают на разные вопросы и не совпадают с общей долей правильных ответов, то есть accuracy.
@@ -343,7 +343,7 @@ $$
 
 ## Связанные семинары
 
-- [Семинар № 3. Теоремы сложения и умножения, условная вероятность и независимость](../seminars/103_theorems-conditional-probability.md)
-- [Семинар № 4. Формула полной вероятности и формула Байеса](../seminars/104_total-probability-bayes.md)
+- [Семинар № 3. Теоремы сложения и умножения, условная вероятность и независимость](/courses/probability-theory/seminars/theorems-conditional-probability)
+- [Семинар № 4. Формула полной вероятности и формула Байеса](/courses/probability-theory/seminars/total-probability-bayes)
 
 Следующая тема: повторные независимые испытания, формула Бернулли и приближения Пуассона и Лапласа.

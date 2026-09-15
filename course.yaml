@@ -52,10 +52,10 @@ materials:
         Устновка юпитера: https://jupyter.org/install#jupyter-notebook
         
         Где реально применяется алгоритм Power of Two Choices: https://www.haproxy.com/blog/power-of-two-load-balancing
-      sortOrder: 102
+      sortOrder: 202
       lifecycleStatus: published
       availability: available
-      markdown: seminars/102_comb-and-prob-17-25-2.md
+      markdown: seminars/202_comb-and-prob-17-25-2.md
       attachments:
         - { key: jupyter-notebook, title: "Симуляция PoTC", file: attachments/002-seminar-probability-simulation.ipynb, sortOrder: 1 }
         - { key: notes-s2, title: "Конспект семинара", file: attachments/pt-s2.pdf, sortOrder: 2 }
