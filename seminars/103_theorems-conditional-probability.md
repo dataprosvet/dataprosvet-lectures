@@ -13,8 +13,10 @@ $$
 При $P(A)>0$:
 
 $$
-P(B\mid A)=\frac{P(A\cap B)}{P(A)},
-\qquad
+P(B\mid A)=\frac{P(A\cap B)}{P(A)}.
+$$
+
+$$
 P(A\cap B)=P(A)P(B\mid A).
 $$
 

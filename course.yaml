@@ -33,6 +33,8 @@ materials:
       sortOrder: 2
       markdown: lectures/002_probability-theorems-bayes.md
       briefMarkdown: lecture-notes/002_probability-theorems-bayes.md
+      attachments:
+        - { key: slides-lecture2, title: "Презентация Лекция 2", file: attachments/slides-lecture2.pptx, sortOrder: 1 }
   seminars:
     - slug: combinatorics-and-probabilit
       title: Комбинаторика и определения вероятности

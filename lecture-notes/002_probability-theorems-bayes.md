@@ -60,10 +60,14 @@ $$
 Гипотезы $H_1,\ldots,H_n$ должны быть попарно несовместны и исчерпывать все случаи:
 
 $$
-H_i\cap H_j=\varnothing\ (i\ne j),
-\qquad
-\bigcup_{i=1}^{n}H_i=\Omega,
-\qquad
+H_i\cap H_j=\varnothing\quad(i\ne j).
+$$
+
+$$
+\bigcup_{i=1}^{n}H_i=\Omega.
+$$
+
+$$
 \sum_{i=1}^{n}P(H_i)=1.
 $$
 
@@ -79,8 +83,13 @@ $$
 
 $$
 P(H_i\mid A)=
-\frac{P(H_i)P(A\mid H_i)}{P(A)}
-=
+\frac{P(H_i)P(A\mid H_i)}{P(A)}.
+$$
+
+После подстановки формулы полной вероятности:
+
+$$
+P(H_i\mid A)=
 \frac{P(H_i)P(A\mid H_i)}
 {\sum_{j=1}^{n}P(H_j)P(A\mid H_j)}.
 $$
