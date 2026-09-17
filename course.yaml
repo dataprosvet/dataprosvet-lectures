@@ -70,8 +70,8 @@ materials:
       lifecycleStatus: published
       availability: available
       markdown: seminars/203_theorems-conditional-probability-17-25-2.md
-      attachments:
-        - { key: jupyter-notebook, title: "Риск отказа серверов", file: attachments/203-server-failure-risk-17-25-2.ipynb, sortOrder: 1 }
+#       attachments:
+#         - { key: jupyter-notebook, title: "Риск отказа серверов", file: attachments/203-server-failure-risk-17-25-2.ipynb, sortOrder: 1 }
     - slug: total-probability-bayes-17-25-2
       title: "#4 [17-25-2] Формула полной вероятности. Формула Байеса"
       summary: >-
