@@ -31,11 +31,19 @@ materials:
       attachments:
         - { key: slides, title: Слайды, file: attachments/001_what-is-os.pptx, sortOrder: 1 }
     - slug: processes-and-threads
-      title: Процессы и потоки — введение
-      summary: Процессы и потоки — введение
+      title: Процессы и потоки
+      summary: >-
+        Абстракция процесса и псевдопараллелизм, fork/execve, три состояния
+        и UNIX-модель (user/kernel running, ready, asleep, swapped, preempted,
+        zombie), PCB и обработка прерываний, CPU utilization 1−pⁿ, потоки,
+        dispatcher/worker и ловушки multithreading.
       lifecycleStatus: published
-      availability: inDevelopment
+      availability: available
       sortOrder: 2
+      markdown: lectures/002_processes-and-threads.md
+      briefMarkdown: lecture-notes/002_processes-and-threads.md
+      attachments:
+        - { key: slides, title: Слайды, file: attachments/002_processes-and-threads.pptx, sortOrder: 1 }
     - slug: ipc-synchronization-deadlocks
       title: IPC, синхронизация и deadlocks
       summary: IPC, синхронизация и deadlocks
@@ -85,4 +93,16 @@ materials:
       markdown: seminars/101_week-01-tutorial.md
       attachments:
         - { key: slides, title: Слайды, file: attachments/101_week-01-tutorial.pptx, sortOrder: 1 }
+    - slug: lab-01-unix-shell
+      title: Лабораторная №1. UNIX shell и язык C
+      summary: >-
+        Практика: UNIX shell, stdin/stdout/stderr, конвейеры, файловая
+        система, foreground/background, shell-скрипт и Hello World на C
+        (ex1.txt, ex2.txt, ex3.sh, main.c, ex4).
+      lifecycleStatus: published
+      availability: available
+      sortOrder: 102
+      markdown: seminars/102_lab-01-unix-shell.md
+      attachments:
+        - { key: slides, title: Слайды, file: attachments/102_lab-01-unix-shell.pptx, sortOrder: 1 }
   homeworks: []
