@@ -7,10 +7,24 @@
 ## Краткий рекап: формулы
 
 Для событий $A$ и $B$, если $P(A)>0$ и $P(B)>0$:
-$$P(A\mid B)=\frac{P(A\cap B)}{P(B)},\qquad P(A\cap B)=P(B\mid A)P(A).$$
+
+$$
+P(A\mid B)=\frac{P(A\cap B)}{P(B)}.
+$$
+
+$$
+P(A\cap B)=P(B\mid A)P(A).
+$$
 
 Если $H_1,\ldots,H_k$ — полная группа попарно несовместных гипотез, $P(H_i)>0$ и $P(E)>0$, то:
-$$P(E)=\sum_{j=1}^{k}P(E\mid H_j)P(H_j),\qquad P(H_i\mid E)=\frac{P(E\mid H_i)P(H_i)}{\sum_{j=1}^{k}P(E\mid H_j)P(H_j)}.$$
+
+$$
+P(E)=\sum_{j=1}^{k}P(E\mid H_j)P(H_j).
+$$
+
+$$
+P(H_i\mid E)=\frac{P(E\mid H_i)P(H_i)}{\sum_{j=1}^{k}P(E\mid H_j)P(H_j)}.
+$$
 
 Для диагностического теста: чувствительность $=P(+\mid D)$, специфичность $=P(-\mid\overline D)$.
 
