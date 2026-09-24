@@ -75,11 +75,12 @@ materials:
     - slug: total-probability-bayes-17-25-2
       title: "#4 [17-25-2] Формула полной вероятности. Формула Байеса"
       summary: >-
-        Полная вероятность, формула Байеса, условное умножение
-        и геометрические вероятностные модели на задачах методички.
+        Практика применения формулы полной вероятности и теоремы Байеса:
+        семь аудиторных задач и тринадцать задач для самостоятельной работы.
       sortOrder: 204
       lifecycleStatus: published
-      availability: temporarilyUnavailable
+      availability: available
+      markdown: seminars/204_total-probability-bayes-17-25-2.md
     - slug: combinations-and-permutations-with-repetitions
       title: Классическая, статистическая и геометрическая вероятность
       summary: Практика по классической, статистической и геометрической вероятности.
