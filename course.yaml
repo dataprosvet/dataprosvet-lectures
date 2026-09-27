@@ -66,6 +66,17 @@ materials:
           title: "Исходники демки с семинара"
           file: attachments/seminar2-sources.zip
           sortOrder: 10
+    - slug: api-interaction
+      title: Взаимодействие с REST API
+      summary: >-
+        На практике будем взаимодействовать с различными REST API сервисами, разебермся, как взаимодействовать с ними через утилиту cURL и через Postman/Insomnia.
+        Также на семинаре будет возможность получить дополнительные баллы за проведение нагрузочного тестирования одного из API.
+        
+        Защита ДЗ№1 и ДЗ№2
+      lifecycleStatus: published
+      availability: available
+      markdown: seminars/103_api-interaction.md
+      sortOrder: 103
   homeworks:
     - slug: team-case-architecture
       title: ДЗ 1. Архитектура командного проекта
