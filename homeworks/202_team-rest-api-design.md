@@ -71,7 +71,7 @@
 
 ```text
 contracts/
-  <service-name>/
+  < service-name >/
     openapi.yaml
 ```
 
@@ -92,7 +92,7 @@ architecture/
   container.png
 api-design.md
 contracts/
-  <api-name>/openapi.yaml
+  < api-name >/openapi.yaml
 ```
 
 Это минимальная структура: все дополнительные файлы из ДЗ 1 тоже должны остаться в ветке. Если в архитектуре используется несколько REST API, добавьте отдельный каталог и `openapi.yaml` для каждого из них — как внутреннего, так и внешнего.
