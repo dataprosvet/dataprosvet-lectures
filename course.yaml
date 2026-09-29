@@ -47,7 +47,7 @@ materials:
     - slug: api-styles-enterprise-integration
       title: Архитектурные стили API и паттерны корпоративной интеграции
       summary: >-
-        Рассмотрим различные стили API: REST, gRPC, Websocket, Event-driven, разберем, в каких случаях применятся тот или иной стиль.
+        Рассмотрим различные стили API. REST, gRPC, Websocket, Event-driven, разберем, в каких случаях применятся тот или иной стиль.
       lifecycleStatus: published
       availability: available
       sortOrder: 3
@@ -58,7 +58,7 @@ materials:
           title: "Презентация Лекции 3"
           file: attachments/lecture_3.pdf
           sortOrder: 10
- seminars:
+  seminars:
     - slug: service-interaction-architecture
       title: Проектирование взаимодействия сервисов
       summary: >-

@@ -96,6 +96,29 @@ function options(adapter, fixture, onFence = () => {}) {
 const publish = (adapter, fixture, onFence) => publishRevisionPlan(fixture.plan, options(adapter, fixture, onFence));
 const mutateEvents = (events) => events.filter((event) => ['create-or-reuse-file', 'file-permission', 'row-permission', 'row-upsert', 'archive-row'].includes(event.type));
 
+test('an old Git plan targeting TEST cannot perform any provider mutation', async () => {
+  const fixture = await fixturePlan();
+  for (const endpoint of ['https://test.appwrite.dataprosvet.ru/v1', 'https://TEST.APPWRITE.DATAPROSVET.RU:443/v1/', 'https://test.appwrite.dataprosvet.ru./v1']) {
+    const adapter = memoryAdapter();
+    adapter.config = { ...config, APPWRITE_ENDPOINT: endpoint };
+    const candidate = options(adapter, fixture);
+    candidate.readiness.resourceDigest = publicationResourceDigest(adapter.config);
+    await assert.rejects(() => publishRevisionPlan(fixture.plan, candidate), (error) => error.code === 'PUBLICATION_TARGET_FENCED');
+    assert.equal(mutateEvents(adapter.state.events).length, 0);
+    assert.equal(adapter.state.files.size, 0);
+    assert.ok(Object.values(adapter.state.tables).every((table) => table.size === 0));
+  }
+});
+
+test('the TEST target fence is rechecked immediately before provider writes', async () => {
+  const fixture = await fixturePlan();
+  const adapter = memoryAdapter();
+  await assert.rejects(() => publish(adapter, fixture, (stage) => {
+    if (stage === 'upload-private-files') adapter.config = { ...config, APPWRITE_ENDPOINT: 'https://test.appwrite.dataprosvet.ru/v1' };
+  }), (error) => error.code === 'PUBLICATION_TARGET_FENCED');
+  assert.equal(mutateEvents(adapter.state.events).length, 0);
+});
+
 test('fake publication verifies private complete set, grants files, activates material last, exposes course last', async () => {
   const adapter = memoryAdapter(); const fixture = await fixturePlan();
   await publish(adapter, fixture);
