@@ -96,6 +96,48 @@ test('lineage accepts a contribution after it incorporates the intended target',
   assert.equal(pullRequest(root, headSha, baseSha), 'courses/probability-theory');
 });
 
+const validManifest = 'slug: probability-theory\nmaterials:\n  lectures: []\n  seminars: []\n';
+const misindentedManifest = 'slug: probability-theory\nmaterials:\n  lectures: []\n seminars: []\n';
+
+test('lineage permits repairing indentation in the current target with established course identity', async () => {
+  const root = await repository();
+  git(root, 'switch', '-qc', 'courses/probability-theory');
+  await commit(root, 'course.yaml', validManifest, 'valid course');
+  const baseSha = await commit(root, 'course.yaml', misindentedManifest, 'indentation regression');
+  git(root, 'switch', '-qc', 'course/probability-theory/lecture-fixes');
+  const headSha = await commit(root, 'course.yaml', validManifest, 'repair indentation');
+  assert.equal(pullRequest(root, headSha, baseSha), 'courses/probability-theory');
+});
+
+test('indentation repair fails closed for ambiguous identity, unrelated history, and an invalid repaired manifest', async () => {
+  const cases = [
+    { previous: null, broken: misindentedManifest, repaired: validManifest },
+    { previous: ': invalid: [', broken: misindentedManifest, repaired: validManifest },
+    { previous: 'slug: linear-algebra\n', broken: misindentedManifest, repaired: validManifest },
+    { previous: validManifest, broken: misindentedManifest.replace('probability-theory', 'linear-algebra'), repaired: validManifest },
+    { previous: validManifest, broken: `${misindentedManifest}slug: probability-theory\n`, repaired: validManifest },
+    { previous: validManifest, broken: 'slug: probability-theory\nmaterials: [', repaired: validManifest },
+    { previous: validManifest, broken: misindentedManifest, repaired: misindentedManifest },
+    { previous: validManifest, broken: misindentedManifest, repaired: 'slug: linear-algebra\n' },
+    { previous: validManifest, broken: misindentedManifest, repaired: validManifest, advance: true },
+  ];
+  for (const scenario of cases) {
+    const root = await repository();
+    git(root, 'switch', '-qc', 'courses/probability-theory');
+    if (scenario.previous !== null) await commit(root, 'course.yaml', scenario.previous, 'previous manifest');
+    let baseSha = await commit(root, 'course.yaml', scenario.broken, 'broken manifest');
+    git(root, 'switch', '-qc', 'course/probability-theory/lecture-fixes');
+    const headSha = scenario.repaired === scenario.broken
+      ? await commit(root, 'notice.md', 'manifest still broken\n', 'candidate without repair')
+      : await commit(root, 'course.yaml', scenario.repaired, 'candidate repair');
+    if (scenario.advance) {
+      git(root, 'switch', '-q', 'courses/probability-theory');
+      baseSha = await commit(root, 'notice.md', 'target advanced\n', 'advance target');
+    }
+    assert.throws(() => pullRequest(root, headSha, baseSha), (error) => error.code === 'COURSE_LINEAGE_INVALID', JSON.stringify(scenario));
+  }
+});
+
 test('lineage fails closed when required Git history is unavailable', async () => {
   const root = await repository();
   assert.throws(() => pullRequest(root, 'a'.repeat(40), 'b'.repeat(40)), (error) => error.code === 'COURSE_LINEAGE_INVALID');
