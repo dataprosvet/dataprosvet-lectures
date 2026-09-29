@@ -138,3 +138,5 @@ gh pr create --base courses/data-engineering --title "Sync master"
 ```
 
 При конфликтах сохраните контент курса и актуальные общие файлы из `master`. Перед merge дождитесь `validate`, после merge проверьте `deploy`.
+
+If the current course commit has a YAML indentation error, a repair PR can still establish course lineage. The merge base must be the current target commit, its first parent must contain a valid manifest for the same course, and the PR must contain a valid repaired manifest with the same unambiguous slug. Only indentation corrections may make the historical document parseable; other malformed values, missing history, and course identity changes remain rejected. Normal manifest validation and required CI checks still apply before merge.
