@@ -32,6 +32,33 @@ function git(root, args) {
   }
 }
 
+function isCurrentIndentationRepair({ root, head, base, mergeBase, source, expectedSlug }) {
+  if (mergeBase !== base) return false;
+  try {
+    const document = YAML.parseDocument(source, { prettyErrors: false });
+    if (!document.errors.length || document.errors.some((error) => error.code !== 'BAD_INDENT')) return false;
+    if (!YAML.isMap(document.contents)) return false;
+    const slugEntries = document.contents.items.filter((item) => YAML.isScalar(item.key) && item.key.value === 'slug');
+    if (slugEntries.length !== 1 || document.get('slug') !== expectedSlug) return false;
+    // A repair cannot establish a new course identity from malformed history.
+    const parent = git(root, ['rev-parse', `${mergeBase}^1`]);
+    const previous = YAML.parse(git(root, ['show', `${parent}:course.yaml`]), { prettyErrors: false });
+    const repairedSource = git(root, ['show', `${head}:course.yaml`]);
+    const repaired = YAML.parse(repairedSource, { prettyErrors: false });
+    const historicalLines = source.split(/\r?\n/);
+    const repairedLines = repairedSource.split(/\r?\n/);
+    if (historicalLines.length !== repairedLines.length) return false;
+    // Prove that indentation alone repairs the historical document. Other
+    // candidate edits cannot hide a malformed value or ambiguous identity.
+    const correctedSource = historicalLines.map((line, index) =>
+      line.trimStart() === repairedLines[index].trimStart() ? repairedLines[index] : line).join('\n');
+    const corrected = YAML.parse(correctedSource, { prettyErrors: false });
+    return previous?.slug === expectedSlug && repaired?.slug === expectedSlug && corrected?.slug === expectedSlug;
+  } catch {
+    return false;
+  }
+}
+
 export function verifyCourseLineage({ root, headSha, baseSha, expectedSlug }) {
   const head = revision(headSha, 'head');
   const base = revision(baseSha, 'base');
@@ -42,6 +69,7 @@ export function verifyCourseLineage({ root, headSha, baseSha, expectedSlug }) {
   try {
     manifest = YAML.parse(source, { prettyErrors: false });
   } catch {
+    if (isCurrentIndentationRepair({ root, head, base, mergeBase, source, expectedSlug })) return;
     fail('COURSE_LINEAGE_INVALID', 'Contribution merge-base course manifest must be valid YAML');
   }
   if (!manifest || typeof manifest !== 'object' || manifest.slug !== expectedSlug) {
