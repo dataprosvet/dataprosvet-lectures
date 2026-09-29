@@ -2,6 +2,7 @@ import { canonicalJson, checksum, effectivePublic } from './models.js';
 import { fail, PublisherError } from './errors.js';
 import { assertPublicationReadiness, assertResourceApproval } from './publication-readiness.js';
 import { createSourceGuard } from './source-guard.js';
+import { assertGitPublicationTarget } from './publication-target.js';
 import { MATERIAL_KINDS } from './constants.js';
 
 export function assertFields(actual, expected, label) {
@@ -64,6 +65,7 @@ export async function publishRevisionPlan(input, { adapter, adapterFactory, read
     stage = 'source-fence'; await guard.assertCurrent(stage);
     adapter ??= adapterFactory({ env, requireBundles: true });
     const config = adapter.config;
+    assertGitPublicationTarget(config);
     assertResourceApproval(readiness, config);
     if (plan.maxAttachmentBytes !== config.COURSE_ATTACHMENT_MAX_BYTES) fail('PUBLICATION_PLAN_INVALID', 'Validated and configured attachment limits differ');
     stage = 'read-only-preflight'; await adapter.preflight(plan);
@@ -90,7 +92,7 @@ export async function publishRevisionPlan(input, { adapter, adapterFactory, read
     const affectedOwners = new Set(previousMaterials.map((row) => row.$id));
     const revoked = new Map([...oldRefs.filter((file) => affectedOwners.has(file.owner)), ...files].map((file) => [identity(file), file]));
     for (const file of revoked.values()) if (owners.get(identity(file))?.size !== 1) fail('PUBLICATION_OWNERSHIP_AMBIGUOUS', 'A file has multiple material owners; reviewed migration is required before any writes');
-    const mutate = async (nextStage, action) => { stage = nextStage; await guard.assertCurrent(stage); return action(); };
+    const mutate = async (nextStage, action) => { stage = nextStage; await guard.assertCurrent(stage); assertGitPublicationTarget(adapter.config); return action(); };
     stage = 'upload-private-files';
     for (const file of files) {
       await mutate('upload-private-files', () => adapter.putFile(file.bucket, file.id, file.bytes, file.name, false));
