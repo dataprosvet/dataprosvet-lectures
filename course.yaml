@@ -58,7 +58,7 @@ materials:
           title: "Презентация Лекции 3"
           file: attachments/lecture_3.pdf
           sortOrder: 10
- seminars:
+  seminars:
     - slug: service-interaction-architecture
       title: Проектирование взаимодействия сервисов
       summary: >-
