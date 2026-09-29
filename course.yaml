@@ -44,6 +44,20 @@ materials:
           title: "Презентация лекции 2 — HTTP, REST, форматы и OpenAPI"
           file: attachments/002_http-rest-openapi-data-contracts-r3.pptx
           sortOrder: 10
+    - slug: api-styles-enterprise-integration
+      title: Архитектурные стили API и паттерны корпоративной интеграции
+      summary: >-
+        Рассмотрим различные стили API: REST, gRPC, Websocket, Event-driven, разберем, в каких случаях применятся тот или иной стиль.
+      lifecycleStatus: published
+      availability: available
+      sortOrder: 3
+      markdown: lectures/003_api-styles-enterprise-integration.md
+      briefMarkdown: lecture-notes/003_api-styles-enterprise-integration.md
+      attachments:
+        - key: slides-lecture-2
+          title: "Презентация Лекции 3"
+          file: attachments/lecture_3.pdf
+          sortOrder: 10
   seminars:
     - slug: service-interaction-architecture
       title: Проектирование взаимодействия сервисов
